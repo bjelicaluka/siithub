@@ -7,7 +7,7 @@ assignees: ''
 
 ---
 
-**Is your feature part of a bigger task/epic? If yes, which one?**
+**Is your feature part of a bigger picture? If yes, which one?**
 Ex. yes, an example of the epic[...]
 
 **Describe the overall flow of the feature from the user's perspective**
