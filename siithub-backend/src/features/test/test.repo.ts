@@ -1,16 +1,14 @@
+import { BaseEntity, BaseRepoFactory } from "../../db/base.repo.utils";
+
+const collectionName = "test";
+
 export type Test = {
-  id: string;
   name: string;
-};
-
-// TODO: implement base repo util
-type MongoDbConnectionType = {};
-
-async function getTest(connection: MongoDbConnectionType): Promise<Test> {
-  return new Promise((r) => r({ id: "1", name: "ASD" }));
-}
+} & BaseEntity;
+export type TestCreate = Omit<Test, "_id">;
+export type TestUpdate = Partial<Test>;
 
 const testRepo = {
-  getTest,
+  crud: BaseRepoFactory<Test, TestCreate, TestUpdate>(collectionName),
 };
 export { testRepo };
