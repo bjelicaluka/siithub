@@ -1,29 +1,15 @@
 import { testRepo, type Test } from "./test.repo";
 
-// TODO: Implement connection pool handler
-type MongoDbConnectionType = {
-  close: () => Promise<void>;
-};
-const Pool = {
-  async connection<T>(
-    cb: (connection: MongoDbConnectionType) => Promise<T>
-  ): Promise<T> {
-    const connection: MongoDbConnectionType = {
-      close() {
-        return new Promise((r) => r());
-      },
-    };
-    const result = await cb(connection);
-    connection.close();
-    return result;
-  },
-};
-
-async function getTestForSomething(id: string): Promise<Test> {
-  return Pool.connection<Test>((connection) => testRepo.getTest(connection));
+async function getTest(id: string): Promise<Test | null> {
+  const result = await testRepo.crud.findOne(id);
+  if (!result) {
+    // throw 404 error
+  }
+  return result;
 }
 
 const testService = {
-  getTestForSomething,
+  getTest,
 };
+
 export { testService };
