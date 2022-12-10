@@ -1,14 +1,13 @@
-import express, { Express, Request, Response } from "express";
-import dotenv from "dotenv";
+import express, { Express } from "express";
 import { apiRoutes } from "./api.routes";
-
-dotenv.config();
+import { config } from "./config";
+import { getConnection } from "./db/mongo.utils";
 
 const app: Express = express();
-const port = process.env.PORT;
 
 app.use(apiRoutes);
 
-app.listen(port, () => {
-  console.log(`⚡️[server]: Server is running at https://localhost:${port}`);
+app.listen(config.port, () => {
+  getConnection();
+  console.log(`⚡️[server]: Server is running at https://localhost:${config.port}`);
 });
