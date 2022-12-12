@@ -3,6 +3,6 @@ import { testRoutes } from "./features/test/test.routes";
 
 const router = Router();
 
-router.use(testRoutes);
+router.use("/test", testRoutes);
 
 export { router as apiRoutes };

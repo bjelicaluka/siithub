@@ -5,7 +5,7 @@ import { getConnection } from "./db/mongo.utils";
 
 const app: Express = express();
 
-app.use(apiRoutes);
+app.use("/api", apiRoutes);
 
 app.listen(config.port, () => {
   getConnection();

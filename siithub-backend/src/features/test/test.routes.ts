@@ -8,7 +8,7 @@ const getTestParamsSchema = z.object({
   id: z.string().min(1, "ID is required."),
 });
 
-router.get("/test/:id", async (req: Request, res: Response) => {
+router.get("/:id", async (req: Request, res: Response) => {
   const params = getTestParamsSchema.parse(req.params);
 
   res.send(await testService.getTest(params.id));
