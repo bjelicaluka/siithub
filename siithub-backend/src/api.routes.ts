@@ -5,6 +5,6 @@ import { userRoutes } from "./features/user/user.routes";
 const router = Router();
 
 router.use("/test", testRoutes);
-router.use("/user", userRoutes);
+router.use("/users", userRoutes);
 
 export { router as apiRoutes };
