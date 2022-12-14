@@ -37,8 +37,3 @@ export {
   createUserBodySchema,
   router as userRoutes
 };
-
-/*
-- Validacija
-- Unit tests validacije
-*/

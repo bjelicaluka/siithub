@@ -14,8 +14,8 @@ export type BaseRepo<
   findMany(filter?: Filter<T>): Promise<T[]>;
   findManyCursor(filter: Filter<T>): Promise<FindCursor<T>>;
   add(entity: TCreate): Promise<T | null>;
-  update(id: T["_id"], entity: TUpdate): Promise<T | null>;
-  delete(id: T["_id"]): Promise<T | null>;
+  update(id: T["_id"] | string, entity: TUpdate): Promise<T | null>;
+  delete(id: T["_id"] | string): Promise<T | null>;
 };
 
 export const BaseRepoFactory = <
