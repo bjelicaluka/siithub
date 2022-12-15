@@ -3,8 +3,15 @@ import { userService } from "./user.service";
 import { z } from "zod";
 import { ALPHANUMERIC_REGEX, LOWER_CASE_REGEX, NUMERIC_REGEX, SPECIAL_CHARACTERS_REGEX, UPPER_CASE_REGEX } from "../../patterns";
 import 'express-async-errors';
+import { ObjectId } from "mongodb";
 
 const router = Router();
+
+router.get("/:id", async (req: Request, res: Response) => {
+  const id = req.params['id'];
+  
+  res.send(await userService.findOneOrThrow(new ObjectId(id)));
+});
 
 const createUserBodySchema = z.object({
   username: z.string()

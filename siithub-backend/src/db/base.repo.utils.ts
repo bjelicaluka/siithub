@@ -10,7 +10,7 @@ export type BaseRepo<
   TCreate extends Document = Omit<T, "_id">,
   TUpdate extends Document = Partial<Omit<T, "_id">>
 > = {
-  findOne(id: T["_id"]): Promise<T | null>;
+  findOne(id: T["_id"] | string): Promise<T | null>;
   findMany(filter?: Filter<T>): Promise<T[]>;
   findManyCursor(filter: Filter<T>): Promise<FindCursor<T>>;
   add(entity: TCreate): Promise<T | null>;

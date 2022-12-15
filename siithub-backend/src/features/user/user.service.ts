@@ -1,8 +1,17 @@
-import { DuplicateException } from "../../error-handling/errors";
+import { DuplicateException, MissingEntityException } from "../../error-handling/errors";
 import { UserType, type User, type UserCreate } from "./user.model";
 import { userRepo } from "./user.repo";
 import { clearPropertiesOfResultWrapper } from "../../utils/wrappers";
 import { getRandomString, getSha256Hash } from "../../utils/crypto";
+
+async function findOneOrThrow(id: User['_id'] | string): Promise<User> {
+  const existingUser = await userRepo.crud.findOne(id);
+  if (!existingUser) {
+    throw new MissingEntityException("User with given id does not exist.");
+  }
+
+  return existingUser as User;
+}
 
 async function findByUsername(username: string): Promise<User | null> {
   return userRepo.findByUsername(username);
@@ -33,11 +42,13 @@ async function createUser(user: UserCreate): Promise<User | null> {
 }
 
 export type UserService = {
+  findOneOrThrow(id: User['_id'] | string): Promise<User>,
   findByUsername(username: string): Promise<User | null>,
   create(user: UserCreate): Promise<User | null>
 }
 
 const userService: UserService = {
+  findOneOrThrow,
   findByUsername,
   create: removePassword(createUser)
 }
