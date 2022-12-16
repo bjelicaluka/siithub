@@ -3,6 +3,7 @@ import { type User, type UserCreate } from "./user.model";
 import { userRepo } from "./user.repo";
 import { clearPropertiesOfResultWrapper } from "../../utils/wrappers";
 import { getRandomString, getSha256Hash } from "../../utils/crypto";
+import { gitServerClient } from "../gitserver/gitserver.client";
 
 function removePassword(f: any) {
   return clearPropertiesOfResultWrapper(f, 'password', 'passwordAccount');
@@ -21,9 +22,11 @@ async function createUser(user: UserCreate): Promise<User | null> {
   if (userWithSameUsername) {
     throw new DuplicateException("Username is already taken.", user);
   }
-  
+
   user.passwordAccount = getHashedPassword(user.password)
   console.log(user.passwordAccount);
+
+  await gitServerClient.create(user.username);
 
   return await userRepo.crud.add(user);
 }
