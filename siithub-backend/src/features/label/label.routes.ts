@@ -5,6 +5,7 @@ import { ALPHANUMERIC_REGEX, COLOR_REGEX } from "../../patterns";
 import { Label } from "./label.model";
 import { labelService } from "./label.service";
 import 'express-async-errors';
+import { labelHasToBelongToRepo } from "./label.middlewares";
 
 const router = Router();
 
@@ -31,7 +32,7 @@ router.get('/:repositoryId/labels/search', async (req: Request, res: Response) =
   }
 });
 
-router.get('/:repositoryId/labels/:id', async (req: Request, res: Response) => {
+router.get('/:repositoryId/labels/:id', labelHasToBelongToRepo, async (req: Request, res: Response) => {
   const id = new ObjectId(req.params.id);
   res.send(await labelService.findOneOrThrow(id));
 });
@@ -50,7 +51,7 @@ router.post('/:repositoryId/labels', async (req: Request, res: Response) => {
   res.send(await labelService.create(label));
 });
 
-router.put('/:repositoryId/labels/:id', async (req:Request, res: Response) => {
+router.put('/:repositoryId/labels/:id', labelHasToBelongToRepo, async (req: Request, res: Response) => {
   const updateLabel = updateLabelBodySchema.safeParse(req.body);
 
   if (!updateLabel.success) {
@@ -65,7 +66,7 @@ router.put('/:repositoryId/labels/:id', async (req:Request, res: Response) => {
   res.send(await labelService.update(label));
 });
 
-router.delete('/:repositoryId/labels/:id', async (req:Request, res: Response) => {
+router.delete('/:repositoryId/labels/:id', labelHasToBelongToRepo, async (req: Request, res: Response) => {
   const id = new ObjectId(req.params.id) as any;
   res.send(await labelService.delete(id));
 });
