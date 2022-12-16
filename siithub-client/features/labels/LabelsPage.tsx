@@ -1,4 +1,4 @@
-import { FC, useEffect, useState } from "react"
+import { type FC, useEffect, useState } from "react"
 import { Button } from "../../core/components/Button";
 import { ResultStatus, useResult } from "../../core/contexts/Result";
 import { LabelForm } from "./LabelForm"

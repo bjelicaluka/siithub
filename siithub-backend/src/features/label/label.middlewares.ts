@@ -4,8 +4,8 @@ import { labelService } from "./label.service";
 import { ForbiddenException } from "../../error-handling/errors";
 
 async function labelHasToBelongToRepo(req: Request, _: Response, next: NextFunction) {
-  const id = new ObjectId(req.params.id) as any;
-  const repositoryId = req.params.repositoryId as any;
+  const id = new ObjectId(req.params.id);
+  const repositoryId = req.params.repositoryId;
 
   const label = await labelService.findOne(id);
   if (label?.repositoryId !== repositoryId) {

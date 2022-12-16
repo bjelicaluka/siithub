@@ -7,7 +7,6 @@ describe("LabelSeeder", () => {
 
   let seeder : LabelSeeder;
  
-
   beforeEach(async () => {
     const { labelSeeder } = await import("../../../src/features/label/label.seeder")
     seeder = labelSeeder;

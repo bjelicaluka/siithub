@@ -1,8 +1,8 @@
-import { FC } from "react";
+import { type FC } from "react";
 import { useNotifications } from "../../core/hooks/useNotifications";
 import { ResultStatus, useResult } from "../../core/contexts/Result";
 import { useAction } from "../../core/hooks/useAction";
-import { createLabelFor, CreateLabel, labelBodySchema, Label, updateLabelFor, UpdateLabel } from "./labelActions";
+import { createLabelFor, type CreateLabel, labelBodySchema, type Label, updateLabelFor, type UpdateLabel } from "./labelActions";
 import { extractErrorMessage } from "../../core/utils/errors";
 import { useZodValidatedFrom } from "../../core/hooks/useZodValidatedForm";
 import { InputField } from "../../core/components/InputField";

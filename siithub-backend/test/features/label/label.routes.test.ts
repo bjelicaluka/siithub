@@ -1,5 +1,6 @@
 import { describe, expect, it } from "@jest/globals";
 import { labelBodySchema } from "../../../src/features/label/label.routes"
+
 describe("LabelRoutes", () => {
 
   describe("labelBodySchema", () => {
@@ -9,7 +10,7 @@ describe("LabelRoutes", () => {
       color: "d4c5f9"
     }
 
-    it("invalid because name is too short", () => {
+    it("should be invalid because name is too short", () => {
       const invalidCreateLabel = {
         ...validCreateLabel,
         name: "na"
@@ -25,7 +26,7 @@ describe("LabelRoutes", () => {
       }));
     });
 
-    it("invalid beacuse name contains non-alphanumeric characters", () => {
+    it("should be invalid beacuse name contains non-alphanumeric characters", () => {
       const invalidCreateLabel = {
         ...validCreateLabel,
         name: "na$#"

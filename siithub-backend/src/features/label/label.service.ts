@@ -1,5 +1,5 @@
 import { DuplicateException, MissingEntityException } from "../../error-handling/errors";
-import { Label, LabelCreate, LabelUpdate } from "./label.model";
+import type { Label, LabelCreate, LabelUpdate } from "./label.model";
 import { labelRepo } from "./label.repo";
 
 async function findOne(id: Label["_id"] | string): Promise<Label | null> {
@@ -50,7 +50,7 @@ async function updateLabel(label: LabelUpdate): Promise<Label | null> {
   return await labelRepo.crud.update(label._id, existingLabel);
 }
 
-async function deleteLabel(id: string): Promise<Label | null> {
+async function deleteLabel(id: Label['_id'] | string): Promise<Label | null> {
   const existingLabel = await findOneOrThrow(id);
 
   return await labelRepo.crud.delete(existingLabel._id);
@@ -60,7 +60,7 @@ export type LabelService = {
   create(label: LabelCreate): Promise<Label | null>,
   update(label: LabelUpdate): Promise<Label | null>,
   delete(id: Label['_id'] | string): Promise<Label | null>,
-  findOne(id: Label['_id'] | string): Promise<Label |null>,
+  findOne(id: Label['_id'] | string): Promise<Label | null>,
   findOneOrThrow(id: Label["_id"] | string): Promise<Label>,
   findByRepositoryId(repositoryId: string): Promise<Label[]>,
   findByNameAndRepositoryId(name: string, repositoryId: string): Promise<Label | null>,

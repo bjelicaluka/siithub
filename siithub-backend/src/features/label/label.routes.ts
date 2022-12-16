@@ -1,8 +1,8 @@
-import { Request, Response, Router } from "express";
+import { type Request, type Response, Router } from "express";
 import { ObjectId } from "mongodb";
 import { z } from "zod";
 import { ALPHANUMERIC_REGEX, COLOR_REGEX } from "../../patterns";
-import { Label } from "./label.model";
+import { type Label } from "./label.model";
 import { labelService } from "./label.service";
 import 'express-async-errors';
 import { labelHasToBelongToRepo } from "./label.middlewares";
@@ -15,7 +15,6 @@ const labelBodySchema = z.object({
     .regex(ALPHANUMERIC_REGEX, "Name should contain only alphanumeric characters."),
   description: z.string().default(""),
   color: z.string()
-    .min(6, "Color should have 6 hexadecimal numbers.")
     .regex(COLOR_REGEX, "Color should contain only hexadecimal numbers."),
 });
 
@@ -46,7 +45,7 @@ router.post('/:repositoryId/labels', async (req: Request, res: Response) => {
   } 
 
   const label = createLabel.data as Label;
-  label.repositoryId = (new ObjectId(req.params.repositoryId)).toString();
+  label.repositoryId = req.params.repositoryId;
 
   res.send(await labelService.create(label));
 });
@@ -60,14 +59,14 @@ router.put('/:repositoryId/labels/:id', labelHasToBelongToRepo, async (req: Requ
   } 
 
   const label = updateLabel.data as Label;
-  label._id = new ObjectId(req.params.id) as any;
-  label.repositoryId = req.params.repositoryId as any;
+  label._id = new ObjectId(req.params.id);
+  label.repositoryId = req.params.repositoryId;
 
   res.send(await labelService.update(label));
 });
 
 router.delete('/:repositoryId/labels/:id', labelHasToBelongToRepo, async (req: Request, res: Response) => {
-  const id = new ObjectId(req.params.id) as any;
+  const id = new ObjectId(req.params.id);
   res.send(await labelService.delete(id));
 });
 

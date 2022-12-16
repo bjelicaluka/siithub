@@ -8,7 +8,6 @@ const labelBodySchema = z.object({
     .regex(ALPHANUMERIC_REGEX, "Name should contain only alphanumeric characters."),
   description: z.string().default(""),
   color: z.string()
-    .min(6, "Color should have 6 hexadecimal numbers.")
     .regex(COLOR_REGEX, "Color should contain only hexadecimal numbers."),
 });
 

@@ -1,7 +1,7 @@
 import { describe, expect, it, beforeEach, beforeAll } from "@jest/globals";
 import { setupTestEnv } from "../../jest-hooks.utils";
 import { type LabelService } from "../../../src/features/label/label.service";
-import { Label } from "../../../src/features/label/label.model";
+import { type Label } from "../../../src/features/label/label.model";
 
 describe("LabelService", () => {
   setupTestEnv("LabelService");
