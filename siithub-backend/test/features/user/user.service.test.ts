@@ -12,6 +12,27 @@ describe("UserService", () => {
     service = userService;
   });
 
+  describe("findOneOrThrow", () => {
+    it("should throw MissingEntityException because user does not exist", async () => {
+      const id = "nonExistingId";
+
+      const findOneOrThrow = async () => await service.findOneOrThrow(id);
+      await expect(findOneOrThrow).rejects.toThrowError("User with given id does not exist.");
+    });
+
+    it("should return user", async () => {
+      const added = await service.create({ username: 'existingUsernameId' } as any);
+
+      expect(added).not.toBeNull();
+      expect(added).toHaveProperty("_id");
+      if (!added) return;
+
+      const found = await service.findOneOrThrow(added._id);
+      expect(found).not.toBeNull();
+      expect(found._id + '').toBe(added._id + '');
+    });
+  });
+
   describe("create", () => {
 
     it("should throw DuplicateException because username is taken", async () => {

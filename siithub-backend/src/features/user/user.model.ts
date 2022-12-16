@@ -23,5 +23,5 @@ export type User = {
   passwordAccount?: PasswordAccount,
   githubAccount?: GithubAccount
 } & BaseEntity;
-export type UserCreate = Omit<User, "_id" | "type"> & { password: string };
+export type UserCreate = Omit<User, "_id" | "type"> & { type?: UserType, password: string };
 export type UserUpdate = Partial<User>;

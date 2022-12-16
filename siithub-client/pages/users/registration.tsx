@@ -1,3 +1,4 @@
+import { AuthUserType } from "../../core/contexts/Auth";
 import { RegistrationPage } from "../../features/users/registration/RegistrationPage";
 
 const Registration = () => {
@@ -12,5 +13,8 @@ const Registration = () => {
     </>
   );
 };
+
+Registration.requireAuth = true;
+Registration.allowedRoles = [AuthUserType.Developer];
 
 export default Registration;
