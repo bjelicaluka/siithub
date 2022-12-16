@@ -1,4 +1,5 @@
-import express, { Express, Request, Response } from "express";
+import express from "express";
+import type { Express, Request, Response } from "express";
 import { config } from "./config";
 import { createUser } from "./user.utils";
 
@@ -6,7 +7,7 @@ const app: Express = express();
 
 app.use(express.json());
 
-app.post("/api/create-user", async(req: Request, res: Response) => {
+app.post("/api/user", async(req: Request, res: Response) => {
   const { username } = req.body;
   await createUser(username);
 

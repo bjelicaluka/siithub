@@ -1,4 +1,4 @@
-import { Response } from 'express';
+import type { Response } from 'express';
 import * as errors from './errors';
 import { HandableError } from './errors';
 

@@ -1,17 +1,17 @@
 import axios from "axios";
 
-async function create(username: string): Promise<any> {
+async function createUser(username: string): Promise<any> {
 
   const gitServerUrl = process.env.GITSERVER_HOST + ':' + process.env.GITSERVER_PORT;
-  return await axios.post(`${gitServerUrl}/api/create-user`, { username });
+  return await axios.post(`${gitServerUrl}/api/user`, { username });
 }
 
 export type GitServerClient = {
-  create(username: string): Promise<any>
+  createUser(username: string): Promise<any>
 }
 
 const gitServerClient: GitServerClient = {
-  create
+  createUser
 }
 
 export { gitServerClient };
