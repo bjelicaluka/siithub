@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeEach, beforeAll } from "@jest/globals";
+import { describe, expect, it, beforeEach } from "@jest/globals";
 import { setupTestEnv } from "../../jest-hooks.utils";
 import { type UserService } from "../../../src/features/user/user.service";
 
@@ -48,10 +48,24 @@ describe("UserService", () => {
 
     });
 
+    it("should throw DuplicateException because github username is taken", async () => {
+      const username = "existingGithubUsername";
+      const added = await service.create({ username, githubUsername: username } as any);
+
+      expect(added).not.toBeNull();
+      expect(added).toHaveProperty("_id");
+      if (!added) return;
+
+      const createDuplicate = async () => service.create({ username: "nonExistingUsername", githubUsername: username, password: "Test" } as any);
+      await expect(createDuplicate).rejects.toThrowError("Github username is already taken.");
+
+    });
+
     it("should create a new user", async () => {
       const createdUser = await service.create({
         username: "test",
         password: "T3stP@assword",
+        githubUsername: "test",
         name: "Test",
         email: "test@siithub.com",
         bio: "Some random text"
@@ -63,6 +77,8 @@ describe("UserService", () => {
       expect(createdUser?.passwordAccount?.salt).not.toBeNull();
       expect(createdUser?.passwordAccount?.passwordHash).not.toBeNull();
       expect(createdUser?.passwordAccount?.passwordHash).not.toBe("testPassword");
+      expect(createdUser?.githubAccount).not.toBeNull;
+      expect(createdUser?.githubAccount?.username).toBe("test");
     });
   });
 })
