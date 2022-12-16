@@ -1,7 +1,7 @@
 import { describe, expect, it, beforeEach } from "@jest/globals";
 import { setupTestEnv } from "../../jest-hooks.utils";
 import { type AuthService } from "../../../src/features/auth/auth.service";
-import { type User, UserCreate, UserType } from "../../../src/features/user/user.model";
+import { type User, type UserCreate, UserType } from "../../../src/features/user/user.model";
 import { parseJWT } from "../../../src/utils/jwt";
 
 describe("AuthService", () => {

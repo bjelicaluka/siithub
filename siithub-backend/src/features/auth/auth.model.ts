@@ -1,4 +1,4 @@
-import { User } from "../user/user.model"
+import { type User } from "../user/user.model"
 
 export type Credentials = {
   username: string,

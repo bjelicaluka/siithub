@@ -1,5 +1,5 @@
+import { type FC } from "react";
 import Link from "next/link";
-import { FC } from "react";
 import { AuthForm } from "./AuthForm";
 
 export const AuthenticatePage: FC = () => {

@@ -1,4 +1,5 @@
-import { Request, Response, Router } from "express";
+import { Router } from "express";
+import type { Request, Response } from "express";
 import { z } from "zod";
 import { authService } from "./auth.service";
 import 'express-async-errors';

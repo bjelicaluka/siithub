@@ -1,6 +1,6 @@
 import axios from "axios";
 import * as z from "zod";
-import { AuthUser } from "../../core/contexts/Auth";
+import { type AuthUser } from "../../core/contexts/Auth";
 
 const credentialsSchema = z.object({
   username: z.string()

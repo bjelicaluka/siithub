@@ -1,15 +1,15 @@
+import { type FC } from "react";
 import "../styles/globals.css";
 import type { AppProps } from "next/app";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { ToastContainer, type ToastContainerProps } from "react-toastify";
 import { ResultContextProvider } from "../core/contexts/Result";
 import Head from "next/head";
-import { AuthContext } from "../core/contexts/Auth";
+import { AuthContextProvider } from "../core/contexts/Auth";
 import { useIsAuthorized } from "../core/hooks/useIsAuthorized";
 import ErrorPage from 'next/error'
 
 import "react-toastify/dist/ReactToastify.css";
-import { FC } from "react";
 
 const toastrOptions: ToastContainerProps = {
   position: "top-center",
@@ -50,9 +50,9 @@ export default function App({ Component, pageProps }: AppProps) {
 
       <QueryClientProvider client={queryClient}>
         <ResultContextProvider>
-          <AuthContext>
+          <AuthContextProvider>
             <AuthComponentWrapper Component={Component} pageProps={pageProps} />
-          </AuthContext>
+          </AuthContextProvider>
         </ResultContextProvider>
       </QueryClientProvider>
 

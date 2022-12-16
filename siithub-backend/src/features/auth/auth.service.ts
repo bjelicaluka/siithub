@@ -17,8 +17,8 @@ async function authenticate(credentials: Credentials): Promise<AuthenticatedUser
   if (!userWithSameUsername) {
     throw new AuthenticationException("The combination of username and password does not match any existing account.");
   }
-  const passwordHash = getSha256Hash(password + userWithSameUsername.passwordAccount?.salt);
 
+  const passwordHash = getSha256Hash(password + userWithSameUsername.passwordAccount?.salt);
   if (passwordHash !== userWithSameUsername.passwordAccount?.passwordHash) {
     throw new AuthenticationException("The combination of username and password does not match any existing account.");
   }

@@ -1,6 +1,5 @@
 import type { Response } from 'express';
 import * as errors from './errors';
-import { HandableError } from './errors';
 
 export type ErrorResponse = {
   statusCode: number;
@@ -32,7 +31,7 @@ export class ErrorHandler {
     const errorResponse = {
       statusCode: ErrorNameCode[e.name] || ErrorNameCode[Error.name],
       message: e.message,
-      payload: (e as HandableError).payload || null
+      payload: (e as errors.HandableError).payload || null
     };
     
     this.sendErrorResponse(errorResponse)

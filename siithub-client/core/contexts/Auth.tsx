@@ -1,5 +1,5 @@
 import axios from "axios"
-import { createContext, FC, PropsWithChildren, useContext, useEffect, useReducer } from "react"
+import { createContext, type FC, type PropsWithChildren, useContext, useEffect, useReducer } from "react"
 import { setAxiosInterceptors } from "../utils/axios"
 import { getToken, getUserIdFromToken, removeToken, setToken } from "../utils/token"
 
@@ -27,7 +27,7 @@ const initialAuthContextValues = {
   authDispatcher: () => {}
 };
 
-const _authContext = createContext<AuthContextType>(initialAuthContextValues);
+const AuthContext = createContext<AuthContextType>(initialAuthContextValues);
 
 
 type ActionType = {
@@ -71,11 +71,11 @@ export function onLogout() {
   };
 }
 
-export const useAuthContext = () => useContext(_authContext);
+export const useAuthContext = () => useContext(AuthContext);
 
 let _authDispatcher: any = null;
 
-export const AuthContext: FC<PropsWithChildren> = ({ children }) => {
+export const AuthContextProvider: FC<PropsWithChildren> = ({ children }) => {
 
   const [user, authDispatcher] = useReducer<any>(authReducer, undefined);
   const isAuthenticated = !!user;
@@ -93,9 +93,9 @@ export const AuthContext: FC<PropsWithChildren> = ({ children }) => {
   }, []);
 
   return (
-    <_authContext.Provider value={{ user: user as AuthUser, isAuthenticated, authDispatcher }}>
+    <AuthContext.Provider value={{ user: user as AuthUser, isAuthenticated, authDispatcher }}>
       {children}
-    </_authContext.Provider>
+    </AuthContext.Provider>
 
   );
 }

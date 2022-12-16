@@ -1,5 +1,5 @@
 
-import { FC } from "react";
+import { type FC } from "react";
 import { Button } from "../../core/components/Button";
 import { InputField } from "../../core/components/InputField";
 import { onLogin, useAuthContext } from "../../core/contexts/Auth";

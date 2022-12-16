@@ -1,4 +1,4 @@
-import { BaseEntity } from "../../db/base.repo.utils";
+import { type BaseEntity } from "../../db/base.repo.utils";
 
 export enum UserType {
   Developer,

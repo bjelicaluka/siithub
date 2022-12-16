@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { type FC } from "react";
 import { AuthUserType } from "../contexts/Auth";
 import { useIsAuthorized } from "../hooks/useIsAuthorized";
 

@@ -1,10 +1,10 @@
-import { NextFunction, Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import { ForbiddenException } from "../../error-handling/errors";
 import { parseJWT } from "../../utils/jwt";
 import { type UserType } from "../user/user.model";
 
 function authorize(...types: UserType[]) {
-  return async function(req: Request, res: Response, next: NextFunction) {
+  return async function(req: Request, _: Response, next: NextFunction) {
     const autorization = req.headers['authorization'] || '';  
     const token = autorization && autorization.split(' ')[1];
     if (!token) {
