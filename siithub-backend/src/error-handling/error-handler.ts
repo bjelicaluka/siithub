@@ -1,6 +1,5 @@
 import type { Response } from 'express';
 import * as errors from './errors';
-import { HandableError } from './errors';
 
 export type ErrorResponse = {
   statusCode: number;
@@ -10,7 +9,7 @@ export type ErrorResponse = {
 const ErrorNameCode = {
   [errors.BadLogicException.name]: 400,
   [errors.AuthenticationException.name]: 401,
-  [errors.ForbiddenException.name]: 402,
+  [errors.ForbiddenException.name]: 403,
   [errors.MissingEntityException.name]: 404,
   [errors.DuplicateException.name]: 409,
   [Error.name]: 500,
@@ -32,7 +31,7 @@ export class ErrorHandler {
     const errorResponse = {
       statusCode: ErrorNameCode[e.name] || ErrorNameCode[Error.name],
       message: e.message,
-      payload: (e as HandableError).payload || null
+      payload: (e as errors.HandableError).payload || null
     };
     
     this.sendErrorResponse(errorResponse)
