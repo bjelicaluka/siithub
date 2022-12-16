@@ -13,7 +13,7 @@ describe("UserRoutes", () => {
       bio: "Some random text"
     };
 
-    it("Inavalid because username is too short", () => {
+    it("should be invalid because username is too short", () => {
       const invalidCreateUser = {
         ...validCreateUser,
         username: "te"
@@ -28,7 +28,7 @@ describe("UserRoutes", () => {
       }));
     })
 
-    it("Inavalid because username contains some non-alphanumeric characters", () => {
+    it("should be invalid because username contains some non-alphanumeric characters", () => {
       const invalidCreateUser = {
         ...validCreateUser,
         username: "te$t."
@@ -43,7 +43,7 @@ describe("UserRoutes", () => {
       }));
     })
 
-    it("Inavalid because password is too short", () => {
+    it("should be invalid because password is too short", () => {
       const invalidCreateUser = {
         ...validCreateUser,
         password: "T3stP@a"
@@ -58,7 +58,7 @@ describe("UserRoutes", () => {
       }));
     })
 
-    it("Inavalid because password does not contain some capital letter", () => {
+    it("should be invalid because password does not contain some capital letter", () => {
       const invalidCreateUser = {
         ...validCreateUser,
         password: "t3stp@assword"
@@ -73,7 +73,7 @@ describe("UserRoutes", () => {
       }));
     })
 
-    it("Inavalid because password does not contain some lower letter", () => {
+    it("should be invalid because password does not contain some lower letter", () => {
       const invalidCreateUser = {
         ...validCreateUser,
         password: "T3STP@ASSWORD"
@@ -88,7 +88,7 @@ describe("UserRoutes", () => {
       }));
     })
 
-    it("Inavalid because password does not contain some number", () => {
+    it("should be invalid because password does not contain some number", () => {
       const invalidCreateUser = {
         ...validCreateUser,
         password: "TestP@assword"
@@ -103,7 +103,7 @@ describe("UserRoutes", () => {
       }));
     })
 
-    it("Inavalid because password does not contain some special character", () => {
+    it("should be invalid because password does not contain some special character", () => {
       const invalidCreateUser = {
         ...validCreateUser,
         password: "T3stPaassword"
@@ -118,7 +118,7 @@ describe("UserRoutes", () => {
       }));
     })
 
-    it("Inavalid because name is not provided", () => {
+    it("should be invalid because name is not provided", () => {
       const invalidCreateUser = {
         ...validCreateUser,
         name: ""
@@ -133,7 +133,7 @@ describe("UserRoutes", () => {
       }));
     })
 
-    it("Inavalid because email is not valid", () => {
+    it("should be invalid because email is not valid", () => {
       const invalidCreateUser = {
         ...validCreateUser,
         email: "test@siithub"
@@ -148,7 +148,7 @@ describe("UserRoutes", () => {
       }));
     })
 
-    it("Valid", () => {
+    it("should be valid", () => {
       const parseResult = createUserBodySchema.safeParse(validCreateUser);
 
       expect(parseResult.success).toBeTruthy();

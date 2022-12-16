@@ -1,4 +1,5 @@
-import { Request, Response, Router } from "express";
+import { Router } from "express";
+import type { Request, Response } from "express";
 import { userService } from "./user.service";
 import { z } from "zod";
 import { ALPHANUMERIC_REGEX, LOWER_CASE_REGEX, NUMERIC_REGEX, SPECIAL_CHARACTERS_REGEX, UPPER_CASE_REGEX } from "../../patterns";

@@ -1,5 +1,5 @@
 import { useMutation } from "react-query";
-import { AxiosError, AxiosPromise, AxiosResponse } from "axios";
+import type { AxiosError, AxiosPromise, AxiosResponse } from "axios";
 
 const useAction = <TIn = any, TOut = any, TError = any>(
   callableF: (arg0: TIn) => AxiosPromise<AxiosResponse<any, any>>,

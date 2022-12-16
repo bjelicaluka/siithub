@@ -24,9 +24,8 @@ async function createUser(user: UserCreate): Promise<User | null> {
   }
 
   user.passwordAccount = getHashedPassword(user.password)
-  console.log(user.passwordAccount);
 
-  await gitServerClient.create(user.username);
+  await gitServerClient.createUser(user.username);
 
   return await userRepo.crud.add(user);
 }

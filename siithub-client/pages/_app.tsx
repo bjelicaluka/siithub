@@ -1,10 +1,10 @@
 import "../styles/globals.css";
 import type { AppProps } from "next/app";
 import { QueryClient, QueryClientProvider } from "react-query";
-import { ToastContainer, ToastContainerProps } from "react-toastify";
+import { ToastContainer, type ToastContainerProps } from "react-toastify";
 
 import "react-toastify/dist/ReactToastify.css";
-import { ResultContext } from "../core/contexts/Result";
+import { ResultContextProvider } from "../core/contexts/Result";
 import Head from "next/head";
 
 const toastrOptions: ToastContainerProps = {
@@ -29,9 +29,9 @@ export default function App({ Component, pageProps }: AppProps) {
       </Head>
 
       <QueryClientProvider client={queryClient}>
-        <ResultContext>
+        <ResultContextProvider>
           <Component {...pageProps} />
-        </ResultContext>
+        </ResultContextProvider>
       </QueryClientProvider>
 
       <ToastContainer {...toastrOptions} />
