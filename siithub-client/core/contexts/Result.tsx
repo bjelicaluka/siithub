@@ -1,4 +1,4 @@
-import { createContext, FC, PropsWithChildren, useContext, useState } from "react"
+import { createContext, type FC, type PropsWithChildren, useContext, useState } from "react"
 import debounce from 'lodash.debounce';
 
 export enum ResultStatus {
@@ -24,7 +24,7 @@ const initialResultContextValues = {
 
 export const useResult = (scope: string) => {
 
-  const { result, setResult } = useContext(_resultContext);
+  const { result, setResult } = useContext(ResultContext);
 
   const setScopedResult = (r: ResultType|undefined) => setResult({...result, [scope]: r });
 
@@ -35,16 +35,16 @@ export const useResult = (scope: string) => {
   return { result: result[scope] as ResultType|undefined, setResult: (r: ResultType|undefined) => setScopedResult(r) };
 }
 
-const _resultContext = createContext<ResultContextType>(initialResultContextValues);
+const ResultContext = createContext<ResultContextType>(initialResultContextValues);
 
-export const ResultContext: FC<PropsWithChildren> = ({ children }) => {
+export const ResultContextProvider: FC<PropsWithChildren> = ({ children }) => {
 
   const [result, setResult] = useState<any>({});
 
   return (
-    <_resultContext.Provider value={{ result, setResult }}>
+    <ResultContext.Provider value={{ result, setResult }}>
       {children}
-    </_resultContext.Provider>
+    </ResultContext.Provider>
   );
 
 }

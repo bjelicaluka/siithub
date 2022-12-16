@@ -3,16 +3,21 @@ function clearPropertiesOfResultWrapper(f: any, ...properties: string[]) {
     const result = f.apply(null, args);
 
     const obj = result instanceof Promise ? await (result as Promise<any>) : result;
-    for (const property of properties) {
-      if (obj[property]) {
-        delete obj[property]
-      }
-    }
-
-    return obj;
+    return clearPropertiesOfObject(obj, ...properties);
   }
 }
 
+function clearPropertiesOfObject(obj: any, ...properties: string[]) {
+  for (const property of properties) {
+    if (obj[property]) {
+      delete obj[property]
+    }
+  }
+
+  return obj;
+}
+
 export {
-  clearPropertiesOfResultWrapper
+  clearPropertiesOfResultWrapper,
+  clearPropertiesOfObject
 }

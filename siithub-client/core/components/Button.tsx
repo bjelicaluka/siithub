@@ -1,9 +1,9 @@
-import { FC } from "react"
+import { type FC } from "react"
 
 type ButtonProps = {
   type?: 'submit'|'button',
-  children: React.ReactNode,
-  onClick?: any
+  onClick?: () => any,
+  children: React.ReactNode
 }
 
 export const Button: FC<ButtonProps> = ({ type = 'submit', onClick = () => {}, children }) => {

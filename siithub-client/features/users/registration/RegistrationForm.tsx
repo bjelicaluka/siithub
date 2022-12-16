@@ -1,8 +1,8 @@
-import { FC } from "react";
+import { type FC } from "react";
 import { InputField } from "../../../core/components/InputField";
 import { AreaField } from "../../../core/components/AreaField";
 import { Button } from "../../../core/components/Button";
-import { createUser, CreateUser, createUserSchema } from "./createUser";
+import { createUser, type CreateUser, createUserSchema } from "./createUser";
 import { extractErrorMessage } from "../../../core/utils/errors";
 import { useNotifications } from "../../../core/hooks/useNotifications";
 import { ResultStatus, useResult } from "../../../core/contexts/Result";

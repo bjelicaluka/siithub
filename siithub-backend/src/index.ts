@@ -1,4 +1,5 @@
-import express, { Express, NextFunction, Request, Response } from "express";
+import express from "express";
+import type { Express, NextFunction, Request, Response } from "express";
 import { apiRoutes } from "./api.routes";
 import { config } from "./config";
 import { getConnection } from "./db/mongo.utils";
