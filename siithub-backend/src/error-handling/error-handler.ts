@@ -10,7 +10,7 @@ export type ErrorResponse = {
 const ErrorNameCode = {
   [errors.BadLogicException.name]: 400,
   [errors.AuthenticationException.name]: 401,
-  [errors.ForbiddenException.name]: 402,
+  [errors.ForbiddenException.name]: 403,
   [errors.MissingEntityException.name]: 404,
   [errors.DuplicateException.name]: 409,
   [Error.name]: 500,

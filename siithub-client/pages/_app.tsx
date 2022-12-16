@@ -2,10 +2,14 @@ import "../styles/globals.css";
 import type { AppProps } from "next/app";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { ToastContainer, ToastContainerProps } from "react-toastify";
-
-import "react-toastify/dist/ReactToastify.css";
 import { ResultContext } from "../core/contexts/Result";
 import Head from "next/head";
+import { AuthContext } from "../core/contexts/Auth";
+import { useIsAuthorized } from "../core/hooks/useIsAuthorized";
+import ErrorPage from 'next/error'
+
+import "react-toastify/dist/ReactToastify.css";
+import { FC, ReactNode } from "react";
 
 const toastrOptions: ToastContainerProps = {
   position: "top-center",
@@ -21,7 +25,23 @@ const toastrOptions: ToastContainerProps = {
 
 const queryClient = new QueryClient();
 
+
+const AuthComponentWrapper: FC<any> = ({ Component, pageProps }: any) => {
+  const anyComponent = Component as any;
+  const isAuthorized = useIsAuthorized();
+
+  return (
+    anyComponent.requireAuth ? 
+    ( isAuthorized({ roles: anyComponent.allowedRoles }) ?
+      <Component {...pageProps} /> :
+      <ErrorPage statusCode={404} />
+    ) :
+    <Component {...pageProps} />
+  )
+}
+
 export default function App({ Component, pageProps }: AppProps) {
+  
   return (
     <>
       <Head>
@@ -30,7 +50,9 @@ export default function App({ Component, pageProps }: AppProps) {
 
       <QueryClientProvider client={queryClient}>
         <ResultContext>
-          <Component {...pageProps} />
+          <AuthContext>
+            <AuthComponentWrapper Component={Component} pageProps={pageProps} />
+          </AuthContext>
         </ResultContext>
       </QueryClientProvider>
 
