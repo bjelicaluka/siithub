@@ -8,11 +8,13 @@ import { useNotifications } from "../../../core/hooks/useNotifications";
 import { ResultStatus, useResult } from "../../../core/contexts/Result";
 import { useAction } from "../../../core/hooks/useAction";
 import { useZodValidatedFrom } from "../../../core/hooks/useZodValidatedForm";
+import { useRouter } from "next/router";
 
 
 export const RegistrationForm: FC = () => {
 
   const notifications = useNotifications();
+  const router = useRouter();
   const { setResult } = useResult('users');
 
   const { register: registrationForm, handleSubmit, formState: { errors } } = useZodValidatedFrom<CreateUser>(createUserSchema);
@@ -26,11 +28,17 @@ export const RegistrationForm: FC = () => {
       notifications.error(extractErrorMessage(error));
       setResult({ status: ResultStatus.Error, type: 'CREATE_USER' });
     }
-  })
+  });
+
+  const onCreateUserAction = (user: CreateUser) => {
+    const { githubUsername } = router.query;
+    user.githubUsername = githubUsername as string;
+    return createUserAction(user);
+  }
 
   return (
     <>
-      <form onSubmit={handleSubmit(createUserAction)}>
+      <form onSubmit={handleSubmit(onCreateUserAction)}>
         <div className="overflow-hidden shadow sm:rounded-md">
           <div className="bg-white px-4 py-5 sm:p-6">
             <div className="grid grid-cols-6 gap-6">
