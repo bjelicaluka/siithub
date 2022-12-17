@@ -1,8 +1,20 @@
-import { Document, Filter, FindCursor, WithId } from "mongodb";
+import { Document, Filter, FindCursor, Timestamp, WithId } from "mongodb";
 import { getCollection } from "./mongo.utils";
 
 export type BaseEntity = {
   _id: Pick<WithId<Document>, "id">;
+};
+
+export type BaseEvent = BaseEntity & {
+  streamId: Pick<WithId<Document>, "id">,
+  timeStamp: Date,
+  by: Pick<WithId<Document>, "id">,
+  type: string
+};
+
+
+export type AggregateRoot = BaseEntity & {
+  events: BaseEvent[]
 };
 
 export type BaseRepo<
