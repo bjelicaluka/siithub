@@ -51,7 +51,7 @@ async function updateEventsFor(issue: Issue, events: BaseEvent[]) {
 
 async function handleEvent(issue: Issue, event: BaseEvent): Promise<void> {
   
-  await validateEventFor(issue, event);
+  await validateEventFor(event);
 
   event._id = new ObjectId();
   event.streamId = issue._id;
@@ -60,7 +60,7 @@ async function handleEvent(issue: Issue, event: BaseEvent): Promise<void> {
   handleFor(issue, event);
 }
 
-async function validateEventFor(issue: Issue, event: BaseEvent): Promise<void> {
+async function validateEventFor(event: BaseEvent): Promise<void> {
   
   switch (event.type) {
     case 'LabelAssignedEvent': {
@@ -81,7 +81,8 @@ export type IssueService = {
   create(issue: IssueCreate): Promise<Issue | null>,
   update(issue: IssueUpdate): Promise<Issue | null>,
   findOneOrThrow(id: Issue["_id"] | string): Promise<Issue>,
-  findByRepositoryId(repositoryId: string): Promise<Issue[] | null>
+  findByRepositoryId(repositoryId: string): Promise<Issue[] | null>,
+  validateEventFor(event: BaseEvent): Promise<void>
 }
 
 const issueService: IssueService = {
@@ -89,6 +90,7 @@ const issueService: IssueService = {
   findByRepositoryId,
   create: createIssue,
   update: updateIssue,
+  validateEventFor
 }
 
-export { issueService }
+export { issueService, validateEventFor }

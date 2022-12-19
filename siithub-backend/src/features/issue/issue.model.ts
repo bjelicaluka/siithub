@@ -73,7 +73,7 @@ export function handleFor(issue: Issue, event: BaseEvent) {
     case 'LabelUnassignedEvent': {
       const labelUnassigned = event as LabelUnassignedEvent;
       const lastLabelEvent = findLastEvent<LabelAssignedEvent|LabelUnassignedEvent>(issue.events, e => e?.labelId === labelUnassigned?.labelId);
-      if (lastLabelEvent?.type === 'LabelUnassignedEvent') {
+      if (!lastLabelEvent || lastLabelEvent?.type === 'LabelUnassignedEvent') {
         throw new BadLogicException("Label cannot be unassigned from the Issue.", event);
       }
 
@@ -93,16 +93,16 @@ export function handleFor(issue: Issue, event: BaseEvent) {
     case 'UserUnassignedEvent': {
       const userUnassigned = event as UserUnassignedEvent;
       const lastUserEvent = findLastEvent<UserAssignedEvent|UserUnassignedEvent>(issue.events, e => e?.userId === userUnassigned?.userId);
-      if (lastUserEvent?.type === 'UserUnassignedEvent') {
-        throw new BadLogicException("Label cannot be assigned from the Issue.", event);
+      if (!lastUserEvent || lastUserEvent?.type === 'UserUnassignedEvent') {
+        throw new BadLogicException("User cannot be unassigned from the Issue.", event);
       }
 
       issue.csm.assignees = issue?.csm?.assignees?.filter(l => l !== userUnassigned?.userId);
       break;
     }
     case 'IssueReopenedEvent': {
-      const lastIssueStateEvent = findLastEvent<IssueReopenedEvent|IssueClosedEvent>(issue.events, e => ['IssueReopenedEvent', 'IssueClosedEvent'].includes(e.type));
-      if (lastIssueStateEvent?.type === 'IssueReopenedEvent') {
+      const lastIssueStateEvent = findLastEvent<IssueCreatedEvent| IssueReopenedEvent|IssueClosedEvent>(issue.events, e => ['IssueCreatedEvent', 'IssueReopenedEvent', 'IssueClosedEvent'].includes(e.type));
+      if (!lastIssueStateEvent || ['IssueCreatedEvent', 'IssueReopenedEvent'].includes(lastIssueStateEvent?.type ?? '')) {
         throw new BadLogicException("Issue cannot be reopened.", event);
       }
 
@@ -110,8 +110,8 @@ export function handleFor(issue: Issue, event: BaseEvent) {
       break;
     }
     case 'IssueClosedEvent': {
-      const lastIssueStateEvent = findLastEvent<IssueReopenedEvent|IssueClosedEvent>(issue.events, e => ['IssueReopenedEvent', 'IssueClosedEvent'].includes(e.type));
-      if (lastIssueStateEvent?.type === 'IssueClosedEvent') {
+      const lastIssueStateEvent = findLastEvent<IssueCreatedEvent|IssueReopenedEvent|IssueClosedEvent>(issue.events, e => ['IssueCreatedEvent', 'IssueReopenedEvent', 'IssueClosedEvent'].includes(e.type));
+      if (!lastIssueStateEvent || lastIssueStateEvent?.type === 'IssueClosedEvent') {
         throw new BadLogicException("Issue cannot be closed.", event);
       }
 
