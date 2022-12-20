@@ -40,8 +40,8 @@ export class ErrorHandler {
   }
 
   private sendErrorResponse(errorResponse: ErrorResponse) {
-    const { statusCode, ...response } = errorResponse;
-    this.response.status(statusCode).send(response);
+    const { statusCode } = errorResponse;
+    this.response.status(statusCode).send(errorResponse);
   }
 
 }

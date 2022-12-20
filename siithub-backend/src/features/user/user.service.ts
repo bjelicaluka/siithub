@@ -18,6 +18,10 @@ async function findByUsername(username: string): Promise<User | null> {
   return userRepo.findByUsername(username);
 }
 
+async function findByGithubUsername(username: string): Promise<User | null> {
+  return userRepo.findByGithubUsername(username);
+}
+
 function removePassword(f: any) {
   return clearPropertiesOfResultWrapper(f, 'password', 'passwordAccount');
 }  
@@ -36,6 +40,15 @@ async function createUser(user: UserCreate): Promise<User | null> {
     throw new DuplicateException("Username is already taken.", user);
   }
 
+  if (user.githubUsername) {
+    const userWithSameGithubUsername = await userRepo.findByGithubUsername(user.githubUsername);
+    if (userWithSameGithubUsername) {
+      throw new DuplicateException("Github username is already taken.", user);
+    } else {
+      user.githubAccount = { username: user.githubUsername };
+    }
+  }
+
   user.type = UserType.Developer;
   user.passwordAccount = getHashedPassword(user.password);
 
@@ -47,12 +60,14 @@ async function createUser(user: UserCreate): Promise<User | null> {
 export type UserService = {
   findOneOrThrow(id: User['_id'] | string): Promise<User>,
   findByUsername(username: string): Promise<User | null>,
+  findByGithubUsername(username: string): Promise<User | null>,
   create(user: UserCreate): Promise<User | null>
 }
 
 const userService: UserService = {
   findOneOrThrow,
   findByUsername,
+  findByGithubUsername,
   create: removePassword(createUser)
 }
 

@@ -20,12 +20,23 @@ function authenticate(credentials: Credentials) {
   return axios.post('/api/auth', credentials);
 }
 
+type GithubAuth = {
+  code: string,
+  state: string
+}
+
+function authenticateGithub(auth: GithubAuth) {
+  return axios.post('/api/auth/github', undefined, { params: auth });
+}
+
 export {
   credentialsSchema,
-  authenticate
+  authenticate,
+  authenticateGithub
 }
 
 export type {
   Credentials,
-  AuthenticatedUser
+  AuthenticatedUser,
+  GithubAuth
 }

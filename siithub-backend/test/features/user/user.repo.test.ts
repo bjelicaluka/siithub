@@ -33,4 +33,26 @@ describe("UserRepo", () => {
       expect(found).toHaveProperty("username", username);
     });
   });
+
+  describe("findByGithubUsername", () => {
+    it("shouldn't find by github username", async () => {
+      const username = "nonExistingGithubUsername";
+
+      const found = await repository.findByGithubUsername(username);
+      expect(found).toBeNull();
+    });
+
+    it("should find by github username", async () => {
+      const username = "existingGithubUsername";
+      const added = await repository.crud.add({ username, githubAccount: { username } } as any);
+
+      expect(added).not.toBeNull();
+      expect(added).toHaveProperty("_id");
+      if (!added) return;
+
+      const found = await repository.findByGithubUsername(username);
+      expect(found).not.toBeNull();
+      expect(found?.githubAccount).toHaveProperty("username", username);
+    });
+  });
 })

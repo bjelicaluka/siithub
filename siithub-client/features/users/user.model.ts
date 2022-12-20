@@ -1,5 +1,3 @@
-import { type BaseEntity } from "../../db/base.repo.utils";
-
 export enum UserType {
   Developer,
   Admin
@@ -15,6 +13,7 @@ export type GithubAccount = {
 };
 
 export type User = {
+  _id: string
   username: string,
   name: string,
   email: string,
@@ -22,6 +21,4 @@ export type User = {
   type: UserType,
   passwordAccount?: PasswordAccount,
   githubAccount?: GithubAccount
-} & BaseEntity;
-export type UserCreate = Omit<User, "_id" | "type"> & { type?: UserType, password: string, githubUsername?: string|undefined };
-export type UserUpdate = Partial<User>;
+};

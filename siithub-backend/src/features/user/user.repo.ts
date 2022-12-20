@@ -7,14 +7,20 @@ async function findByUsername(username: string): Promise<User | null> {
   return (await userRepo.crud.findManyCursor({ username })).next();
 }
 
+async function findByGithubUsername(username: string): Promise<User | null> {
+  return (await userRepo.crud.findManyCursor({ githubAccount: { username } })).next();
+}
+
 export type UserRepo = {
+  findByUsername(username: string): Promise<User | null>,
+  findByGithubUsername(username: string): Promise<User | null>,
   crud: BaseRepo<User, UserCreate, UserUpdate>,
-  findByUsername(username: string): Promise<User | null>
 }
 
 const userRepo: UserRepo = {
+  findByUsername,
+  findByGithubUsername,
   crud: BaseRepoFactory<User, UserCreate, UserUpdate>(collectionName),
-  findByUsername
 };
 
 export { userRepo };

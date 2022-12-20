@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@jest/globals";
-import { createUserBodySchema } from "../../../src/features/user/user.routes";
+import { changeGithubAccountBodySchema, createUserBodySchema } from "../../../src/features/user/user.routes";
 
 describe("UserRoutes", () => {
 
@@ -154,6 +154,105 @@ describe("UserRoutes", () => {
       expect(parseResult.success).toBeTruthy();
     })
 
-  })
+  });
+
+  describe("changeGithubAccountBodySchema", () => {
+
+    it("should be invalid because username is empty", () => {
+      const invalidChangeGithubAccount = {
+        username: ""
+      };
+
+      const parseResult = changeGithubAccountBodySchema.safeParse(invalidChangeGithubAccount);
+
+      expect(parseResult.success).toBeFalsy();
+      if (parseResult.success) return;
+      expect(parseResult.error.issues).toContainEqual(expect.objectContaining({
+        message: "Github username should be valid."
+      }));
+    });
+
+    it("should be invalid because username contains _", () => {
+      const invalidChangeGithubAccount = {
+        username: "test_username"
+      };
+
+      const parseResult = changeGithubAccountBodySchema.safeParse(invalidChangeGithubAccount);
+
+      expect(parseResult.success).toBeFalsy();
+      if (parseResult.success) return;
+      expect(parseResult.error.issues).toContainEqual(expect.objectContaining({
+        message: "Github username should be valid."
+      }));
+    });
+
+    it("should be invalid because username contains two --", () => {
+      const invalidChangeGithubAccount = {
+        username: "test--username"
+      };
+
+      const parseResult = changeGithubAccountBodySchema.safeParse(invalidChangeGithubAccount);
+
+      expect(parseResult.success).toBeFalsy();
+      if (parseResult.success) return;
+      expect(parseResult.error.issues).toContainEqual(expect.objectContaining({
+        message: "Github username should be valid."
+      }));
+    });
+
+    it("should be invalid because username ends with -", () => {
+      const invalidChangeGithubAccount = {
+        username: "test-username-"
+      };
+
+      const parseResult = changeGithubAccountBodySchema.safeParse(invalidChangeGithubAccount);
+
+      expect(parseResult.success).toBeFalsy();
+      if (parseResult.success) return;
+      expect(parseResult.error.issues).toContainEqual(expect.objectContaining({
+        message: "Github username should be valid."
+      }));
+    });
+
+    it("should be invalid because username starts with -", () => {
+      const invalidChangeGithubAccount = {
+        username: "-test-username"
+      };
+
+      const parseResult = changeGithubAccountBodySchema.safeParse(invalidChangeGithubAccount);
+
+      expect(parseResult.success).toBeFalsy();
+      if (parseResult.success) return;
+      expect(parseResult.error.issues).toContainEqual(expect.objectContaining({
+        message: "Github username should be valid."
+      }));
+    });
+
+    it("should be invalid because username is too long", () => {
+      const invalidChangeGithubAccount = {
+        username: "test-username-with-more-then-38-characters"
+      };
+
+      const parseResult = changeGithubAccountBodySchema.safeParse(invalidChangeGithubAccount);
+
+      expect(parseResult.success).toBeFalsy();
+      if (parseResult.success) return;
+      expect(parseResult.error.issues).toContainEqual(expect.objectContaining({
+        message: "Github username should be valid."
+      }));
+    });
+    
+
+    it("should be valid", () => {
+      const invalidChangeGithubAccount = {
+        username: "test-username123"
+      };
+
+      const parseResult = changeGithubAccountBodySchema.safeParse(invalidChangeGithubAccount);
+
+      expect(parseResult.success).toBeTruthy();
+    });
+
+  });
 
 })
