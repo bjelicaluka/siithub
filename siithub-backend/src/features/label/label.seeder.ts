@@ -1,7 +1,8 @@
 import { labelService } from "./label.service"
 import { type Label } from "./label.model";
+import { type Repository } from "../repository/repository.model";
 
-async function seedDefaultLabels(repositoryId: string): Promise<Label[]> {
+async function seedDefaultLabels(repositoryId: Repository["_id"]): Promise<Label[]> {
 
   const labels = [
     {
@@ -63,7 +64,7 @@ async function seedDefaultLabels(repositoryId: string): Promise<Label[]> {
 }
 
 export type LabelSeeder = {
-  seedDefaultLabels(repositoryId: string): Promise<Label[]>
+  seedDefaultLabels(repositoryId: Repository["_id"]): Promise<Label[]>
 }
 
 const labelSeeder: LabelSeeder = {

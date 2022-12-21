@@ -9,10 +9,11 @@ import { InputField } from "../../core/components/InputField";
 import { Button } from "../../core/components/Button";
 
 type Props = {
+  repositoryId: string;
   existingLabel?: Label;
 }
 
-export const LabelForm: FC<Props> = ({ existingLabel = undefined }) => {
+export const LabelForm: FC<Props> = ({ repositoryId, existingLabel = undefined }) => {
   const notifications = useNotifications();
   const { setResult } = useResult('labels');
   const { register: createLabelForm, handleSubmit, watch, formState: { errors } } = useZodValidatedFrom<CreateLabel>(labelBodySchema, existingLabel);
@@ -20,7 +21,7 @@ export const LabelForm: FC<Props> = ({ existingLabel = undefined }) => {
   const curColor = watch('color');
   const isEdit = !!existingLabel;
 
-  const createLabelAction = useAction<CreateLabel>(createLabelFor('639b3fa0d40531fd5b576f0a'), {
+  const createLabelAction = useAction<CreateLabel>(createLabelFor(repositoryId), {
     onSuccess: () => {
       notifications.success('You have successfully created a new label.');
       setResult({ status: ResultStatus.Ok, type: 'CREATE_LABEL' });
@@ -31,7 +32,7 @@ export const LabelForm: FC<Props> = ({ existingLabel = undefined }) => {
     }
   })
 
-  const updateLabelAction = useAction<UpdateLabel>(updateLabelFor('639b3fa0d40531fd5b576f0a', existingLabel?._id ?? ''), {
+  const updateLabelAction = useAction<UpdateLabel>(updateLabelFor(repositoryId, existingLabel?._id ?? ''), {
     onSuccess: () => {
       notifications.success('You have successfully updated label.');
       setResult({ status: ResultStatus.Ok, type: 'UPDATE_LABEL' });
