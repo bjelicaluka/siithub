@@ -1,5 +1,6 @@
 import { DuplicateException, MissingEntityException } from "../../error-handling/errors";
 import { type Repository } from "../repository/repository.model";
+import { repositoryService } from "../repository/repository.service";
 import type { Milestone, MilestoneCreate, MilestoneUpdate } from "./milestone.model";
 import { milestoneRepo } from "./milestone.repo";
 
@@ -9,6 +10,14 @@ async function findOne(id: Milestone["_id"]): Promise<Milestone | null> {
 
 async function findByRepositoryId(repositoryId: Repository["_id"], isOpen = true): Promise<Milestone[]> {
   return await milestoneRepo.findByRepositoryId(repositoryId, isOpen);
+}
+
+async function findByRepositoryIdAndLocalId(repositoryId: Repository["_id"], localId: number): Promise<Milestone> {
+  const milestone = await milestoneRepo.findByRepositoryIdAndLocalId(repositoryId, localId);
+  if (!milestone) {
+    throw new MissingEntityException("Milestone with given id does not exist.");
+  }
+  return milestone;
 }
 
 async function findByTitleAndRepositoryId(title: string, repositoryId: Repository["_id"]): Promise<Milestone | null> {
@@ -33,6 +42,7 @@ async function createMilestone(milestone: MilestoneCreate): Promise<Milestone | 
     throw new DuplicateException("Milestone with same title already exists.", milestone);
   }
   milestone.isOpen = true;
+  milestone.localId = await repositoryService.getNextCounterValue(milestone.repositoryId, "milestone");
   return await milestoneRepo.crud.add(milestone);
 }
 
@@ -70,7 +80,8 @@ export type MilestoneService = {
   findByRepositoryId(repositoryId: Repository["_id"], isOpen?: boolean): Promise<Milestone[]>,
   findByTitleAndRepositoryId(title: string, repositoryId: Repository["_id"]): Promise<Milestone | null>,
   searchByTitle(title: string, repositoryId: Repository["_id"]): Promise<Milestone[] | null>,
-  openClose(id: Milestone['_id'], open: boolean): Promise<Milestone | null>
+  openClose(id: Milestone['_id'], open: boolean): Promise<Milestone | null>,
+  findByRepositoryIdAndLocalId(repositoryId: Repository["_id"], localId: number): Promise<Milestone>,
 }
 
 const milestoneService: MilestoneService = {
@@ -82,7 +93,8 @@ const milestoneService: MilestoneService = {
   openClose,
   create: createMilestone,
   update: updateMilestone,
-  delete: deleteMilestone
+  delete: deleteMilestone,
+  findByRepositoryIdAndLocalId,
 }
 
 export { milestoneService }

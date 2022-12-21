@@ -12,7 +12,7 @@ router.use("/test", testRoutes)
       .use("/users", userRoutes)
       .use("/auth", authRoutes)
       .use("/repositories", labelRoutes)
-      .use("/repositories", milestoneRoutes)
+      .use("/", milestoneRoutes)
       .use("/repositories", repositoryRoutes);
 
 export { router as apiRoutes };

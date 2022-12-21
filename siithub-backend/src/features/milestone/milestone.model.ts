@@ -10,5 +10,5 @@ export type Milestone = {
   isOpen: boolean
 } & BaseEntity;
 
-export type MilestoneCreate = Omit<Milestone, "_id" | "localId">;
+export type MilestoneCreate = Omit<Milestone, "_id">;
 export type MilestoneUpdate = Omit<Milestone, "localId">;
