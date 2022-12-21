@@ -1,0 +1,14 @@
+import { type BaseEntity } from "../../db/base.repo.utils"
+import { type Repository } from "../repository/repository.model";
+
+export type Milestone = {
+  title: string,
+  localId: number,
+  description: string,
+  dueDate: Date,
+  repositoryId: Repository["_id"],
+  isOpen: boolean
+} & BaseEntity;
+
+export type MilestoneCreate = Omit<Milestone, "_id" | "localId">;
+export type MilestoneUpdate = Omit<Milestone, "localId">;

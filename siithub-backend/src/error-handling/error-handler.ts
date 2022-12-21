@@ -1,4 +1,5 @@
 import type { Response } from 'express';
+import { ZodError } from 'zod';
 import * as errors from './errors';
 
 export type ErrorResponse = {
@@ -28,7 +29,11 @@ export class ErrorHandler {
   }
 
   public handleError(e: Error): ErrorResponse {
-    const errorResponse = {
+    const errorResponse = (e.name === ZodError.name) ? {
+      statusCode: 400,
+      message: "Validation error",
+      payload: (e as ZodError).issues
+    } : {
       statusCode: ErrorNameCode[e.name] || ErrorNameCode[Error.name],
       message: e.message,
       payload: (e as errors.HandableError).payload || null
