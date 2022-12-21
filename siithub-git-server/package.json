@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "start": "tsc src && node dist",
+    "start": "tsc && node dist/src",
     "test": "jest"
   },
   "keywords": [],

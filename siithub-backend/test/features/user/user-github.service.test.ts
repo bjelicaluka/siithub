@@ -1,9 +1,10 @@
 import { describe, expect, it, beforeEach } from "@jest/globals";
-import { setupTestEnv } from "../../jest-hooks.utils";
+import { setupGitServer, setupTestEnv } from "../../jest-hooks.utils";
 import { type UserGithubService } from "../../../src/features/user/user-github.service";
 
 describe("UserGithubService", () => {
   setupTestEnv("UserGithubService");
+  const {} = setupGitServer();
 
   let service: UserGithubService;
 
