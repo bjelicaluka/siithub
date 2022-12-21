@@ -1,6 +1,7 @@
 import { describe, expect, it, beforeEach } from "@jest/globals";
 import { setupGitServer, setupTestEnv } from "../../jest-hooks.utils";
 import { type UserGithubService } from "../../../src/features/user/user-github.service";
+import { ObjectId } from "mongodb";
 
 describe("UserGithubService", () => {
   setupTestEnv("UserGithubService");
@@ -15,7 +16,7 @@ describe("UserGithubService", () => {
 
   describe("updateGithubAccount", () => {
     it("should throw MissingEntityException because user does not exist", async () => {
-      const id = "nonExistingId";
+      const id = new ObjectId();
 
       const update = async () => await service.update(id, { username: "nonExistingUsername" });
       await expect(update).rejects.toThrowError("User with given id does not exist.");
@@ -54,7 +55,7 @@ describe("UserGithubService", () => {
 
   describe("deleteGithubAccount", () => {
     it("should throw MissingEntityException because user does not exist", async () => {
-      const id = "nonExistingId";
+      const id = new ObjectId();
 
       const _delete = async () => await service.delete(id);
       await expect(_delete).rejects.toThrowError("User with given id does not exist.");
