@@ -42,22 +42,6 @@ describe("LabelRoutes", () => {
       }));
     });
 
-    it("invalid because color is too short", () => {
-      const invalidCreateLabel = {
-        ...validCreateLabel,
-        color: "11"
-      };
-
-      const parseResult = labelBodySchema.safeParse(invalidCreateLabel);
-      
-      expect(parseResult.success).toBeFalsy();
-      if (parseResult.success) return;
-
-      expect(parseResult.error.issues).toContainEqual(expect.objectContaining({
-        message: "Color should have 6 hexadecimal numbers."
-      }));
-    });
-
     it("invalid beacuse color contains non-hexadecimal characters", () => {
       const invalidCreateLabel = {
         ...validCreateLabel,

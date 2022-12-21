@@ -2,7 +2,7 @@ import { type Request, type Response, Router } from "express";
 import { ObjectId } from "mongodb";
 import { z } from "zod";
 import { ALPHANUMERIC_REGEX, COLOR_REGEX } from "../../patterns";
-import { type Label } from "./label.model";
+import type { LabelUpdate, LabelCreate } from "./label.model";
 import { labelService } from "./label.service";
 import 'express-async-errors';
 import { labelHasToBelongToRepo } from "./label.middlewares";
@@ -23,7 +23,7 @@ const updateLabelBodySchema = labelBodySchema;
 
 router.get('/:repositoryId/labels/search', async (req: Request, res: Response) => {
   const name = req.query.name;
-  const repositoryId = req.params.repositoryId;
+  const repositoryId = new ObjectId(req.params.repositoryId);
   if (!name) {
     res.send(await labelService.findByRepositoryId(repositoryId));
   } else {
@@ -44,8 +44,8 @@ router.post('/:repositoryId/labels', async (req: Request, res: Response) => {
     return;
   } 
 
-  const label = createLabel.data as Label;
-  label.repositoryId = req.params.repositoryId;
+  const label = createLabel.data as LabelCreate;
+  label.repositoryId = new ObjectId(req.params.repositoryId);
 
   res.send(await labelService.create(label));
 });
@@ -58,9 +58,9 @@ router.put('/:repositoryId/labels/:id', labelHasToBelongToRepo, async (req: Requ
     return;
   } 
 
-  const label = updateLabel.data as Label;
+  const label = updateLabel.data as LabelUpdate;
   label._id = new ObjectId(req.params.id);
-  label.repositoryId = req.params.repositoryId;
+  label.repositoryId = new ObjectId(req.params.repositoryId);
 
   res.send(await labelService.update(label));
 });

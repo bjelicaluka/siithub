@@ -1,7 +1,7 @@
 import { describe, expect, it, beforeEach, beforeAll } from "@jest/globals";
 import { setupGitServer, setupTestEnv } from "../../jest-hooks.utils";
 import { type RepositoryService } from "../../../src/features/repository/repository.service";
-import { type Repository } from "../../../src/features/repository/repository.model";
+import { ObjectId } from "mongodb";
 
 describe("RepositoryService", () => {
   setupTestEnv("RepositoryService");
@@ -20,6 +20,28 @@ describe("RepositoryService", () => {
       username: "testuser",
     } as any);
   });
+
+  describe("findOneOrThrow", () => {
+    it("should throw MissingEntityException because repository does not exist", async () => {
+      const id = new ObjectId();
+
+      const findOneOrThrow = async () => await service.findOneOrThrow(id);
+      await expect(findOneOrThrow).rejects.toThrowError("Repository with given id does not exist.");
+    });
+
+    it("should return repository", async () => {
+      const added = await service.create({ name: "existingRepositoryName", owner: "testuser" } as any);
+
+      expect(added).not.toBeNull();
+      expect(added).toHaveProperty("_id");
+      if (!added) return;
+
+      const found = await service.findOneOrThrow(added._id);
+      expect(found).not.toBeNull();
+      expect(found._id + '').toBe(added._id + '');
+    });
+  });
+
 
   describe("create", () => {
     it("should throw DuplicateException because repository name already exists", async () => {
