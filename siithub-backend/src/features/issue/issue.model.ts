@@ -10,6 +10,8 @@ export enum IssueState {
 }
 
 export type IssueCSM = {
+  timeStamp?: Date,
+  lastModified?: Date,
   state?: IssueState,
   title?: string,
   description?: string,
@@ -46,6 +48,7 @@ export function handleFor(issue: Issue, event: BaseEvent) {
     case 'IssueCreatedEvent': {
       const issueCreated = event as IssueCreatedEvent;
       issue.csm = {
+        timeStamp: event.timeStamp,
         title: issueCreated.title,
         description: issueCreated.description,
         state: IssueState.Open,
@@ -56,6 +59,7 @@ export function handleFor(issue: Issue, event: BaseEvent) {
     }
     case 'IssueUpdatedEvent': {
       const issueUpdated = event as IssueUpdatedEvent;
+      issue.csm.lastModified = event.timeStamp;
       issue.csm.title = issueUpdated.title;
       issue.csm.description = issueUpdated.description;
       break;

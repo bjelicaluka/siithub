@@ -54,6 +54,7 @@ describe("IssueModel", () => {
         labels: [],
         assignees: []
       }));
+      expect(issue.csm).toHaveProperty("timeStamp")
     })
 
     it ("should apply IssueUpdatedEvent", () => {
@@ -74,6 +75,7 @@ describe("IssueModel", () => {
         title: issueUpdated.title,
         description: issueUpdated.description
       }));
+      expect(issue.csm).toHaveProperty("lastModified")
     })
 
     it ("should throw error label is already assigned", () => {

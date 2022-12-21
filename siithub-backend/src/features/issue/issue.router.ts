@@ -12,6 +12,18 @@ router.get('/:id', async (req: Request, res: Response) => {
   res.send(await issueService.findOneOrThrow(id));
 });
 
+router.get('/', async (req: Request, res: Response) => {
+  const repositoryId = new ObjectId(req.params.repositoryId).toString();
+  res.send(await issueService.findByRepositoryId(repositoryId));
+});
+
+router.post('/search', async (req: Request, res: Response) => {
+  const repositoryId = new ObjectId(req.params.repositoryId).toString();
+  const params = req.body;
+
+  res.send(await issueService.searchByParams(params, repositoryId));
+});
+
 router.post('/', async (req: Request, res: Response) => {
   const issueCreate = req.body as IssueCreate;
   res.send(await issueService.create(issueCreate));

@@ -14,7 +14,7 @@ const Registration = () => {
   );
 };
 
-Registration.requireAuth = true;
-Registration.allowedRoles = [AuthUserType.Developer];
+// Registration.requireAuth = true;
+// Registration.allowedRoles = [AuthUserType.Developer];
 
 export default Registration;

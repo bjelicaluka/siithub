@@ -48,7 +48,7 @@ describe("IssueService", () => {
     it("should throw exception because user does not exist", async () => {
       const userAssigned = createEvent<UserAssignedEvent>({
         type: 'UserAssignedEvent',
-        labelId: new Object()
+        userId: new Object()
       });
 
       const validateEvent = async () => await service.validateEventFor(userAssigned);
@@ -62,7 +62,7 @@ describe("IssueService", () => {
 
       const userAssigned = createEvent<UserAssignedEvent>({
         type: 'UserAssignedEvent',
-        user: addedUser._id
+        userId: addedUser._id
       });
 
       const validateEvent = async () => await service.validateEventFor(userAssigned);

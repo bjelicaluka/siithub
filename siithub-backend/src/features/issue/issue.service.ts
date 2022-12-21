@@ -13,9 +13,15 @@ async function findOne(id: Issue["_id"] | string): Promise<Issue | null> {
 
   return issueToReturn;
 }
-async function findByRepositoryId(repositoryId: string): Promise<Issue[] | null> {
+async function findByRepositoryId(repositoryId: string): Promise<Issue[]> {
   return await issueRepo.findByRepositoryId(repositoryId);
 }
+
+// TODO: PARAMS TYPE
+async function searchByParams(params: any, repositoryId: string): Promise<Issue[]> {
+  return await issueRepo.searchByParams(params, repositoryId);
+}
+
 
 async function findOneOrThrow(id: Issue["_id"] | string): Promise<Issue> {
   const issue = await findOne(id);
@@ -65,13 +71,13 @@ async function validateEventFor(event: BaseEvent): Promise<void> {
   switch (event.type) {
     case 'LabelAssignedEvent': {
       const labelAssigned = event as LabelAssignedEvent;
-      await labelService.findOneOrThrow(new ObjectId(labelAssigned?.labelId.toString()));
+      await labelService.findOneOrThrow(new ObjectId(labelAssigned?.labelId?.toString()));
       return;
     }
 
     case 'UserAssignedEvent': {
       const userAssigned = event as UserAssignedEvent;
-      await userService.findOneOrThrow(userAssigned?.userId);
+      await userService.findOneOrThrow(new ObjectId(userAssigned?.userId?.toString()));
       return;
     }
   }
@@ -81,13 +87,15 @@ export type IssueService = {
   create(issue: IssueCreate): Promise<Issue | null>,
   update(issue: IssueUpdate): Promise<Issue | null>,
   findOneOrThrow(id: Issue["_id"] | string): Promise<Issue>,
-  findByRepositoryId(repositoryId: string): Promise<Issue[] | null>,
+  findByRepositoryId(repositoryId: string): Promise<Issue[]>,
+  searchByParams(params: any, repositoryId: string): Promise<Issue[]>,
   validateEventFor(event: BaseEvent): Promise<void>
 }
 
 const issueService: IssueService = {
   findOneOrThrow,
   findByRepositoryId,
+  searchByParams,
   create: createIssue,
   update: updateIssue,
   validateEventFor

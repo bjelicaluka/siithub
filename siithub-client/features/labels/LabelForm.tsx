@@ -7,6 +7,7 @@ import { extractErrorMessage } from "../../core/utils/errors";
 import { useZodValidatedFrom } from "../../core/hooks/useZodValidatedForm";
 import { InputField } from "../../core/components/InputField";
 import { Button } from "../../core/components/Button";
+import { LabelPreview } from "./LabelPreview";
 
 type Props = {
   existingLabel?: Label;
@@ -49,8 +50,8 @@ export const LabelForm: FC<Props> = ({ existingLabel = undefined }) => {
         <div className="overflow-hidden shadow sm:rounded-md">
           <div className="bg-white px-4 py-5 sm:p-6">
 
-          <div className="pb-3">
-              <button type="button" className="text-md font-medium leading-6 text-white rounded-full px-2" style={{backgroundColor: curColor, minWidth: '100px'}} >{currName || 'Label preview'}</button>
+            <div className="pb-3">
+              <LabelPreview name={currName || ''} color={curColor || ''} />
             </div>
 
             <div className="grid grid-cols-6 gap-6">
