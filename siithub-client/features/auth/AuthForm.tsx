@@ -1,4 +1,5 @@
 
+import Link from "next/link";
 import { type FC } from "react";
 import { Button } from "../../core/components/Button";
 import { InputField } from "../../core/components/InputField";
@@ -52,6 +53,10 @@ export const AuthForm: FC = () => {
               />
             </div>
 
+          </div>
+
+          <div className="mt-2 text-center text-sm text-gray-600">
+            or login with <Link className="font-medium text-indigo-600 hover:text-indigo-500" href="https://github.com/login/oauth/authorize?response_type=code&client_id=fac8103c08404fb3370f&scope=user:email%20read:user&state=vrDTS-C5hFu_l8QcZJwTqWYd0d_pBcznFQ_YfuOSXfg%3D&redirect_uri=http://localhost:3000/auth/github-callback">GitHub</Link>
           </div>
         </div>
 

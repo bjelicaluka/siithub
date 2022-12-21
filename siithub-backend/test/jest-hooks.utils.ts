@@ -57,5 +57,33 @@ export function setupTestEnv(scope: string) {
     await client.close();
   });
 
-  return { };
+  return {};
+}
+
+export function setupGitServer() {
+  let createUserHandler: () => void = () => {};
+  let createRepoHandler: () => void = () => {};
+
+  beforeEach(async () => {
+    jest.mock("../src/features/gitserver/gitserver.client.ts", () => ({
+      gitServerClient: {
+        createUser: jest.fn(() => createUserHandler()),
+        createRepository: jest.fn(() => createRepoHandler()),
+      },
+    }));
+  });
+
+  afterEach(() => {
+    createUserHandler = () => {};
+    createRepoHandler = () => {};
+  });
+
+  return {
+    setCreateUserHandler: (cb: () => void) => {
+      createUserHandler = cb;
+    },
+    setCreateRepoHandler: (cb: () => void) => {
+      createRepoHandler = cb;
+    },
+  };
 }

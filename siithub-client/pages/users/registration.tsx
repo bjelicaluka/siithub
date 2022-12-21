@@ -1,4 +1,3 @@
-import { AuthUserType } from "../../core/contexts/Auth";
 import { RegistrationPage } from "../../features/users/registration/RegistrationPage";
 
 const Registration = () => {

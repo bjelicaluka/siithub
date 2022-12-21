@@ -13,6 +13,7 @@ const createUserSchema = z.object({
     .regex(LOWER_CASE_REGEX, "Password should have at least 1 lower letter.")
     .regex(NUMERIC_REGEX, "Password should have at least 1 number.")
     .regex(SPECIAL_CHARACTERS_REGEX, "Password should have at least 1 special character."),
+  githubUsername: z.string().optional(),
   name: z.string().min(1, "Name should be provided."),
   email: z.string().email("Email should be valid."),
   bio: z.string().default("")

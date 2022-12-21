@@ -5,7 +5,7 @@ import { clearPropertiesOfResultWrapper } from "../../utils/wrappers";
 import { getRandomString, getSha256Hash } from "../../utils/crypto";
 import { gitServerClient } from "../gitserver/gitserver.client";
 
-async function findOneOrThrow(id: User['_id'] | string): Promise<User> {
+async function findOneOrThrow(id: User['_id']): Promise<User> {
   const existingUser = await userRepo.crud.findOne(id);
   if (!existingUser) {
     throw new MissingEntityException("User with given id does not exist.");
@@ -20,6 +20,10 @@ async function findMany(): Promise<User[]> {
 
 async function findByUsername(username: string): Promise<User | null> {
   return userRepo.findByUsername(username);
+}
+
+async function findByGithubUsername(username: string): Promise<User | null> {
+  return userRepo.findByGithubUsername(username);
 }
 
 function removePassword(f: any) {
@@ -40,6 +44,15 @@ async function createUser(user: UserCreate): Promise<User | null> {
     throw new DuplicateException("Username is already taken.", user);
   }
 
+  if (user.githubUsername) {
+    const userWithSameGithubUsername = await userRepo.findByGithubUsername(user.githubUsername);
+    if (userWithSameGithubUsername) {
+      throw new DuplicateException("Github username is already taken.", user);
+    } else {
+      user.githubAccount = { username: user.githubUsername };
+    }
+  }
+
   user.type = UserType.Developer;
   user.passwordAccount = getHashedPassword(user.password);
 
@@ -49,16 +62,18 @@ async function createUser(user: UserCreate): Promise<User | null> {
 }
 
 export type UserService = {
-  findOneOrThrow(id: User['_id'] | string): Promise<User>,
-  findMany(): Promise<User[]>,
+  findOneOrThrow(id: User['_id']): Promise<User>,
   findByUsername(username: string): Promise<User | null>,
+  findByGithubUsername(username: string): Promise<User | null>,
+  findMany(): Promise<User[]>,
   create(user: UserCreate): Promise<User | null>
 }
 
 const userService: UserService = {
   findOneOrThrow,
-  findMany,
   findByUsername,
+  findByGithubUsername,
+  findMany,
   create: removePassword(createUser)
 }
 
