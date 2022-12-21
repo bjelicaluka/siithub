@@ -25,7 +25,6 @@ router.post("/", async (req: Request, res: Response) => {
   const createRepository = createRepositoryBodySchema.safeParse(req.body);
 
   if (!createRepository.success) {
-    console.log("ASD")
     res.status(400).send(createRepository.error.issues);
     return;
   }

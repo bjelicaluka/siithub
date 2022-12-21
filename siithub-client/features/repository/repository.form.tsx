@@ -19,8 +19,6 @@ export const RepositoryForm: FC = () => {
   const { user } = useAuthContext();
   const { setResult } = useResult("create-repo");
 
-  console.log(user)
-
   const {
     register,
     handleSubmit,
