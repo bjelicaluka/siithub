@@ -5,23 +5,27 @@ import { useNotifications } from "../../core/hooks/useNotifications";
 import { extractErrorMessage } from "../../core/utils/errors";
 import { deleteLabelFor, type Label } from "./labelActions";
 import { LabelForm } from "./LabelForm";
-import { useLabels } from "./useLabels";
 
-export const LabelsTable: FC = () => {
+type LabelsTableProps = {
+  repositoryId: string;
+  labels: Label[];
+}
+
+export const LabelsTable: FC<LabelsTableProps> = ({ repositoryId, labels }) => {
+  
   const notifications = useNotifications();
   const { result, setResult } = useResult('labels');
-  const { labels } = useLabels("639b3fa0d40531fd5b576f0a", [result]);
   const [selectedLabel, setSelectedLabel] = useState<Label | undefined>(undefined);
 
   useEffect(() => {
     if (!result) return;
+
     if (result.status === ResultStatus.Ok && result.type === 'UPDATE_LABEL') {
       setSelectedLabel(undefined);
     }
-    setResult(undefined);
   }, [result, setResult]);
 
-  const deleteLabelAction = useAction(deleteLabelFor('639b3fa0d40531fd5b576f0a'), {
+  const deleteLabelAction = useAction(deleteLabelFor(repositoryId), {
     onSuccess: () => {
       notifications.success('You have successfully deleted label.');
       setResult({ status: ResultStatus.Ok, type: 'DELETE_LABEL' });
@@ -36,7 +40,7 @@ export const LabelsTable: FC = () => {
     <>
       <div className="overflow-x-auto relative shadow-md sm:rounded-lg">
         <div hidden={!selectedLabel} key={selectedLabel?._id}>
-          <LabelForm existingLabel={selectedLabel} />
+          <LabelForm repositoryId={repositoryId} existingLabel={selectedLabel} />
         </div>
         <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
           <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">

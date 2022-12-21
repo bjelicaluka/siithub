@@ -1,27 +1,34 @@
 import { describe, expect, it, beforeEach } from "@jest/globals";
 import { setupTestEnv } from "../../jest-hooks.utils";
 import { type LabelRepo } from "../../../src/features/label/label.repo"
+import { type Repository } from "../../../src/features/repository/repository.model";
+import { ObjectId } from "mongodb";
 
 describe("LabelRepo", () => {
 	setupTestEnv("LabelRepo");
 
 	let repository: LabelRepo;
+	let repositoryId: Repository["_id"];
 
 	beforeEach(async () => {
 		const { labelRepo } = await import("../../../src/features/label/label.repo")
+		const { repositoryRepo } = await import("../../../src/features/repository/repository.repo")
+
 		repository = labelRepo;
+		repositoryId = (await repositoryRepo.crud.add({
+			name: 'repoForLabels'
+		} as any) as Repository)?._id;
 	});
 
 	describe("findByRepositoryId", () => {
 		it("shouldn't find by repositoryId", async () => {
-			const repositoryId = "nonExistingId";
+			const repositoryId = new ObjectId();
 
 			const found = await repository.findByRepositoryId(repositoryId);
 			expect(found.length).toBeFalsy();
 		});
 
 		it("should find by repositoryId", async () => {
-			const repositoryId = "existingRepositoryId";
 			const added = await repository.crud.add({ repositoryId } as any);
 
 			expect(added).not.toBeNull();
@@ -37,7 +44,7 @@ describe("LabelRepo", () => {
 	describe("findByNameAndRepositoryId", () => {
 		it("shouldn't find by name and repositoryId", async () => {
 			const name = "NonExistingName";
-			const repositoryId = "NonExistingId";
+			const repositoryId =  new ObjectId();
 
 			const found = await repository.findByNameAndRepositoryId(name, repositoryId);
 			expect(found).toBeNull();
@@ -45,7 +52,6 @@ describe("LabelRepo", () => {
 
 		it("should find by name and repositoryId", async () => {
 			const name = "ExistingName";
-			const repositoryId = "ExistingId";
 
 			const added = await repository.crud.add({name, repositoryId} as any);
 
@@ -63,7 +69,6 @@ describe("LabelRepo", () => {
 	describe("searchByName", () => {
 		it("should search by name", async () => {
 			const name = "SearchName";
-			const repositoryId = "searchByRepositoryId";
 
 			const added = await repository.crud.add({name, repositoryId} as any);
 
