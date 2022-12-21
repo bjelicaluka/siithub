@@ -1,6 +1,7 @@
 import { describe, expect, it, beforeEach } from "@jest/globals";
 import { setupTestEnv } from "../../jest-hooks.utils";
 import { type UserService } from "../../../src/features/user/user.service";
+import { ObjectId } from "mongodb";
 
 describe("UserService", () => {
   setupTestEnv("UserService");
@@ -14,7 +15,7 @@ describe("UserService", () => {
 
   describe("findOneOrThrow", () => {
     it("should throw MissingEntityException because user does not exist", async () => {
-      const id = "nonExistingId";
+      const id = new ObjectId();
 
       const findOneOrThrow = async () => await service.findOneOrThrow(id);
       await expect(findOneOrThrow).rejects.toThrowError("User with given id does not exist.");

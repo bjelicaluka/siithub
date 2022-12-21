@@ -5,7 +5,7 @@ import { clearPropertiesOfResultWrapper } from "../../utils/wrappers";
 import { getRandomString, getSha256Hash } from "../../utils/crypto";
 import { gitServerClient } from "../gitserver/gitserver.client";
 
-async function findOneOrThrow(id: User['_id'] | string): Promise<User> {
+async function findOneOrThrow(id: User['_id']): Promise<User> {
   const existingUser = await userRepo.crud.findOne(id);
   if (!existingUser) {
     throw new MissingEntityException("User with given id does not exist.");
@@ -58,7 +58,7 @@ async function createUser(user: UserCreate): Promise<User | null> {
 }
 
 export type UserService = {
-  findOneOrThrow(id: User['_id'] | string): Promise<User>,
+  findOneOrThrow(id: User['_id']): Promise<User>,
   findByUsername(username: string): Promise<User | null>,
   findByGithubUsername(username: string): Promise<User | null>,
   create(user: UserCreate): Promise<User | null>

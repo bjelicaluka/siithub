@@ -7,7 +7,7 @@ async function findByGithubUsername(username: string): Promise<User | null> {
   return userRepo.findByGithubUsername(username);
 }
 
-async function updateGithubAccount(id: User['_id'] | string, githubAccount: GithubAccount): Promise<User | null> {
+async function updateGithubAccount(id: User['_id'], githubAccount: GithubAccount): Promise<User | null> {
 
   const existingUser = await userService.findOneOrThrow(id);
   const existingByGithubUsername = await findByGithubUsername(githubAccount.username);
@@ -20,7 +20,7 @@ async function updateGithubAccount(id: User['_id'] | string, githubAccount: Gith
   return await userRepo.crud.update(id, existingUser);
 }
 
-async function deleteGithubAccount(id: User['_id'] | string): Promise<User | null> {
+async function deleteGithubAccount(id: User['_id']): Promise<User | null> {
 
   const existingUser = await userService.findOneOrThrow(id);
   if (!existingUser.githubAccount?.username) {
@@ -34,8 +34,8 @@ async function deleteGithubAccount(id: User['_id'] | string): Promise<User | nul
 
 export type UserGithubService = {
   findByGithubUsername(username: string): Promise<User | null>,
-  update(id: User['_id'] | string, githubAccount: GithubAccount): Promise<User | null>,
-  delete(id: User['_id'] | string): Promise<User | null>,
+  update(id: User['_id'], githubAccount: GithubAccount): Promise<User | null>,
+  delete(id: User['_id']): Promise<User | null>,
 }
 
 
