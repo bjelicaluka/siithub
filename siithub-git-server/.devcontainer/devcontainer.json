@@ -8,7 +8,7 @@
 
   "containerEnv": {},
 
-  "forwardPorts": [3001, 22],
+  "forwardPorts": [3002, 22],
 
   "postCreateCommand": "sh -c rc-status; rc-service sshd start", // start sshd service
 
