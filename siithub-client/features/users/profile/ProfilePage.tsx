@@ -12,7 +12,7 @@ import Link from "next/link";
 export const ProfilePage: FC = () => {
 
   const { result, setResult } = useResult('users');
-  const userId = (useAuthContext()?.user as AuthUser)._id;
+  const userId = (useAuthContext()?.user as AuthUser)?._id;
   const { user } = useUser(userId, [result]);
 
   useEffect(() => {
@@ -28,7 +28,7 @@ export const ProfilePage: FC = () => {
         </div>
         <div className="p-7 text-right">
           <ProfilePicture username={user.username} size={200} />
-          <Button><Link href={`/${user.username}`}>Go to your personal profile</Link></Button>
+          <Button><Link href={`/users/${user.username}`}>Go to your personal profile</Link></Button>
         </div>
         <div>
           <PersonalInfoForm user={user}/>

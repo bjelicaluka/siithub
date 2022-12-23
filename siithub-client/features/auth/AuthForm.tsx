@@ -23,7 +23,7 @@ export const AuthForm: FC = () => {
     onSuccess: (authUser: AuthenticatedUser) => {
       authDispatcher(onLogin(authUser));
       setResult({ status: ResultStatus.Ok, type: 'AUTHENTICATE' });
-      router.push(`/${authUser.user.username}`)
+      router.push(`/users/${authUser.user.username}`)
     },
     onError: (error: any) => {
       notifications.error(extractErrorMessage(error));

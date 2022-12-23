@@ -1,5 +1,5 @@
 import { BadLogicException, DuplicateException, MissingEntityException } from "../../error-handling/errors";
-import { UserType, UserUpdate, type User, type UserCreate } from "./user.model";
+import { UserType, type UserUpdate, type User, type UserCreate } from "./user.model";
 import { userRepo } from "./user.repo";
 import { clearPropertiesOfResultWrapper } from "../../utils/wrappers";
 import { getRandomString, getSha256Hash } from "../../utils/crypto";
@@ -17,7 +17,7 @@ async function findMany(): Promise<User[]> {
   return await userRepo.crud.findMany();
 }
 
-async function findByUsername(username: string): Promise<User> {
+async function findByUsername(username: string): Promise<User | null> {
   return await userRepo.findByUsername(username);
 }
 
@@ -62,6 +62,7 @@ async function createUser(user: UserCreate): Promise<User | null> {
 
   user.type = UserType.Developer;
   user.passwordAccount = getHashedPassword(user.password);
+  user.password = "";
 
   await gitServerClient.createUser(user.username);
 
@@ -80,12 +81,13 @@ async function updatePassword(id: User["_id"], passwordUpdate: {oldPassword: str
   if (passwordHash !== user.passwordAccount?.passwordHash) {
     throw new BadLogicException("Old password is incorrect");
   }
+  console.log(passwordUpdate.newPassword)
   return await userRepo.crud.update(id, {passwordAccount: getHashedPassword(passwordUpdate.newPassword)});
 }
 
 export type UserService = {
   findOneOrThrow(id: User['_id']): Promise<User>,
-  findByUsername(username: string): Promise<User>,
+  findByUsername(username: string): Promise<User | null>,
   findByUsernameOrThrow(username: string): Promise<User>,
   findByGithubUsername(username: string): Promise<User | null>,
   findMany(): Promise<User[]>,
@@ -97,7 +99,7 @@ export type UserService = {
 const userService: UserService = {
   findMany,
   findOneOrThrow: removePassword(findOneOrThrow),
-  findByUsername: removePassword(findByUsername),
+  findByUsername,
   findByUsernameOrThrow: removePassword(findByUsernameOrThrow),
   findByGithubUsername: removePassword(findByGithubUsername),
   create: removePassword(createUser),
