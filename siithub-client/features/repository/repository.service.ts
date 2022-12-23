@@ -6,8 +6,10 @@ export const repositorySchema = z.object({
   description: z.string().optional(),
 });
 
-export type Repository = z.infer<typeof repositorySchema>;
+export type CreateRepository = z.infer<typeof repositorySchema>;
 
-export function createRepository(owner: string, repository: Repository) {
+export type Repository = z.infer<typeof repositorySchema> & { "_id": string };
+
+export function createRepository(owner: string, repository: CreateRepository) {
   return axios.post("/api/repositories", { ...repository, owner });
 }

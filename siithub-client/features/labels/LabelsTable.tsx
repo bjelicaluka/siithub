@@ -5,9 +5,11 @@ import { useNotifications } from "../../core/hooks/useNotifications";
 import { extractErrorMessage } from "../../core/utils/errors";
 import { deleteLabelFor, type Label } from "./labelActions";
 import { LabelForm } from "./LabelForm";
+import { LabelPreview } from "./LabelPreview";
+import { type Repository } from "../repository/repository.service";
 
 type LabelsTableProps = {
-  repositoryId: string;
+  repositoryId: Repository["_id"];
   labels: Label[];
 }
 
@@ -59,7 +61,7 @@ export const LabelsTable: FC<LabelsTableProps> = ({ repositoryId, labels }) => {
               labels?.map((label: Label) =>
                 <tr key={label._id} className="bg-white border-b dark:bg-gray-900 dark:border-gray-700">
                   <th scope="row" className="py-4 px-6 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                    <button className="text-md font-medium leading-6 text-white rounded-full px-2" style={{ backgroundColor: label.color, minWidth: '100px' }}>{label.name || 'Label preview'}</button>
+                    <LabelPreview name={label.name || ''} color={label.color || ''} />
                   </th>
                   <td className="py-4 px-6">
                     {label.description}

@@ -10,6 +10,12 @@ import { asOptionalField } from "../../utils/zod";
 
 const router = Router();
 
+router.get("/", async (req: Request, res: Response) => {
+  const id = req.params['id'];
+  
+  res.send(await userService.findMany());
+});
+
 router.get("/:id", async (req: Request, res: Response) => {
   const id = req.params['id'];
   

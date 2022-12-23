@@ -14,6 +14,10 @@ async function findOneOrThrow(id: User['_id']): Promise<User> {
   return existingUser as User;
 }
 
+async function findMany(): Promise<User[]> {
+  return await userRepo.crud.findMany();
+}
+
 async function findByUsername(username: string): Promise<User | null> {
   return userRepo.findByUsername(username);
 }
@@ -61,6 +65,7 @@ export type UserService = {
   findOneOrThrow(id: User['_id']): Promise<User>,
   findByUsername(username: string): Promise<User | null>,
   findByGithubUsername(username: string): Promise<User | null>,
+  findMany(): Promise<User[]>,
   create(user: UserCreate): Promise<User | null>
 }
 
@@ -68,6 +73,7 @@ const userService: UserService = {
   findOneOrThrow,
   findByUsername,
   findByGithubUsername,
+  findMany,
   create: removePassword(createUser)
 }
 

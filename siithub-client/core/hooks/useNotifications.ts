@@ -1,14 +1,16 @@
 import { toast } from "react-toastify"
 
 export function useNotifications() {
-  return {
+  return notifications;
+};
 
-    success: function(text: string) {
-      toast.success(text);
-    },
+export const notifications = {
 
-    error: function(text: string) {
-      toast.error(text);
-    }
+  success: function(text: string) {
+    toast.success(text);
+  },
+
+  error: function(text: string) {
+    toast.error(text);
   }
 };
