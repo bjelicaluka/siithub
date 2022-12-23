@@ -6,6 +6,7 @@ import { initialIssue as emptyIssue, setIssue, useIssueContext } from "./IssueCo
 import { IssueHistory } from "./IssueHistory";
 import { AssignessForm } from "./AssignessForm";
 import { type Repository } from "../repository/repository.service";
+import { MilestonesForm } from "./MilestonesForm";
 
 type IssuePageProps = {
   repositoryId: Repository["_id"];
@@ -40,6 +41,10 @@ export const IssuePage: FC<IssuePageProps> = ({ repositoryId, existingIssueId = 
         <div className="col-span-4">
           <div className="bg-white py-6">
             <LabelsForm/>
+          </div>
+
+          <div className="bg-white pb-6">
+            <MilestonesForm />
           </div>
 
             <AssignessForm/>

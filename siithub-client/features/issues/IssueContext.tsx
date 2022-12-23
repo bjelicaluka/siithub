@@ -5,6 +5,7 @@ import Router from 'next/router'
 import { notifications } from "../../core/hooks/useNotifications";
 import { type User } from "../users/user.model";
 import { type Label } from "../labels/labelActions";
+import { type Milestone } from "../milestones/milestoneActions";
 
 
 type IssueContextType = {
@@ -20,6 +21,7 @@ export const initialIssue = {
   csm: {
     state: IssueState.Open,
     labels: [],
+    milestones: [],
     assignees: [],
     title: '',
     description: ''
@@ -92,6 +94,28 @@ function issueReducer(issue: Issue, action: ActionType) {
         csm: {
           ...issue.csm,
           labels
+        }
+      };
+    }
+
+    case 'ASSIGN_MILESTONE': {
+      const milestones = [...issue.csm?.milestones ?? [], action.payload]
+      return {
+        ...issue,
+        csm: {
+          ...issue.csm,
+          milestones
+        }
+      };
+    }
+
+    case 'UNASSIGN_MILESTONE': {
+      const milestones = issue.csm?.milestones?.filter(m => m !== action.payload) ?? [];
+      return {
+        ...issue,
+        csm: {
+          ...issue.csm,
+          milestones
         }
       };
     }
@@ -208,6 +232,51 @@ export function instantUnassignLabelFrom(issue: Issue, labelId: Label["_id"], by
     })
     .catch(error => {});
 }
+
+export function assignMilestone(milestoneId: Milestone["_id"], by: User["_id"]) {
+  return (dispatch: any) => {
+    dispatch({ type: 'ASSIGN_MILESTONE', payload: milestoneId });
+    dispatch({ type: 'ADD_EVENT', payload: { by, type: 'MilestoneAssignedEvent', milestoneId } });
+  }
+}
+
+export function unassignMilestone(milestoneId: Milestone["_id"], by: User["_id"]) {
+  return (dispatch: any) => {
+    dispatch({ type: 'UNASSIGN_MILESTONE', payload: milestoneId });
+    dispatch({ type: 'ADD_EVENT', payload: { by, type: 'MilestoneUnassignedEvent', milestoneId } });
+  }
+}
+
+export function instantAssignMilestoneTo(issue: Issue, milestoneId: Milestone["_id"], by: User["_id"]) {
+  const newIssue: UpdateIssue = {
+    _id: issue._id,
+    events: [{ by, type: 'MilestoneAssignedEvent', milestoneId }],
+    repositoryId: issue.repositoryId
+  };
+
+  return (dispatch: any) => updateIssue(newIssue)
+    .then(resp => {
+      dispatch({ type: 'ASSIGN_MILESTONE', payload: milestoneId });
+      dispatch({ type: 'ADD_EVENT', payload: resp.data.events.pop() });
+    })
+    .catch(_ => {});
+}
+
+export function instantUnassignMilestoneFrom(issue: Issue, milestoneId: Milestone["_id"], by: User["_id"]) {
+  const newIssue: UpdateIssue = {
+    _id: issue._id,
+    events: [{ by, type: 'MilestoneUnassignedEvent', milestoneId }],
+    repositoryId: issue.repositoryId
+  };
+
+  return (dispatch: any) => updateIssue(newIssue)
+    .then(resp => {
+      dispatch({ type: 'UNASSIGN_MILESTONE', payload: milestoneId });
+      dispatch({ type: 'ADD_EVENT', payload: resp.data.events.pop() });
+    })
+    .catch(error => {});
+}
+
 
 export function assignUser(userId: User["_id"], by: User["_id"]) {
   return (dispatch: any) => {

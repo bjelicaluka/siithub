@@ -6,6 +6,8 @@ import { useLabels } from "../labels/useLabels"
 import { type Label } from "../labels/labelActions"
 import { useUsers } from "../users/registration/useUsers"
 import { type Repository } from "../repository/repository.service"
+import { type Milestone } from "../milestones/milestoneActions"
+import { useMilestonesByRepoId } from "./useMillestones"
 
 const avaiableStates = [
   { value: [IssueState.Open, IssueState.Reopened, IssueState.Closed], label: "Any" },
@@ -33,6 +35,9 @@ export const IssuesSearchForm: FC<IssuesSearchFormProps> = ({ repositoryId, exis
 
   const { labels } = useLabels(repositoryId);
   const labelOptions = labels?.map((l: Label) => ({ value: l._id, label: l.name }));
+
+  const { milestones } = useMilestonesByRepoId(repositoryId);
+  const milestoneOptions = milestones?.map((m: Milestone) => ({ value: m._id, label: m.title }));
 
   const { users } = useUsers();
   const userOptions = [{ value: '', label: 'Any' }, ...users?.map((u: any) => ({ value: u._id, label: u.name })) ?? []];
@@ -68,7 +73,7 @@ export const IssuesSearchForm: FC<IssuesSearchFormProps> = ({ repositoryId, exis
     </div>
 
     <div className="mt-10 grid grid-cols-12 gap-6">
-      <div className="col-span-3">
+      <div className="col-span-1">
         <label className="block text-sm font-medium text-gray-700">State</label>
 
         <Select
@@ -82,7 +87,7 @@ export const IssuesSearchForm: FC<IssuesSearchFormProps> = ({ repositoryId, exis
         />
       </div>
 
-      <div className="col-span-3">
+      <div className="col-span-2">
         <label className="block text-sm font-medium text-gray-700">Author</label>
 
         <Select
@@ -121,6 +126,20 @@ export const IssuesSearchForm: FC<IssuesSearchFormProps> = ({ repositoryId, exis
           className="mt-1 basic-multi-select"
           classNamePrefix="select"
           onChange={(labels: any) => { onDataChange({ labels: labels.map((l: any) => l.value) }) }}
+        />
+      </div>
+
+      <div className="col-span-3">
+        <label className="block text-sm font-medium text-gray-700">Milestones</label>
+
+        <Select
+          isMulti
+          name="milestones"
+          defaultValue={undefined}
+          options={milestoneOptions}
+          className="mt-1 basic-multi-select"
+          classNamePrefix="select"
+          onChange={(milestones: any) => { onDataChange({ milestones: milestones.map((m: any) => m.value) }) }}
         />
       </div>
     </div>

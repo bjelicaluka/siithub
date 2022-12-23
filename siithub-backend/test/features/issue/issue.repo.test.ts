@@ -6,6 +6,7 @@ import { type Repository } from "../../../src/features/repository/repository.mod
 import { type Label } from "../../../src/features/label/label.model";
 import { type User } from "../../../src/features/user/user.model";
 import { IssueState } from "../../../src/features/issue/issue.model";
+import { type Milestone } from "../../../src/features/milestone/milestone.model";
 
 describe("IssuesRepo", () => {
   setupTestEnv("IssuesRepo");
@@ -19,6 +20,9 @@ describe("IssuesRepo", () => {
 
 	const user1: User["_id"] = new ObjectId();
 	const user2: User["_id"] = new ObjectId();
+
+	const milestone1: Milestone["_id"] = new ObjectId();
+	const milestone2: Milestone["_id"] = new ObjectId();
 
   beforeEach(async () => {
 		const { issueRepo } = await import("../../../src/features/issue/issue.repo")
@@ -119,7 +123,7 @@ describe("IssuesRepo", () => {
 				expect(queryResult.length).toBeFalsy();
 			})
 	
-			it("should find mulitple by author", async () => {
+			it("should find mulitple by assignees", async () => {
 				await repository.crud.add({ csm: { assignees: [user1, user2] }, repositoryId } as any);
 				await repository.crud.add({ csm: { assignees: [user1] }, repositoryId } as any);
 				await repository.crud.add({ csm: { assignees: [user2] }, repositoryId } as any);
@@ -140,7 +144,7 @@ describe("IssuesRepo", () => {
 				expect(queryResult.length).toBeFalsy();
 			})
 	
-			it("should find mulitple by author", async () => {
+			it("should find mulitple by labels", async () => {
 				await repository.crud.add({ csm: { labels: [labelId1, labelId2] }, repositoryId } as any);
 				await repository.crud.add({ csm: { labels: [labelId2, labelId3] }, repositoryId } as any);
 				await repository.crud.add({ csm: { labels: [labelId1, labelId2, labelId3] }, repositoryId } as any);
@@ -148,6 +152,27 @@ describe("IssuesRepo", () => {
 				const queryResult = await repository.searchByQuery({ labels: [labelId1, labelId2, labelId3] }, repositoryId);
 		
 				expect(queryResult.length).toBe(1);
+			})	
+		})
+
+		describe("byMilestones", () => {
+			it("shouldn't find anything by milestones", async () => {
+				await repository.crud.add({ csm: { milestones: [milestone1] }, repositoryId } as any);
+				await repository.crud.add({ csm: { milestones: [milestone2] }, repositoryId } as any);
+
+				const queryResult = await repository.searchByQuery({ milestones: [milestone1, milestone2] }, repositoryId);
+	
+				expect(queryResult.length).toBeFalsy();
+			})
+	
+			it("should find mulitple by milestones", async () => {
+				await repository.crud.add({ csm: { milestones: [milestone1, milestone2] }, repositoryId } as any);
+				await repository.crud.add({ csm: { milestones: [milestone1] }, repositoryId } as any);
+				await repository.crud.add({ csm: { milestones: [milestone2] }, repositoryId } as any);
+
+				const queryResult = await repository.searchByQuery({ milestones: [milestone1] }, repositoryId);
+		
+				expect(queryResult.length).toBe(2);
 			})	
 		})
 	});

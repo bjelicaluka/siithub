@@ -1,6 +1,6 @@
 import { describe, expect, it, beforeEach } from "@jest/globals";
 import { ObjectId } from "mongodb";
-import { handleFor, type IssueClosedEvent, type IssueCreatedEvent, type IssueReopenedEvent, IssueState, type IssueUpdatedEvent, type LabelAssignedEvent, type LabelUnassignedEvent, type UserAssignedEvent, type UserUnassignedEvent } from '../../../src/features/issue/issue.model'
+import { handleFor, type IssueClosedEvent, type IssueCreatedEvent, type IssueReopenedEvent, IssueState, type IssueUpdatedEvent, type LabelAssignedEvent, type LabelUnassignedEvent, type UserAssignedEvent, type UserUnassignedEvent, type MilestoneAssignedEvent, type MilestoneUnassignedEvent } from '../../../src/features/issue/issue.model'
 import { createEvent } from './utils'
 
 describe("IssueModel", () => {
@@ -15,7 +15,8 @@ describe("IssueModel", () => {
         repositoryId: "someRepositoryId",
         csm: {
           labels: [],
-          assignees: []
+          assignees: [],
+          milestones: []
         },
         events: []
       }
@@ -51,7 +52,8 @@ describe("IssueModel", () => {
         description: issueCreated.description,
         state: IssueState.Open,
         labels: [],
-        assignees: []
+        assignees: [],
+        milestones: []
       }));
       expect(issue.csm).toHaveProperty("timeStamp")
     })
@@ -209,6 +211,139 @@ describe("IssueModel", () => {
       handleFor(issue, labelUnassigned);
       expect(issue.csm.labels).not.toEqual(expect.arrayContaining([labelAssigned.labelId]));
 
+    })
+
+    it ("should throw error milestone is already assigned", () => {
+      const milestoneAssigned = createEvent<MilestoneAssignedEvent>({
+        type: 'MilestoneAssignedEvent',
+        milestoneId: new ObjectId()
+      });
+
+      const issue = {
+        ...emptyIssue,
+        events: [milestoneAssigned]
+      };
+      const assignMilestone = () => handleFor(issue, milestoneAssigned);
+
+      expect(assignMilestone).toThrowError("Milestone is already assigned to the Issue.");
+    })
+
+    it ("should throw error milestone is already reassigned", () => {
+      const milestoneAssigned = createEvent<MilestoneAssignedEvent>({
+        type: 'MilestoneAssignedEvent',
+        milestoneId: new ObjectId()
+      });
+      const milestoneUnassigned = createEvent<MilestoneUnassignedEvent>({
+        type: 'MilestoneUnassignedEvent',
+        milestoneId: milestoneAssigned.milestoneId
+      });
+
+      const issue = {
+        ...emptyIssue,
+        events: [milestoneAssigned, milestoneUnassigned, milestoneAssigned]
+      };
+      const assignMilestone = () => handleFor(issue, milestoneAssigned);
+
+      expect(assignMilestone).toThrowError("Milestone is already assigned to the Issue.");
+    })
+
+    it ("should apply MilestoneAssignedEvent for the first time", () => {
+      const milestoneAssigned = createEvent<MilestoneAssignedEvent>({
+        type: 'MilestoneAssignedEvent',
+        milestoneId: new ObjectId()
+      });
+
+      const issue = { ...emptyIssue };
+      handleFor(issue, milestoneAssigned);
+      expect(issue.csm.milestones).toEqual(expect.arrayContaining([milestoneAssigned.milestoneId]));
+    })
+
+    it ("should apply MilestoneAssignedEvent after unassign", () => {
+      const milestoneAssigned = createEvent<MilestoneAssignedEvent>({
+        type: 'MilestoneAssignedEvent',
+        milestoneId: new ObjectId()
+      });
+      const milestoneUnassigned = createEvent<MilestoneUnassignedEvent>({
+        type: 'MilestoneUnassignedEvent',
+        milestoneId: milestoneAssigned.milestoneId
+      });
+
+      const issue = {
+        ...emptyIssue,
+        events: [milestoneAssigned, milestoneUnassigned]
+      };
+      handleFor(issue, milestoneAssigned);
+      expect(issue.csm.milestones).toEqual(expect.arrayContaining([milestoneAssigned.milestoneId]));
+    })
+    
+    it ("should throw error because milestone is not assigned", () => {
+      const milestoneUnassigned = createEvent<MilestoneUnassignedEvent>({
+        type: 'MilestoneUnassignedEvent',
+        milestoneId: new ObjectId()
+      });
+
+      const issue = {
+        ...emptyIssue,
+      };
+      const unassignMilestone = () => handleFor(issue, milestoneUnassigned);
+
+      expect(unassignMilestone).toThrowError("Milestone cannot be unassigned from the Issue.");
+    })
+
+    it ("should throw error because milestone is reunassigned", () => {
+      const milestoneAssigned = createEvent<MilestoneAssignedEvent>({
+        type: 'MilestoneAssignedEvent',
+        milestoneId: new ObjectId()
+      });
+      const milestoneUnassigned = createEvent<MilestoneUnassignedEvent>({
+        type: 'MilestoneUnassignedEvent',
+        milestoneId: milestoneAssigned.milestoneId
+      });
+
+      const issue = {
+        ...emptyIssue,
+        events: [milestoneAssigned, milestoneUnassigned]
+      };
+      const unassignMilestone = () => handleFor(issue, milestoneUnassigned);
+
+      expect(unassignMilestone).toThrowError("Milestone cannot be unassigned from the Issue.");
+    })
+
+    it ("should apply MilestoneUnassignedEvent for the first time", () => {
+      const milestoneAssigned = createEvent<MilestoneAssignedEvent>({
+        type: 'MilestoneAssignedEvent',
+        milestoneId: new ObjectId()
+      });
+      const milestoneUnassigned = createEvent<MilestoneUnassignedEvent>({
+        type: 'MilestoneUnassignedEvent',
+        milestoneId: milestoneAssigned.milestoneId
+      });
+
+      const issue = {
+        ...emptyIssue,
+        events: [milestoneAssigned]
+      };
+      handleFor(issue, milestoneUnassigned);
+      expect(issue.csm.milestones).not.toEqual(expect.arrayContaining([milestoneAssigned.milestoneId]));
+
+    })
+
+    it ("should apply MilestoneUnassignedEvent for after reassign", () => {
+      const milestoneAssigned = createEvent<MilestoneAssignedEvent>({
+        type: 'MilestoneAssignedEvent',
+        milestoneId: new ObjectId()
+      });
+      const milestoneUnassigned = createEvent<MilestoneUnassignedEvent>({
+        type: 'MilestoneUnassignedEvent',
+        milestoneId: milestoneAssigned.milestoneId
+      });
+
+      const issue = {
+        ...emptyIssue,
+        events: [milestoneAssigned, milestoneUnassigned, milestoneAssigned]
+      };
+      handleFor(issue, milestoneUnassigned);
+      expect(issue.csm.milestones).not.toEqual(expect.arrayContaining([milestoneAssigned.milestoneId]));
     })
 
     it ("should throw error user is already assigned", () => {

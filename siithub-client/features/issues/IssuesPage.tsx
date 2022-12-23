@@ -19,7 +19,7 @@ export const IssuesPage: FC<IssuePageProps> = ({ repositoryId }) => {
   const [existingParams, setExistingParams] = useState<IssuesQuery>({});
   const { issues } = useSearchIssues(existingParams, repositoryId);
 
-  const navigateToNewIssue = () => router.push('/issues/new');
+  const navigateToNewIssue = () => router.push(`/repository/${repositoryId}/issues/new`);
   const clearParams = () => { search_form_key_count++, setExistingParams({}) };
 
   return (

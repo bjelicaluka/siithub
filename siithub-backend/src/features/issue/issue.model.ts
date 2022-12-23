@@ -1,6 +1,7 @@
 import { type BaseEvent, type AggregateRoot } from "../../db/base.repo.utils";
 import { BadLogicException } from "../../error-handling/errors";
 import { type Label } from "../label/label.model";
+import { type Milestone } from "../milestone/milestone.model";
 import { type Repository } from "../repository/repository.model";
 import { type User } from "../user/user.model";
 
@@ -17,6 +18,7 @@ export type IssueCSM = {
   title?: string,
   description?: string,
   labels?: Label['_id'][],
+  milestones?: Milestone['_id'][],
   assignees?: User['_id'][],
 };
 
@@ -32,6 +34,9 @@ export type IssueUpdatedEvent = BaseEvent & { title: string, description: string
 
 export type LabelAssignedEvent = BaseEvent & { labelId: Label['_id'] };
 export type LabelUnassignedEvent = BaseEvent & { labelId: Label['_id'] };
+
+export type MilestoneAssignedEvent = BaseEvent & { milestoneId: Milestone['_id'] };
+export type MilestoneUnassignedEvent = BaseEvent & { milestoneId: Milestone['_id'] };
 
 export type UserAssignedEvent = BaseEvent & { userId: User['_id'] };
 export type UserUnassignedEvent = BaseEvent & { userId: User['_id'] };
@@ -54,6 +59,7 @@ export function handleFor(issue: Issue, event: BaseEvent) {
         description: issueCreated.description,
         state: IssueState.Open,
         labels: [],
+        milestones: [],
         assignees: []
       };
       break;
@@ -89,6 +95,31 @@ export function handleFor(issue: Issue, event: BaseEvent) {
       }
 
       issue.csm.labels = issue?.csm?.labels?.filter(l => l !== labelUnassigned?.labelId && l.toString() !== labelUnassigned?.labelId?.toString());
+      break;
+    }
+    case 'MilestoneAssignedEvent': {
+      const milestoneAssigned = event as MilestoneAssignedEvent;
+      const lastMilestoneEvent = findLastEvent<MilestoneAssignedEvent|MilestoneUnassignedEvent>(
+        issue.events,
+        e => e?.milestoneId === milestoneAssigned?.milestoneId || e?.milestoneId?.toString() === milestoneAssigned?.milestoneId.toString()
+      );
+      if (lastMilestoneEvent?.type === 'MilestoneAssignedEvent') {
+        throw new BadLogicException("Milestone is already assigned to the Issue.", event);
+      }
+      issue.csm.milestones?.push(milestoneAssigned?.milestoneId);
+      break;
+    }
+    case 'MilestoneUnassignedEvent': {
+      const milestoneUnassigned = event as MilestoneUnassignedEvent;
+      const lastMilestoneEvent = findLastEvent<MilestoneAssignedEvent|MilestoneUnassignedEvent>(
+        issue.events,
+        e => e?.milestoneId === milestoneUnassigned?.milestoneId || e?.milestoneId?.toString() === milestoneUnassigned?.milestoneId.toString()
+      );
+      if (!lastMilestoneEvent || lastMilestoneEvent?.type === 'MilestoneUnassignedEvent') {
+        throw new BadLogicException("Milestone cannot be unassigned from the Issue.", event);
+      }
+
+      issue.csm.milestones = issue?.csm?.milestones?.filter(m => m !== milestoneUnassigned?.milestoneId && m.toString() !== milestoneUnassigned?.milestoneId?.toString());
       break;
     }
     case 'UserAssignedEvent': {

@@ -1,12 +1,13 @@
 import { describe, expect, it, beforeEach } from "@jest/globals";
 import { setupGitServer, setupTestEnv } from "../../jest-hooks.utils";
 import { type IssueService } from "../../../src/features/issue/issue.service";
-import { IssueState, type IssueCreate, type IssueUpdate, type LabelAssignedEvent, type UserAssignedEvent, type Issue } from "../../../src/features/issue/issue.model";
+import { IssueState, type IssueCreate, type IssueUpdate, type LabelAssignedEvent, type UserAssignedEvent, type Issue, type MilestoneAssignedEvent } from "../../../src/features/issue/issue.model";
 import { createEvent } from './utils'
 import { type Label } from "../../../src/features/label/label.model";
 import { type User } from "../../../src/features/user/user.model";
 import { type Repository } from "../../../src/features/repository/repository.model";
 import { ObjectId } from "mongodb";
+import { type Milestone } from "../../../src/features/milestone/milestone.model";
 
 describe("IssueService", () => {
 
@@ -18,12 +19,14 @@ describe("IssueService", () => {
 	let firstUserId: User["_id"];
 	let secondUserId: User["_id"];
 	let labelId: Label["_id"];
+	let milestoneId: Milestone["_id"];
 
   beforeEach(async () => {
     const { issueService } = await import("../../../src/features/issue/issue.service");
     const { repositoryRepo } = await import("../../../src/features/repository/repository.repo")
     const { userRepo } = await import("../../../src/features/user/user.repo")
     const { labelRepo } = await import("../../../src/features/label/label.repo")
+    const { milestoneRepo } = await import("../../../src/features/milestone/milestone.repo")
 
     service = issueService;
 
@@ -41,6 +44,10 @@ describe("IssueService", () => {
     labelId = (await labelRepo.crud.add({
 			name: 'labelForIssues'
 		} as any) as Label)?._id;
+
+    milestoneId = (await milestoneRepo.crud.add({
+			name: 'milestoneForIssues'
+		} as any) as Milestone)?._id;
   });
 
   describe("create", () => {
@@ -63,6 +70,7 @@ describe("IssueService", () => {
         events: [
           { type: 'IssueCreatedEvent', title: 'Test issue' } as any,
           { type: 'LabelAssignedEvent', labelId } as any,
+          { type: 'MilestoneAssignedEvent', milestoneId } as any,
           { type: 'UserAssignedEvent', userId: firstUserId } as any
         ],
         csm: {},
@@ -73,11 +81,12 @@ describe("IssueService", () => {
 
       expect(createdIssue).not.toBeNull();
       expect(createdIssue).toHaveProperty("_id");
-      expect(createdIssue?.events.length).toBe(3);
+      expect(createdIssue?.events.length).toBe(4);
       expect(createdIssue?.csm).toHaveProperty("timeStamp");
       expect(createdIssue?.csm).toHaveProperty("state", IssueState.Open);
       expect(createdIssue?.csm).toHaveProperty("title", "Test issue");
       expect(createdIssue?.csm).toHaveProperty("labels", expect.arrayContaining([labelId]));
+      expect(createdIssue?.csm).toHaveProperty("milestones", expect.arrayContaining([milestoneId]));
       expect(createdIssue?.csm).toHaveProperty("assignees", expect.arrayContaining([firstUserId]));
     });
   
@@ -103,6 +112,7 @@ describe("IssueService", () => {
         events: [
           { type: 'IssueCreatedEvent', title: 'Test issue' } as any,
           { type: 'LabelAssignedEvent', labelId } as any,
+          { type: 'MilestoneAssignedEvent', milestoneId } as any,
           { type: 'UserAssignedEvent', userId: firstUserId } as any
         ],
         csm: {},
@@ -128,13 +138,14 @@ describe("IssueService", () => {
 
       expect(updatedIssue).not.toBeNull();
       expect(updatedIssue).toHaveProperty("_id");
-      expect(updatedIssue?.events.length).toBe(8);
+      expect(updatedIssue?.events.length).toBe(9);
       expect(updatedIssue?.csm).toHaveProperty("state", IssueState.Closed);
       expect(updatedIssue?.csm).toHaveProperty("timeStamp");
       expect(updatedIssue?.csm).toHaveProperty("lastModified");
       expect(updatedIssue?.csm).toHaveProperty("title", "Test issue");
       expect(updatedIssue?.csm).toHaveProperty("description", "Test Issue description");
       expect(updatedIssue?.csm.labels?.length).toBe(0);
+      expect(createdIssue?.csm).toHaveProperty("milestones", expect.arrayContaining([milestoneId]));
       expect(updatedIssue?.csm).toHaveProperty("assignees", expect.arrayContaining([secondUserId]));
     });
   
@@ -164,6 +175,32 @@ describe("IssueService", () => {
       });
 
       const validateEvent = async () => await service.validateEventFor(labelAssigned);
+
+      expect(validateEvent).not.toThrowError()
+    })
+
+    it("should throw exception because milestone does not exist", async () => {
+      const milestoneAssigned = createEvent<MilestoneAssignedEvent>({
+        type: 'MilestoneAssignedEvent',
+        milestoneId: new Object(),
+        repositoryId
+      });
+
+      const validateEvent = async () => await service.validateEventFor(milestoneAssigned);
+
+      await expect(validateEvent).rejects.toThrowError()
+    })
+
+    it("should not throw when validating milestone assign", async () => {
+      const { milestoneService } = await import("../../../src/features/milestone/milestone.service");
+      const addedMilestone = await milestoneService.create({ title: "Milestone", repositoryId } as any) as Milestone;
+
+      const milestoneAssigned = createEvent<MilestoneAssignedEvent>({
+        type: 'MilestoneAssignedEvent',
+        milestoneId: addedMilestone._id
+      });
+
+      const validateEvent = async () => await service.validateEventFor(milestoneAssigned);
 
       expect(validateEvent).not.toThrowError()
     })

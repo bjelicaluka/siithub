@@ -16,6 +16,7 @@ async function searchByQuery(query: IssuesQuery, repositoryId: Repository["_id"]
     author,
     assignees,
     labels,
+    milestones,
     sort
   } = query;
 
@@ -26,6 +27,7 @@ async function searchByQuery(query: IssuesQuery, repositoryId: Repository["_id"]
     ...(author ? { "csm.author": author } : {}),
     ...((assignees && assignees.length) ? { "csm.assignees": { $all: assignees } } : {}),
     ...((labels && labels.length) ? { "csm.labels": { $all: labels } } : {}),
+    ...((milestones && milestones.length) ? { "csm.milestones": { $all: milestones } } : {}),
   };
 
   const formatSort = (sort: any) => ({ ["csm." + Object.keys(sort)[0]]: sort[Object.keys(sort)[0]] });

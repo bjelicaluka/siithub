@@ -6,12 +6,15 @@ import { type Label } from "../labels/labelActions";
 import { useUsers } from "../users/registration/useUsers";
 import { LabelPreview } from "../labels/LabelPreview";
 import { type User } from "../users/user.model";
+import { type Milestone } from "../milestones/milestoneActions";
+import { useMilestonesByRepoId } from "./useMillestones";
 
 
 export const IssueHistory: FC = () => {
 
   const { issue } = useIssueContext();
   const { labels } = useLabels(issue.repositoryId);
+  const { milestones } = useMilestonesByRepoId(issue.repositoryId);
   const { users } = useUsers();
 
 
@@ -41,6 +44,15 @@ export const IssueHistory: FC = () => {
         case 'LabelUnassignedEvent': {
           const label = labels?.find((l: Label) => l._id === event.labelId) ?? {};
           return <>removed the <LabelPreview {...label} /> label</>
+        }
+
+        case 'MilestoneAssignedEvent': {
+          const milestone = milestones?.find((m: Milestone) => m._id === event.milestoneId) ?? {};
+          return <>added the {milestone.title} milestone</>
+        }
+        case 'MilestoneUnassignedEvent': {
+          const milestone = milestones?.find((m: Milestone) => m._id === event.milestoneId) ?? {};
+          return <>removed the {milestone.title} milestone</>
         }
 
         case 'UserAssignedEvent': return <>assigned {users?.find((u: User) => u._id === event.userId)?.name}</>

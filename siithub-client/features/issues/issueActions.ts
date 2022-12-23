@@ -2,6 +2,7 @@ import axios from "axios";
 import { type Label } from "../labels/labelActions";
 import { type User } from "../users/user.model";
 import { type Repository } from "../repository/repository.service";
+import { type Milestone } from "../milestones/milestoneActions";
 
 export enum IssueState {
   Open,
@@ -16,6 +17,7 @@ export type IssueCSM = {
   title?: string,
   description?: string,
   labels?: Label['_id'][],
+  milestones?: Milestone['_id'][],
   assignees?: User['_id'][],
 };
 
@@ -32,6 +34,7 @@ type IssuesQuery = {
   author?: User["_id"],
   assignees?: User["_id"][],
   labels?: Label["_id"][],
+  milestones?: Milestone["_id"][],
   sort?: any
 }
 
