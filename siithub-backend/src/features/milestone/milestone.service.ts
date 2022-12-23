@@ -47,7 +47,7 @@ async function createMilestone(milestone: MilestoneCreate): Promise<Milestone | 
 }
 
 async function updateMilestone(milestone: MilestoneUpdate): Promise<Milestone | null> {
-  const existingMilestone = await findOneOrThrow(milestone._id);
+  const existingMilestone = await findByRepositoryIdAndLocalId(milestone.repositoryId, milestone.localId);
 
   const milestoneWithSameName = await findByTitleAndRepositoryId(milestone.title, milestone.repositoryId);
   if (milestoneWithSameName && milestoneWithSameName._id + '' !== existingMilestone._id + '') {
@@ -58,29 +58,29 @@ async function updateMilestone(milestone: MilestoneUpdate): Promise<Milestone | 
   existingMilestone.description = milestone.description;
   existingMilestone.title = milestone.title;
 
-  return await milestoneRepo.crud.update(milestone._id, existingMilestone);
+  return await milestoneRepo.crud.update(existingMilestone._id, existingMilestone);
 }
 
-async function deleteMilestone(id: Milestone['_id']): Promise<Milestone | null> {
-  const existingMilestone = await findOneOrThrow(id);
+async function deleteMilestone(repositoryId: Repository["_id"], localId: number): Promise<Milestone | null> {
+  const existingMilestone = await findByRepositoryIdAndLocalId(repositoryId, localId);
   return await milestoneRepo.crud.delete(existingMilestone._id);
 }
 
-async function openClose(id: Milestone['_id'], open: boolean): Promise<Milestone | null> {
-  const existingMilestone = await findOneOrThrow(id);
+async function openClose(repositoryId: Repository["_id"], localId: number, open: boolean): Promise<Milestone | null> {
+  const existingMilestone = await findByRepositoryIdAndLocalId(repositoryId, localId);
   return await milestoneRepo.crud.update(existingMilestone._id, {isOpen: open} as MilestoneUpdate);
 }
 
 export type MilestoneService = {
   create(Milestone: MilestoneCreate): Promise<Milestone | null>,
   update(Milestone: MilestoneUpdate): Promise<Milestone | null>,
-  delete(id: Milestone['_id']): Promise<Milestone | null>,
+  delete(repositoryId: Repository["_id"], localId: number): Promise<Milestone | null>,
   findOne(id: Milestone['_id']): Promise<Milestone | null>,
   findOneOrThrow(id: Milestone["_id"]): Promise<Milestone>,
   findByRepositoryId(repositoryId: Repository["_id"], isOpen?: boolean): Promise<Milestone[]>,
   findByTitleAndRepositoryId(title: string, repositoryId: Repository["_id"]): Promise<Milestone | null>,
   searchByTitle(title: string, repositoryId: Repository["_id"]): Promise<Milestone[] | null>,
-  openClose(id: Milestone['_id'], open: boolean): Promise<Milestone | null>,
+  openClose(repositoryId: Repository["_id"], localId: number, open: boolean): Promise<Milestone | null>,
   findByRepositoryIdAndLocalId(repositoryId: Repository["_id"], localId: number): Promise<Milestone>,
 }
 

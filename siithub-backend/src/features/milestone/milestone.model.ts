@@ -5,10 +5,10 @@ export type Milestone = {
   title: string,
   localId: number,
   description: string,
-  dueDate: Date,
+  dueDate?: Date,
   repositoryId: Repository["_id"],
   isOpen: boolean
 } & BaseEntity;
 
 export type MilestoneCreate = Omit<Milestone, "_id">;
-export type MilestoneUpdate = Omit<Milestone, "localId">;
+export type MilestoneUpdate = Milestone;
