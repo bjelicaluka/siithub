@@ -3,6 +3,7 @@ import type { Express, Request, Response } from "express";
 import { config } from "./config";
 import { createUser } from "./user.utils";
 import { createRepo } from "./git/repository.utils";
+import { addKey, removeKey } from "./key.utils";
 
 const app: Express = express();
 
@@ -18,6 +19,28 @@ app.post("/api/users", async (req: Request, res: Response) => {
 app.post("/api/repositories", async (req: Request, res: Response) => {
   const { username, repositoryName } = req.body;
   await createRepo(username, repositoryName);
+
+  res.send({ status: "ok" });
+});
+
+app.post("/api/key", async (req: Request, res: Response) => {
+  const { username, key } = req.body;
+  await addKey(username, key);
+
+  res.send({ status: "ok" });
+});
+
+app.put("/api/key", async (req: Request, res: Response) => {
+  const { username, key, oldKey } = req.body;
+  await removeKey(username, oldKey);
+  await addKey(username, key);
+
+  res.send({ status: "ok" });
+});
+
+app.put("/api/key/delete", async (req: Request, res: Response) => {
+  const { username, key } = req.body;
+  await removeKey(username, key);
 
   res.send({ status: "ok" });
 });

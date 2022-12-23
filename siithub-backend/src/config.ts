@@ -10,4 +10,7 @@ export const config = {
     password: process.env.MONGODB_PASSWORD,
     database: process.env.MONGODB_DATABASE,
   },
+  gitServer: {
+    url: process.env.GITSERVER_HOST + ":" + process.env.GITSERVER_PORT,
+  },
 };

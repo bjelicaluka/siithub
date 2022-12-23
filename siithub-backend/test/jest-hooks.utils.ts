@@ -63,12 +63,18 @@ export function setupTestEnv(scope: string) {
 export function setupGitServer() {
   let createUserHandler: () => void = () => {};
   let createRepoHandler: () => void = () => {};
+  let addSshKeyHandler: () => void = () => {};
+  let updateSshKeyHandler: () => void = () => {};
+  let removeSshKeyHandler: () => void = () => {};
 
   beforeEach(async () => {
     jest.mock("../src/features/gitserver/gitserver.client.ts", () => ({
       gitServerClient: {
         createUser: jest.fn(() => createUserHandler()),
         createRepository: jest.fn(() => createRepoHandler()),
+        addSshKey: jest.fn(() => addSshKeyHandler()),
+        updateSshKey: jest.fn(() => updateSshKeyHandler()),
+        removeSshKey: jest.fn(() => removeSshKeyHandler()),
       },
     }));
   });
@@ -76,6 +82,9 @@ export function setupGitServer() {
   afterEach(() => {
     createUserHandler = () => {};
     createRepoHandler = () => {};
+    addSshKeyHandler = () => {};
+    updateSshKeyHandler = () => {};
+    removeSshKeyHandler = () => {};
   });
 
   return {
@@ -84,6 +93,15 @@ export function setupGitServer() {
     },
     setCreateRepoHandler: (cb: () => void) => {
       createRepoHandler = cb;
+    },
+    setAddSshKeyHandler: (cb: () => void) => {
+      addSshKeyHandler = cb;
+    },
+    setUpdateSshKeyHandler: (cb: () => void) => {
+      updateSshKeyHandler = cb;
+    },
+    setRemoveSshKeyHandler: (cb: () => void) => {
+      removeSshKeyHandler = cb;
     },
   };
 }
