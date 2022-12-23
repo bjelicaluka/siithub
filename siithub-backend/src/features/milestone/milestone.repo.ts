@@ -20,7 +20,7 @@ async function searchByTitle(title: string, repositoryId: Repository["_id"]): Pr
   return (await milestoneRepo.crud.findManyCursor({ title: { $regex: title, $options: 'i' }, repositoryId })).toArray();
 }
 
-export type LabelRepo = {
+export type MilestoneRepo = {
   crud: BaseRepo<Milestone, MilestoneCreate, MilestoneUpdate>,
   findByRepositoryId(repositoryId: Repository["_id"], isOpen: boolean): Promise<Milestone[]>,
   findByTitleAndRepositoryId(title: string, repositoryId: Repository["_id"]): Promise<Milestone | null>,
@@ -28,7 +28,7 @@ export type LabelRepo = {
   findByRepositoryIdAndLocalId(repositoryId: Repository["_id"], localId: number): Promise<Milestone | null>
 }
 
-const milestoneRepo: LabelRepo = {
+const milestoneRepo: MilestoneRepo = {
   crud: BaseRepoFactory<Milestone, MilestoneCreate, MilestoneUpdate>(collectionName),
   findByRepositoryId,
   findByTitleAndRepositoryId,
