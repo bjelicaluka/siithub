@@ -23,7 +23,13 @@ const toastrOptions: ToastContainerProps = {
   pauseOnHover: true,
 };
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: false
+    }
+  }
+});
 
 
 const AuthComponentWrapper: FC<any> = ({ Component, pageProps }: any) => {
