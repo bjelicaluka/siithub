@@ -1,4 +1,4 @@
-import { AuthenticationException, BadLogicException, DuplicateException, MissingEntityException } from "../../error-handling/errors";
+import { BadLogicException, DuplicateException, MissingEntityException } from "../../error-handling/errors";
 import { UserType, UserUpdate, type User, type UserCreate } from "./user.model";
 import { userRepo } from "./user.repo";
 import { clearPropertiesOfResultWrapper } from "../../utils/wrappers";
@@ -13,7 +13,15 @@ async function findOneOrThrow(id: User['_id']): Promise<User> {
   return existingUser;
 }
 
+async function findMany(): Promise<User[]> {
+  return await userRepo.crud.findMany();
+}
+
 async function findByUsername(username: string): Promise<User> {
+  return await userRepo.findByUsername(username);
+}
+
+async function findByUsernameOrThrow(username: string): Promise<User> {
   const existingUser = await userRepo.findByUsername(username);
   if (!existingUser) {
     throw new MissingEntityException("User with given username does not exist.");
@@ -78,15 +86,19 @@ async function updatePassword(id: User["_id"], passwordUpdate: {oldPassword: str
 export type UserService = {
   findOneOrThrow(id: User['_id']): Promise<User>,
   findByUsername(username: string): Promise<User>,
+  findByUsernameOrThrow(username: string): Promise<User>,
   findByGithubUsername(username: string): Promise<User | null>,
-  create(user: UserCreate): Promise<User | null>,
+  findMany(): Promise<User[]>,
+  create(user: UserCreate): Promise<User | null>
   updateProfile(id: User["_id"], profileUpdate: UserUpdate): Promise<User | null>,
   updatePassword(id: User["_id"], passwordUpdate: {oldPassword: string, newPassword: string}): Promise<User | null>
 }
 
 const userService: UserService = {
+  findMany,
   findOneOrThrow: removePassword(findOneOrThrow),
   findByUsername: removePassword(findByUsername),
+  findByUsernameOrThrow: removePassword(findByUsernameOrThrow),
   findByGithubUsername: removePassword(findByGithubUsername),
   create: removePassword(createUser),
   updateProfile: removePassword(updateProfile),

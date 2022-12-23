@@ -12,6 +12,10 @@ const router = Router();
 
 const idSchema = objectIdString("Invalid id");
 
+router.get("/", async (req: Request, res: Response) => {
+  res.send(await userService.findMany());
+});
+
 router.get("/:id", async (req: Request, res: Response) => {
   const id = idSchema.parse(req.params.id);
   res.send(await userService.findOneOrThrow(id));
@@ -19,7 +23,7 @@ router.get("/:id", async (req: Request, res: Response) => {
 
 router.get("/by-username/:username", async (req: Request, res: Response) => {
   const username = req.params.username+'';
-  res.send(await userService.findByUsername(username));
+  res.send(await userService.findByUsernameOrThrow(username));
 });
 
 const passwordSchema = z.string()

@@ -22,6 +22,10 @@ const createUserSchema = z.object({
 
 type CreateUser = z.infer<typeof createUserSchema>;
 
+function getUsers() {
+  return axios.get('/api/users');
+}
+
 function createUser(user: CreateUser) {
   return axios.post('/api/users', user);
 }
@@ -29,6 +33,7 @@ function createUser(user: CreateUser) {
 export {
   createUserSchema,
   passwordSchema,
+  getUsers,
   createUser
 }
 

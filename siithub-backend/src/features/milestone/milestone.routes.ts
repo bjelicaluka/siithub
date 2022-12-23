@@ -5,6 +5,7 @@ import { milestoneService } from "./milestone.service";
 import 'express-async-errors';
 import { optionalDateString } from "../../utils/zod";
 import { getRepoIdFromPath } from "../../utils/getRepo";
+import { ObjectId } from "mongodb";
 
 const router = Router();
 
@@ -18,6 +19,12 @@ const createMilestoneBodySchema = milestoneBodySchema;
 const updateMilestoneBodySchema = milestoneBodySchema;
 
 const localIdSchema = z.number().min(0);
+
+router.get('/repositories/:repositoryId/milestones', async (req: Request, res: Response) => {
+  const repositoryId = new ObjectId(req.params.repositoryId);
+  
+  res.send(await milestoneService.findByRepositoryId(repositoryId));
+});
 
 router.get('/:username/:repository/milestones/search', async (req: Request, res: Response) => {
   const title = req.query.title;
