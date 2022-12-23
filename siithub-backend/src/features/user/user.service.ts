@@ -1,5 +1,5 @@
-import { DuplicateException, MissingEntityException } from "../../error-handling/errors";
-import { UserType, type User, type UserCreate } from "./user.model";
+import { AuthenticationException, BadLogicException, DuplicateException, MissingEntityException } from "../../error-handling/errors";
+import { UserType, UserUpdate, type User, type UserCreate } from "./user.model";
 import { userRepo } from "./user.repo";
 import { clearPropertiesOfResultWrapper } from "../../utils/wrappers";
 import { getRandomString, getSha256Hash } from "../../utils/crypto";
@@ -10,12 +10,15 @@ async function findOneOrThrow(id: User['_id']): Promise<User> {
   if (!existingUser) {
     throw new MissingEntityException("User with given id does not exist.");
   }
-
-  return existingUser as User;
+  return existingUser;
 }
 
-async function findByUsername(username: string): Promise<User | null> {
-  return userRepo.findByUsername(username);
+async function findByUsername(username: string): Promise<User> {
+  const existingUser = await userRepo.findByUsername(username);
+  if (!existingUser) {
+    throw new MissingEntityException("User with given username does not exist.");
+  }
+  return existingUser;
 }
 
 async function findByGithubUsername(username: string): Promise<User | null> {
@@ -26,7 +29,7 @@ function removePassword(f: any) {
   return clearPropertiesOfResultWrapper(f, 'password', 'passwordAccount');
 }  
 
-function getHashedPassword(password: string): any {
+function getHashedPassword(password: string) {
   const salt = getRandomString(16);
   const passwordHash = getSha256Hash(password + salt);
 
@@ -57,18 +60,37 @@ async function createUser(user: UserCreate): Promise<User | null> {
   return await userRepo.crud.add(user);
 }
 
+async function updateProfile(id: User["_id"], profileUpdate: UserUpdate): Promise<User | null> {
+  const user = await findOneOrThrow(id);
+  const {name, bio, email} = profileUpdate;
+  return await userRepo.crud.update(id, {name, bio, email});
+}
+
+async function updatePassword(id: User["_id"], passwordUpdate: {oldPassword: string, newPassword: string}): Promise<User | null> {
+  const user = await findOneOrThrow(id);
+  const passwordHash = getSha256Hash(passwordUpdate.oldPassword + user.passwordAccount?.salt);
+  if (passwordHash !== user.passwordAccount?.passwordHash) {
+    throw new BadLogicException("Old password is incorrect");
+  }
+  return await userRepo.crud.update(id, {passwordAccount: getHashedPassword(passwordUpdate.newPassword)});
+}
+
 export type UserService = {
   findOneOrThrow(id: User['_id']): Promise<User>,
-  findByUsername(username: string): Promise<User | null>,
+  findByUsername(username: string): Promise<User>,
   findByGithubUsername(username: string): Promise<User | null>,
-  create(user: UserCreate): Promise<User | null>
+  create(user: UserCreate): Promise<User | null>,
+  updateProfile(id: User["_id"], profileUpdate: UserUpdate): Promise<User | null>,
+  updatePassword(id: User["_id"], passwordUpdate: {oldPassword: string, newPassword: string}): Promise<User | null>
 }
 
 const userService: UserService = {
-  findOneOrThrow,
-  findByUsername,
-  findByGithubUsername,
-  create: removePassword(createUser)
+  findOneOrThrow: removePassword(findOneOrThrow),
+  findByUsername: removePassword(findByUsername),
+  findByGithubUsername: removePassword(findByGithubUsername),
+  create: removePassword(createUser),
+  updateProfile: removePassword(updateProfile),
+  updatePassword: removePassword(updatePassword)
 }
 
 export { userService };
