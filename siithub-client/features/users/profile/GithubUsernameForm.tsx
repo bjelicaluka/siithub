@@ -52,7 +52,7 @@ export const GithubUsernameForm: FC<GithubUsernameFormProps> = ({ userId, github
 
               <div className="col-span-6">
                 <InputField
-                  label="Username"
+                  label="GitHub username"
                   formElement={registrationForm("username")}
                   errorMessage={errors?.username?.message}
                 />
