@@ -5,6 +5,7 @@ import { Button } from "../../core/components/Button";
 import NotFound from "../../core/components/NotFound";
 import { ResultStatus, useResult } from "../../core/contexts/Result";
 import { useAction } from "../../core/hooks/useAction";
+import { useNotifications } from "../../core/hooks/useNotifications";
 import { closeMilestoneFor, openMilestoneFor } from "./milestoneActions";
 import { MilestoneForm } from "./MilestoneForm";
 import { useMilestone } from "./useMilestones";
@@ -17,6 +18,7 @@ export const MilestoneEdit: FC<MilestoneEditProps> = ({ repo, username, localId 
   const { result, setResult } = useResult('milestones');
   const { milestone, error } = useMilestone(username, repo, localId, [result]);
   const router = useRouter();
+  const notifications = useNotifications();
 
   useEffect(() => {
     if (!result) return;
@@ -25,6 +27,7 @@ export const MilestoneEdit: FC<MilestoneEditProps> = ({ repo, username, localId 
 
   const closeMilestoneAction = useAction(closeMilestoneFor(username, repo), {
     onSuccess: () => {
+      notifications.success('Milestone is successfully closed.');
       setResult({ status: ResultStatus.Ok, type: 'CLOSE_Milestone' });
       router.push(`/${username}/${repo}/milestones`);
     },
@@ -32,6 +35,7 @@ export const MilestoneEdit: FC<MilestoneEditProps> = ({ repo, username, localId 
   })
   const openMilestoneAction = useAction(openMilestoneFor(username, repo), {
     onSuccess: () => {
+      notifications.success('Milestone is successfully reopened.');
       setResult({ status: ResultStatus.Ok, type: 'OPEN_Milestone' });
       router.push(`/${username}/${repo}/milestones`);
     },

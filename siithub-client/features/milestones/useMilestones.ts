@@ -3,8 +3,7 @@ import { getMilestone, getRepositoryMilestones, searchRepositoryMilestones, type
 
 export function useMilestones(username: string, repo: string, open: boolean, dependencies: any[] = []) {
   const { data, error } = useQuery([`milestones_${username}/${repo}`, open, ...dependencies], () => getRepositoryMilestones(username, repo, open), {
-    enabled: dependencies.reduce((acc, d) => acc && !d, true),
-    retry: false
+    enabled: dependencies.reduce((acc, d) => acc && !d, true)
   });
   return {
     milestones: data?.data as Milestone[],
@@ -14,8 +13,7 @@ export function useMilestones(username: string, repo: string, open: boolean, dep
 
 export function useSearchMilestones(username: string, repo: string, title: string, dependencies: any[] = []) {
   const { data, error } = useQuery([`milestones_${username}/${repo}`, title, ...dependencies], () => searchRepositoryMilestones(username, repo, title), {
-    enabled: dependencies.reduce((acc, d) => acc && !d, true),
-    retry: false
+    enabled: dependencies.reduce((acc, d) => acc && !d, true)
   });
   return {
     milestones: data?.data as Milestone[],
@@ -25,8 +23,7 @@ export function useSearchMilestones(username: string, repo: string, title: strin
 
 export function useMilestone(username: string, repo: string, localId: number, dependencies: any[] = []) {
   const { data, error } = useQuery([`milestones_${username}/${repo}/${localId}`, ...dependencies], () => getMilestone(username, repo, localId), {
-    enabled: dependencies?.reduce((acc, dep) => acc && !dep, true),
-    retry: false
+    enabled: dependencies?.reduce((acc, dep) => acc && !dep, true)
   });
   return {
     milestone: data?.data as Milestone,

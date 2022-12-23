@@ -2,7 +2,7 @@ import axios from "axios";
 import { z } from "zod";
 
 const milestoneBodySchema = z.object({
-  title: z.string().trim().min(1, "Title should have at least 1 character."),
+  title: z.string().trim().min(1, "Title is required."),
   description: z.string().default(""),
   dueDate: z.nullable(z.string())
 });

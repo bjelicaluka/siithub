@@ -4,7 +4,7 @@ import { type Milestone, type MilestoneCreate, type MilestoneUpdate } from "./mi
 
 const collectionName = "milestone";
 
-async function findByRepositoryId(repositoryId: Repository["_id"], isOpen: boolean): Promise<Milestone[]> {
+async function findByRepositoryId(repositoryId: Repository["_id"], isOpen = true): Promise<Milestone[]> {
   return (await milestoneRepo.crud.findManyCursor({ repositoryId, isOpen })).toArray();
 }
 
@@ -22,7 +22,7 @@ async function searchByTitle(title: string, repositoryId: Repository["_id"]): Pr
 
 export type MilestoneRepo = {
   crud: BaseRepo<Milestone, MilestoneCreate, MilestoneUpdate>,
-  findByRepositoryId(repositoryId: Repository["_id"], isOpen: boolean): Promise<Milestone[]>,
+  findByRepositoryId(repositoryId: Repository["_id"], isOpen?: boolean): Promise<Milestone[]>,
   findByTitleAndRepositoryId(title: string, repositoryId: Repository["_id"]): Promise<Milestone | null>,
   searchByTitle(title: string, repositoryId: Repository["_id"]): Promise<Milestone[] | null>,
   findByRepositoryIdAndLocalId(repositoryId: Repository["_id"], localId: number): Promise<Milestone | null>

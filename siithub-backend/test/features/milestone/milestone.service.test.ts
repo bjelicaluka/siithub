@@ -185,10 +185,10 @@ describe("MilestoneService", () => {
       expect(createdMilestone).toHaveProperty("_id");
       expect(createdMilestone?.isOpen).toBe(true);
 
-      await service.openClose(repositoryId, createdMilestone.localId, false);
+      await service.changeStatus(repositoryId, createdMilestone.localId, false);
 
-      const closededMilestone = await service.findOne(createdMilestone._id);
-      expect(closededMilestone?.isOpen).toBe(false);
+      const closedMilestone = await service.findOne(createdMilestone._id);
+      expect(closedMilestone?.isOpen).toBe(false);
     });
   });
 });

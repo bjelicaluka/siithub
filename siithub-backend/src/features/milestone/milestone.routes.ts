@@ -9,7 +9,7 @@ import { getRepoIdFromPath } from "../../utils/getRepo";
 const router = Router();
 
 const milestoneBodySchema = z.object({
-  title: z.string().trim().min(1, "Title should have at least 1 character."),
+  title: z.string().trim().min(1, "Title is required."),
   description: z.string().default(""),
   dueDate: optionalDateString
 });
@@ -79,13 +79,13 @@ router.delete('/:username/:repository/milestones/:localId', async (req: Request,
 router.put('/:username/:repository/milestones/:localId/close', async (req: Request, res: Response) => {
   const localId = localIdSchema.parse(+req.params.localId);
   const repositoryId = await getRepoIdFromPath(req);
-  res.send(await milestoneService.openClose(repositoryId, localId, false));
+  res.send(await milestoneService.changeStatus(repositoryId, localId, false));
 });
 
 router.put('/:username/:repository/milestones/:localId/open', async (req: Request, res: Response) => {
   const localId = localIdSchema.parse(+req.params.localId);
   const repositoryId = await getRepoIdFromPath(req);
-  res.send(await milestoneService.openClose(repositoryId, localId, true));
+  res.send(await milestoneService.changeStatus(repositoryId, localId, true));
 });
 
 export {

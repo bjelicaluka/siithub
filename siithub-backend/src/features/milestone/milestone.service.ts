@@ -66,7 +66,7 @@ async function deleteMilestone(repositoryId: Repository["_id"], localId: number)
   return await milestoneRepo.crud.delete(existingMilestone._id);
 }
 
-async function openClose(repositoryId: Repository["_id"], localId: number, open: boolean): Promise<Milestone | null> {
+async function changeStatus(repositoryId: Repository["_id"], localId: number, open: boolean): Promise<Milestone | null> {
   const existingMilestone = await findByRepositoryIdAndLocalId(repositoryId, localId);
   return await milestoneRepo.crud.update(existingMilestone._id, {isOpen: open} as MilestoneUpdate);
 }
@@ -80,7 +80,7 @@ export type MilestoneService = {
   findByRepositoryId(repositoryId: Repository["_id"], isOpen?: boolean): Promise<Milestone[]>,
   findByTitleAndRepositoryId(title: string, repositoryId: Repository["_id"]): Promise<Milestone | null>,
   searchByTitle(title: string, repositoryId: Repository["_id"]): Promise<Milestone[] | null>,
-  openClose(repositoryId: Repository["_id"], localId: number, open: boolean): Promise<Milestone | null>,
+  changeStatus(repositoryId: Repository["_id"], localId: number, open: boolean): Promise<Milestone | null>,
   findByRepositoryIdAndLocalId(repositoryId: Repository["_id"], localId: number): Promise<Milestone>,
 }
 
@@ -90,7 +90,7 @@ const milestoneService: MilestoneService = {
   findByRepositoryId,
   findByTitleAndRepositoryId,
   searchByTitle,
-  openClose,
+  changeStatus,
   create: createMilestone,
   update: updateMilestone,
   delete: deleteMilestone,
