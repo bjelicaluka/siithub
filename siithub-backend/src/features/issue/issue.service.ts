@@ -3,28 +3,26 @@ import { type BaseEvent } from "../../db/base.repo.utils";
 import { MissingEntityException } from "../../error-handling/errors";
 import { labelService } from "../label/label.service";
 import { userService } from "../user/user.service";
-import { handleAllFor, type IssueCreate, type Issue, type IssueUpdate, handleFor, type LabelAssignedEvent, type UserAssignedEvent } from "./issue.model";
+import { type IssueCreate, type Issue, type IssueUpdate, handleFor, type LabelAssignedEvent, type UserAssignedEvent } from "./issue.model";
 import { issueRepo } from "./issue.repo";
+import { type Repository } from "../repository/repository.model";
+import { repositoryService } from "../repository/repository.service";
+import { IssuesQuery } from "./issue.query";
 
-async function findOne(id: Issue["_id"] | string): Promise<Issue | null> {
-  const issue = await issueRepo.crud.findOne(id) as Issue;
-  const issueToReturn: Issue = { _id: issue?._id, events: [], csm: {}, repositoryId: issue.repositoryId };
-  handleAllFor(issueToReturn, issue?.events ?? []);
-
-  return issueToReturn;
+async function findOne(id: Issue["_id"]): Promise<Issue | null> {
+  return await issueRepo.crud.findOne(id);
 }
-async function findByRepositoryId(repositoryId: string): Promise<Issue[]> {
+
+async function findByRepositoryId(repositoryId: Repository["_id"]): Promise<Issue[]> {
   return await issueRepo.findByRepositoryId(repositoryId);
 }
 
-// TODO: PARAMS TYPE
-async function searchByParams(params: any, repositoryId: string): Promise<Issue[]> {
-  return await issueRepo.searchByParams(params, repositoryId);
+async function searchByQuery(query: IssuesQuery, repositoryId: Repository["_id"]): Promise<Issue[]> {
+  return await issueRepo.searchByQuery(query, repositoryId);
 }
 
-
-async function findOneOrThrow(id: Issue["_id"] | string): Promise<Issue> {
-  const issue = await findOne(id);
+async function findOneOrThrow(id: Issue["_id"]): Promise<Issue> {
+  const issue = await issueRepo.crud.findOne(id);
   if (!issue) {
     throw new MissingEntityException("Issue with given id does not exist.");
   }
@@ -32,6 +30,8 @@ async function findOneOrThrow(id: Issue["_id"] | string): Promise<Issue> {
 }
 
 async function createIssue({ events, repositoryId }: IssueCreate): Promise<Issue | null> {
+  await repositoryService.findOneOrThrow(repositoryId);
+
   const createdIssue = await issueRepo.crud.add({
     events: [],
     csm: {},
@@ -44,7 +44,7 @@ async function createIssue({ events, repositoryId }: IssueCreate): Promise<Issue
 async function updateIssue({ _id, events }: IssueUpdate): Promise<Issue | null> {
   const existingIssue = await findOneOrThrow(_id);
 
-  return await updateEventsFor(existingIssue, events)
+  return await updateEventsFor(existingIssue, events);
 }
 
 async function updateEventsFor(issue: Issue, events: BaseEvent[]) {
@@ -84,18 +84,20 @@ async function validateEventFor(event: BaseEvent): Promise<void> {
 }
 
 export type IssueService = {
+  findOne(id: Issue["_id"]): Promise<Issue | null>
+  findOneOrThrow(id: Issue["_id"]): Promise<Issue>,
+  findByRepositoryId(repositoryId: Repository["_id"]): Promise<Issue[]>,
+  searchByQuery(query: IssuesQuery, repositoryId: Repository["_id"]): Promise<Issue[]>,
   create(issue: IssueCreate): Promise<Issue | null>,
   update(issue: IssueUpdate): Promise<Issue | null>,
-  findOneOrThrow(id: Issue["_id"] | string): Promise<Issue>,
-  findByRepositoryId(repositoryId: string): Promise<Issue[]>,
-  searchByParams(params: any, repositoryId: string): Promise<Issue[]>,
   validateEventFor(event: BaseEvent): Promise<void>
 }
 
 const issueService: IssueService = {
+  findOne,
   findOneOrThrow,
   findByRepositoryId,
-  searchByParams,
+  searchByQuery,
   create: createIssue,
   update: updateIssue,
   validateEventFor

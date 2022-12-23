@@ -1,7 +1,7 @@
-import { FC, useEffect, useState } from "react";
+import { type FC, useEffect, useState } from "react";
 import { useLabels } from "../labels/useLabels";
 import Select from 'react-select'
-import { Label } from "../labels/labelActions";
+import { type Label } from "../labels/labelActions";
 import { assignLabel, instantAssignLabelTo, instantUnassignLabelFrom, unassignLabel, useIssueContext } from "./IssueContext";
 import { findDifference } from "./utils";
 import { useAuthContext } from "../../core/contexts/Auth";
@@ -13,7 +13,7 @@ export const LabelsForm: FC = () => {
   const executedBy = user?._id ?? '';
 
   const { issue, isEdit, issueDispatcher } = useIssueContext();
-  const { labels } = useLabels('639b3fa0d40531fd5b576f0a');
+  const { labels } = useLabels(issue.repositoryId);
   const labelOptions = labels?.map((l: Label) => ({ value: l._id, label: l.name }));
   const [selectedLabels, setSelectedLabels] = useState([]);
 

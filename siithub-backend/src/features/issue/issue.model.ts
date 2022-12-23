@@ -1,6 +1,7 @@
 import { type BaseEvent, type AggregateRoot } from "../../db/base.repo.utils";
 import { BadLogicException } from "../../error-handling/errors";
 import { type Label } from "../label/label.model";
+import { type Repository } from "../repository/repository.model";
 import { type User } from "../user/user.model";
 
 export enum IssueState {
@@ -21,7 +22,7 @@ export type IssueCSM = {
 
 export type Issue = AggregateRoot & { 
   csm: IssueCSM,
-  repositoryId: string 
+  repositoryId: Repository["_id"] 
 };
 export type IssueCreate = Omit<Issue, "_id" | "cms">;
 export type IssueUpdate = Omit<Issue, "cms">;
@@ -66,7 +67,10 @@ export function handleFor(issue: Issue, event: BaseEvent) {
     }
     case 'LabelAssignedEvent': {
       const labelAssigned = event as LabelAssignedEvent;
-      const lastLabelEvent = findLastEvent<LabelAssignedEvent|LabelUnassignedEvent>(issue.events, e => e?.labelId === labelAssigned?.labelId);
+      const lastLabelEvent = findLastEvent<LabelAssignedEvent|LabelUnassignedEvent>(
+        issue.events,
+        e => e?.labelId === labelAssigned?.labelId || e?.labelId?.toString() === labelAssigned?.labelId.toString()
+      );
       if (lastLabelEvent?.type === 'LabelAssignedEvent') {
         throw new BadLogicException("Label is already assigned to the Issue.", event);
       }
@@ -76,17 +80,23 @@ export function handleFor(issue: Issue, event: BaseEvent) {
     }
     case 'LabelUnassignedEvent': {
       const labelUnassigned = event as LabelUnassignedEvent;
-      const lastLabelEvent = findLastEvent<LabelAssignedEvent|LabelUnassignedEvent>(issue.events, e => e?.labelId === labelUnassigned?.labelId);
+      const lastLabelEvent = findLastEvent<LabelAssignedEvent|LabelUnassignedEvent>(
+        issue.events,
+        e => e?.labelId === labelUnassigned?.labelId || e?.labelId?.toString() === labelUnassigned?.labelId.toString()
+      );
       if (!lastLabelEvent || lastLabelEvent?.type === 'LabelUnassignedEvent') {
         throw new BadLogicException("Label cannot be unassigned from the Issue.", event);
       }
 
-      issue.csm.labels = issue?.csm?.labels?.filter(l => l !== labelUnassigned?.labelId);
+      issue.csm.labels = issue?.csm?.labels?.filter(l => l !== labelUnassigned?.labelId && l.toString() !== labelUnassigned?.labelId?.toString());
       break;
     }
     case 'UserAssignedEvent': {
       const userAssigned = event as UserAssignedEvent;
-      const lastUserEvent = findLastEvent<UserAssignedEvent|UserUnassignedEvent>(issue.events, e => e?.userId === userAssigned?.userId);
+      const lastUserEvent = findLastEvent<UserAssignedEvent|UserUnassignedEvent>(
+        issue.events,
+        e => e?.userId === userAssigned?.userId || e?.userId?.toString() === userAssigned?.userId?.toString()
+      );
       if (lastUserEvent?.type === 'UserAssignedEvent') {
         throw new BadLogicException("User is already assigned to the Issue.", event);
       }
@@ -96,12 +106,15 @@ export function handleFor(issue: Issue, event: BaseEvent) {
     }
     case 'UserUnassignedEvent': {
       const userUnassigned = event as UserUnassignedEvent;
-      const lastUserEvent = findLastEvent<UserAssignedEvent|UserUnassignedEvent>(issue.events, e => e?.userId === userUnassigned?.userId);
+      const lastUserEvent = findLastEvent<UserAssignedEvent|UserUnassignedEvent>(
+        issue.events,
+        e => e?.userId === userUnassigned?.userId || e?.userId?.toString() === userUnassigned?.userId?.toString()
+      );
       if (!lastUserEvent || lastUserEvent?.type === 'UserUnassignedEvent') {
         throw new BadLogicException("User cannot be unassigned from the Issue.", event);
       }
 
-      issue.csm.assignees = issue?.csm?.assignees?.filter(l => l !== userUnassigned?.userId);
+      issue.csm.assignees = issue?.csm?.assignees?.filter(u => u !== userUnassigned?.userId && u.toString() !== userUnassigned?.userId?.toString());
       break;
     }
     case 'IssueReopenedEvent': {

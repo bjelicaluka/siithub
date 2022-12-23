@@ -1,9 +1,10 @@
-import { FC, PropsWithChildren, createContext, useContext, useReducer, useState } from "react";
-import { Issue, IssueState, createIssue, updateIssue } from "./issueActions"
+import { type FC, PropsWithChildren, createContext, useContext } from "react";
+import { type CreateIssue, type Issue, IssueState, type UpdateIssue, createIssue, updateIssue } from "./issueActions"
 import { useReducerWithThunk } from "../../core/hooks/useReducerWithThunk";
 import Router from 'next/router'
 import { notifications } from "../../core/hooks/useNotifications";
-import { Label } from "../labels/labelActions";
+import { type User } from "../users/user.model";
+import { type Label } from "../labels/labelActions";
 
 
 type IssueContextType = {
@@ -17,6 +18,7 @@ export const initialIssue = {
   repositoryId: '',
   events: [],
   csm: {
+    state: IssueState.Open,
     labels: [],
     assignees: [],
     title: '',
@@ -126,15 +128,15 @@ export function setIssue(issue: Issue) {
   return (dispatch: any) => dispatch({ type: 'SET_ISSUE', payload: issue });
 }
 
-// TODO USER IDDDD
-export function createNewIssue(issue: Issue, by: string) {
-  const newIssue = {
-    events: [{ by, type: 'IssueCreatedEvent', ...issue.csm }, ...issue.events]
+export function createNewIssue(issue: Issue, by: User["_id"]) {
+  const newIssue: CreateIssue = {
+    events: [{ by, type: 'IssueCreatedEvent', ...issue.csm }, ...issue.events],
+    repositoryId: issue.repositoryId
   };
 
   createIssue(newIssue)
     .then(resp => {
-      Router.push(`/issues/${resp.data._id}`);
+      Router.push(`/repository/${issue.repositoryId}/issues/${resp.data._id}`);
       notifications.success("You have successfully created a new issue.");
     })
     .catch(_ => {});
@@ -142,10 +144,11 @@ export function createNewIssue(issue: Issue, by: string) {
   return {};
 }
 
-export function updateExistingIssue(issue: Issue, by: string) {
-  const newIssue = {
+export function updateExistingIssue(issue: Issue, by: User["_id"]) {
+  const newIssue: UpdateIssue = {
     _id: issue._id,
-    events: [{ by, type: 'IssueUpdatedEvent', ...issue.csm }]
+    events: [{ by, type: 'IssueUpdatedEvent', ...issue.csm }],
+    repositoryId: issue.repositoryId
   };
 
   return (dispatch: any) => updateIssue(newIssue)
@@ -162,24 +165,25 @@ export function updateData(data: { title: string, description: string }) {
   }
 }
 
-export function assignLabel(labelId: string, by: string) {
+export function assignLabel(labelId: Label["_id"], by: User["_id"]) {
   return (dispatch: any) => {
     dispatch({ type: 'ASSIGN_LABEL', payload: labelId });
     dispatch({ type: 'ADD_EVENT', payload: { by, type: 'LabelAssignedEvent', labelId } });
   }
 }
 
-export function unassignLabel(labelId: string, by: string) {
+export function unassignLabel(labelId: Label["_id"], by: User["_id"]) {
   return (dispatch: any) => {
     dispatch({ type: 'UNASSIGN_LABEL', payload: labelId });
     dispatch({ type: 'ADD_EVENT', payload: { by, type: 'LabelUnassignedEvent', labelId } });
   }
 }
 
-export function instantAssignLabelTo(issue: Issue, labelId: string, by: string) {
-  const newIssue = {
+export function instantAssignLabelTo(issue: Issue, labelId: Label["_id"], by: User["_id"]) {
+  const newIssue: UpdateIssue = {
     _id: issue._id,
-    events: [{ by, type: 'LabelAssignedEvent', labelId }]
+    events: [{ by, type: 'LabelAssignedEvent', labelId }],
+    repositoryId: issue.repositoryId
   };
 
   return (dispatch: any) => updateIssue(newIssue)
@@ -190,10 +194,11 @@ export function instantAssignLabelTo(issue: Issue, labelId: string, by: string) 
     .catch(_ => {});
 }
 
-export function instantUnassignLabelFrom(issue: Issue, labelId: string, by: string) {
-  const newIssue = {
+export function instantUnassignLabelFrom(issue: Issue, labelId: Label["_id"], by: User["_id"]) {
+  const newIssue: UpdateIssue = {
     _id: issue._id,
-    events: [{ by, type: 'LabelUnassignedEvent', labelId }]
+    events: [{ by, type: 'LabelUnassignedEvent', labelId }],
+    repositoryId: issue.repositoryId
   };
 
   return (dispatch: any) => updateIssue(newIssue)
@@ -204,24 +209,25 @@ export function instantUnassignLabelFrom(issue: Issue, labelId: string, by: stri
     .catch(error => {});
 }
 
-export function assignUser(userId: string, by: string) {
+export function assignUser(userId: User["_id"], by: User["_id"]) {
   return (dispatch: any) => {
     dispatch({ type: 'ASSIGN_USER', payload: userId });
     dispatch({ type: 'ADD_EVENT', payload: { by, type: 'UserAssignedEvent', userId } });
   }
 }
 
-export function unassignUser(userId: string, by: string) {
+export function unassignUser(userId: User["_id"], by: User["_id"]) {
   return (dispatch: any) => {
     dispatch({ type: 'UNASSIGN_USER', payload: userId });
     dispatch({ type: 'ADD_EVENT', payload: { by, type: 'UserUnassignedEvent', userId } });
   }
 }
 
-export function instantAssignUserTo(issue: Issue, userId: string, by: string) {
-  const newIssue = {
+export function instantAssignUserTo(issue: Issue, userId: User["_id"], by: User["_id"]) {
+  const newIssue: UpdateIssue = {
     _id: issue._id,
-    events: [{ by, type: 'UserAssignedEvent', userId }]
+    events: [{ by, type: 'UserAssignedEvent', userId }],
+    repositoryId: issue.repositoryId
   };
 
   return (dispatch: any) => updateIssue(newIssue)
@@ -232,10 +238,11 @@ export function instantAssignUserTo(issue: Issue, userId: string, by: string) {
     .catch(_ => {});
 }
 
-export function instantUnassignUserFrom(issue: Issue, userId: string, by: string) {
-  const newIssue = {
+export function instantUnassignUserFrom(issue: Issue, userId: User["_id"], by: User["_id"]) {
+  const newIssue: UpdateIssue = {
     _id: issue._id,
-    events: [{ by, type: 'UserUnassignedEvent', userId }]
+    events: [{ by, type: 'UserUnassignedEvent', userId }],
+    repositoryId: issue.repositoryId
   };
 
   return (dispatch: any) => updateIssue(newIssue)
@@ -246,10 +253,11 @@ export function instantUnassignUserFrom(issue: Issue, userId: string, by: string
     .catch(error => {});
 }
 
-export function instantReopenIssue(issue: Issue, by: string) {
-  const newIssue = {
+export function instantReopenIssue(issue: Issue, by: User["_id"]) {
+  const newIssue: UpdateIssue = {
     _id: issue._id,
-    events: [{ by, type: 'IssueReopenedEvent' }]
+    events: [{ by, type: 'IssueReopenedEvent' }],
+    repositoryId: issue.repositoryId
   };
 
   return (dispatch: any) => updateIssue(newIssue)
@@ -261,10 +269,11 @@ export function instantReopenIssue(issue: Issue, by: string) {
     .catch(_ => {});
 }
 
-export function instantCloseIssue(issue: Issue, by: string) {
-  const newIssue = {
+export function instantCloseIssue(issue: Issue, by: User["_id"]) {
+  const newIssue: UpdateIssue = {
     _id: issue._id,
-    events: [{ by, type: 'IssueClosedEvent' }]
+    events: [{ by, type: 'IssueClosedEvent' }],
+    repositoryId: issue.repositoryId
   };
 
   return (dispatch: any) => updateIssue(newIssue)

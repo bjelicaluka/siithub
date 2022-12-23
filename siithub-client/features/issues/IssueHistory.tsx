@@ -2,17 +2,18 @@ import { useMemo, type FC } from "react";
 import { useIssueContext } from "./IssueContext";
 import moment from "moment";
 import { useLabels } from "../labels/useLabels";
-import { Label } from "../labels/labelActions";
+import { type Label } from "../labels/labelActions";
 import { useUsers } from "../users/registration/useUsers";
 import { LabelPreview } from "../labels/LabelPreview";
+import { type User } from "../users/user.model";
 
 
 export const IssueHistory: FC = () => {
 
-  const { labels } = useLabels('639b3fa0d40531fd5b576f0a');
+  const { issue } = useIssueContext();
+  const { labels } = useLabels(issue.repositoryId);
   const { users } = useUsers();
 
-  const { issue } = useIssueContext();
 
   const IssuesWrapper = ({ events }: any) => {
     return <ol className="relative border-l border-gray-200 dark:border-gray-700">
@@ -42,9 +43,8 @@ export const IssueHistory: FC = () => {
           return <>removed the <LabelPreview {...label} /> label</>
         }
 
-        // TODO: TTYPE
-        case 'UserAssignedEvent': return <>assigned {users?.find((u: any) => u._id === event.userId)?.name}</>
-        case 'UserUnassignedEvent': return <>removed {users?.find((u: any) => u._id === event.userId)?.name}</>
+        case 'UserAssignedEvent': return <>assigned {users?.find((u: User) => u._id === event.userId)?.name}</>
+        case 'UserUnassignedEvent': return <>removed {users?.find((u: User) => u._id === event.userId)?.name}</>
 
         case 'IssueReopenedEvent': return <>reopened this issue</>
         case 'IssueClosedEvent': return <>closed this issue</>

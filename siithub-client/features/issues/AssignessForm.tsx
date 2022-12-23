@@ -1,14 +1,10 @@
-import { FC, useEffect, useState } from "react";
+import { type FC, useEffect, useState } from "react";
 import Select from 'react-select'
 import { assignUser, instantAssignUserTo, instantUnassignUserFrom, unassignUser, useIssueContext } from "./IssueContext";
 import { useUsers } from "../users/registration/useUsers";
 import { useAuthContext } from "../../core/contexts/Auth";
-
-
-function findDifference(arr1: any, arr2: any): any {
-  return arr1.filter(({ value: id1 }: any) => !arr2.some(({ value: id2 }: any) => id2 === id1)).pop();
-}
-
+import { type User } from "../users/user.model";
+import { findDifference } from "./utils";
 
 export const AssignessForm: FC = () => {
   
@@ -17,8 +13,7 @@ export const AssignessForm: FC = () => {
 
   const { issue, isEdit, issueDispatcher } = useIssueContext();
   const { users } = useUsers();
-  // TODO: DODAJ TIP
-  const userOptions = users?.map((u: any) => ({ value: u._id, label: u.name }));
+  const userOptions = users?.map((u: User) => ({ value: u._id, label: u.name }));
   const [selectedUsers, setSelectedUsers] = useState([]);
 
   useEffect(() => {

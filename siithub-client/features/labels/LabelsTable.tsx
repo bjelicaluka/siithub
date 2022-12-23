@@ -6,9 +6,10 @@ import { extractErrorMessage } from "../../core/utils/errors";
 import { deleteLabelFor, type Label } from "./labelActions";
 import { LabelForm } from "./LabelForm";
 import { LabelPreview } from "./LabelPreview";
+import { type Repository } from "../repository/repository.service";
 
 type LabelsTableProps = {
-  repositoryId: string;
+  repositoryId: Repository["_id"];
   labels: Label[];
 }
 

@@ -1,14 +1,15 @@
 import { type BaseRepo, BaseRepoFactory } from "../../db/base.repo.utils";
+import { type Repository } from "../repository/repository.model";
 import { type Issue } from "./issue.model";
+import { type IssuesQuery } from "./issue.query";
 
 const collectionName = "issue";
 
-async function findByRepositoryId(repositoryId: string): Promise<Issue[]> {
+async function findByRepositoryId(repositoryId: Repository["_id"]): Promise<Issue[]> {
   return (await issueRepo.crud.findManyCursor({ repositoryId })).toArray();
 };
 
-// TODO: PARAMS TYPE
-async function searchByParams(params: any, repositoryId: string): Promise<Issue[]> {
+async function searchByQuery(query: IssuesQuery, repositoryId: Repository["_id"]): Promise<Issue[]> {
   const {
     title,
     state,
@@ -16,9 +17,10 @@ async function searchByParams(params: any, repositoryId: string): Promise<Issue[
     assignees,
     labels,
     sort
-  } = params;
+  } = query;
 
   const searchParams = {
+    repositoryId,
     ...(title ? { "csm.title": { $regex: title, $options: 'i' } } : {}),
     ...(state ? { "csm.state": { $in: state } } : {}),
     ...(author ? { "csm.author": author } : {}),
@@ -35,14 +37,14 @@ async function searchByParams(params: any, repositoryId: string): Promise<Issue[
 
 export type IssueRepo = {
   crud: BaseRepo<Issue>,
-  findByRepositoryId(repositoryId: string): Promise<Issue[]>,
-  searchByParams(params: any, repositoryId: string): Promise<Issue[]>
+  findByRepositoryId(repositoryId: Repository["_id"]): Promise<Issue[]>,
+  searchByQuery(query: IssuesQuery, repositoryId: Repository["_id"]): Promise<Issue[]>
 };
 
 const issueRepo: IssueRepo = {
   crud: BaseRepoFactory<Issue>(collectionName),
   findByRepositoryId,
-  searchByParams
+  searchByQuery
 };
 
 export { issueRepo };

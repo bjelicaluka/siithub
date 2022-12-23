@@ -1,7 +1,6 @@
 import { describe, expect, it, beforeEach } from "@jest/globals";
 import { ObjectId } from "mongodb";
-
-import { handleFor, IssueClosedEvent, IssueCreatedEvent, IssueReopenedEvent, IssueState, IssueUpdatedEvent, LabelAssignedEvent, LabelUnassignedEvent, UserAssignedEvent, UserUnassignedEvent } from '../../../src/features/issue/issue.model'
+import { handleFor, type IssueClosedEvent, type IssueCreatedEvent, type IssueReopenedEvent, IssueState, type IssueUpdatedEvent, type LabelAssignedEvent, type LabelUnassignedEvent, type UserAssignedEvent, type UserUnassignedEvent } from '../../../src/features/issue/issue.model'
 import { createEvent } from './utils'
 
 describe("IssueModel", () => {

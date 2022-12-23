@@ -1,5 +1,7 @@
 import axios from "axios";
-import { Label } from "../labels/labelActions";
+import { type Label } from "../labels/labelActions";
+import { type User } from "../users/user.model";
+import { type Repository } from "../repository/repository.service";
 
 export enum IssueState {
   Open,
@@ -10,42 +12,50 @@ export enum IssueState {
 export type IssueCSM = {
   timeStamp?: Date,
   lastModified?: Date,
-  state?: IssueState,
+  state: IssueState,
   title?: string,
   description?: string,
   labels?: Label['_id'][],
-  // TODO: Srediti TIP
-  assignees?: Label['_id'][],
+  assignees?: User['_id'][],
 };
 
 type Issue = {
   _id: string,
-  repositoryId: string
+  repositoryId: Repository["_id"]
   events: any[],
   csm: IssueCSM
 }
 
-type CreateIssue = Omit<Issue, "_id"|"csm"|"repositoryId">
-type UpdateIssue = Omit<Issue, "csm"|"repositoryId">
-
-function getIssue(repositoryId: string, id: string) {
-  return axios.get(`/api/issues/${id}`);
+type IssuesQuery = {
+  title?: string,
+  state?: IssueState[],
+  author?: User["_id"],
+  assignees?: User["_id"][],
+  labels?: Label["_id"][],
+  sort?: any
 }
 
-function getIssues(repositoryId: string) {
-  return axios.get(`/api/issues/`);
+type CreateIssue = Omit<Issue, "_id"|"csm">
+type UpdateIssue = Omit<Issue, "csm">
+
+function getIssue(repositoryId: Repository["_id"], id: Issue["_id"]) {
+  return axios.get(`/api/repositories/${repositoryId}/issues/${id}`);
 }
 
-function searchIssues(params: any, repositoryId: string) {
-  return axios.post(`/api/issues/search`, params);
+function getIssues(repositoryId: Repository["_id"]) {
+  return axios.get(`/api/repositories/${repositoryId}/issues/`);
+}
+
+function searchIssues(query: IssuesQuery, repositoryId: Repository["_id"]) {
+  return axios.post(`/api/repositories/${repositoryId}/issues/search`, query);
 }
 
 function createIssue(issue: CreateIssue) {
-  return axios.post(`/api/issues`, issue);
+  return axios.post(`/api/repositories/${issue.repositoryId}/issues`, issue);
 }
 
 function updateIssue(issue: UpdateIssue) {
-  return axios.put(`/api/issues`, issue);
+  return axios.put(`/api/repositories/${issue.repositoryId}/issues`, issue);
 }
 
 
@@ -58,5 +68,8 @@ export {
 }
 
 export type {
-  Issue
+  Issue,
+  CreateIssue,
+  UpdateIssue,
+  IssuesQuery
 }

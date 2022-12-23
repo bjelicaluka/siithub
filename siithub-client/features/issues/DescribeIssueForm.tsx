@@ -3,13 +3,11 @@ import { Button } from "../../core/components/Button";
 import { InputField } from "../../core/components/InputField";
 import { createNewIssue, instantCloseIssue, instantReopenIssue, updateData, updateExistingIssue, useIssueContext } from "./IssueContext";
 import { z } from "zod";
-import { ALPHANUMERIC_REGEX } from "../../patterns";
 import { useZodValidatedFrom } from "../../core/hooks/useZodValidatedForm";
 import { useQuill } from 'react-quilljs';
-
-import 'quill/dist/quill.snow.css';
 import { IssueState } from "./issueActions";
 import { useAuthContext } from "../../core/contexts/Auth";
+import 'quill/dist/quill.snow.css';
 
 const describeIssueSchema = z.object({
   title: z.string()
@@ -18,13 +16,6 @@ const describeIssueSchema = z.object({
 });
 
 type DescribeIssueType = z.infer<typeof describeIssueSchema>;
-
-// !isEdit ? {} : {
-//   theme: "snow",
-//   modules: {
-//     toolbar: false
-//   }
-// }
 
 let initiallySet = false;
 

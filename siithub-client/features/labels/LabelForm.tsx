@@ -8,9 +8,10 @@ import { useZodValidatedFrom } from "../../core/hooks/useZodValidatedForm";
 import { InputField } from "../../core/components/InputField";
 import { Button } from "../../core/components/Button";
 import { LabelPreview } from "./LabelPreview";
+import { type Repository } from "../repository/repository.service";
 
 type Props = {
-  repositoryId: string;
+  repositoryId: Repository["_id"];
   existingLabel?: Label;
 }
 

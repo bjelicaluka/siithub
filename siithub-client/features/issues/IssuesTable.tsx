@@ -1,36 +1,39 @@
 import moment from "moment";
 import { useRouter } from "next/router";
 import { type FC } from "react";
-import { Label } from "../labels/labelActions";
+import { type Label } from "../labels/labelActions";
 import { LabelPreview } from "../labels/LabelPreview";
 import { useLabels } from "../labels/useLabels";
 import { useUsers } from "../users/registration/useUsers";
 import { ClosedIcon, OpenedIcon } from "./Icons";
-import { Issue, IssueState } from "./issueActions";
+import { type Issue, IssueState } from "./issueActions";
 import { findLastEvent } from "./utils";
+import { type User } from "../users/user.model";
+import { type Repository } from "../repository/repository.service";
 
 type IssuesTableType = {
+  repositoryId: Repository["_id"],
   issues: Issue[]
 }
 
-export const IssuesTable: FC<IssuesTableType> = ({ issues }) => {
+export const IssuesTable: FC<IssuesTableType> = ({ repositoryId, issues }) => {
   
   const router = useRouter();
   const { labels } = useLabels("639b3fa0d40531fd5b576f0a");
   const { users } = useUsers();
 
-  const navigateToIssueEdit = (issueId: string) => router.push(`/issues/${issueId}`);
+  const navigateToIssueEdit = (issueId: Issue["_id"]) => router.push(`/repository/${repositoryId}/issues/${issueId}`);
 
   const AdditionalText = ({ issue }: { issue: Issue }) => {
     
     const issueCreated = findLastEvent(issue.events, (e: any) => e.type === 'IssueCreatedEvent');
     const issueClosed = findLastEvent(issue.events, (e: any) => e.type === 'IssueClosedEvent');
 
-    const findUser = (userId: string) => users?.find((u: any) => u._id === userId);
+    const findUser = (userId: User["_id"]) => users?.find((u: any) => u._id === userId);
 
     return <>
     {
-      [IssueState.Open, IssueState.Reopened].includes(issue.csm?.state ?? -1) ?
+      [IssueState.Open, IssueState.Reopened].includes(issue.csm.state ?? -1) ?
         <div>was opened by {findUser(issueCreated.by)?.name} {moment(issueCreated.timeStamp).fromNow()}</div> :
         <div>{findUser(issueClosed.by)?.name} closed {moment(issueClosed.timeStamp).fromNow()}</div>
     }
@@ -66,7 +69,7 @@ export const IssuesTable: FC<IssuesTableType> = ({ issues }) => {
                           {
                             issue.csm.labels?.map(lId => {
                               const label = labels?.find((l: Label) => l._id === lId) ?? {};
-                              return <LabelPreview {...label} />
+                              return <LabelPreview key={label._id} {...label} />
                             })
                           }
                           </span>

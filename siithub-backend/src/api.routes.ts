@@ -13,6 +13,6 @@ router.use("/test", testRoutes)
       .use("/auth", authRoutes)
       .use("/repositories", labelRoutes)
       .use("/repositories", repositoryRoutes)
-      .use("/issues", issueRoutes);
+      .use("/repositories", issueRoutes);
 
 export { router as apiRoutes };

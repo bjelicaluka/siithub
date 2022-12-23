@@ -1,11 +1,11 @@
 import { InputField } from "../../core/components/InputField"
-import Issues from "../../pages/issues"
-import { IssueState } from "./issueActions"
+import { IssueState, type IssuesQuery } from "./issueActions"
 import Select from 'react-select'
-import { FC, useEffect, useState } from "react"
+import { type FC, useState } from "react"
 import { useLabels } from "../labels/useLabels"
-import { Label } from "../labels/labelActions"
+import { type Label } from "../labels/labelActions"
 import { useUsers } from "../users/registration/useUsers"
+import { type Repository } from "../repository/repository.service"
 
 const avaiableStates = [
   { value: [IssueState.Open, IssueState.Reopened, IssueState.Closed], label: "Any" },
@@ -21,17 +21,17 @@ const sortOptions = [
 
 ];
 
-// TODO dodati filer issuea?
 type IssuesSearchFormProps = {
-  existingParams: any,
-  onParamsChange: (params: any) => any
+  repositoryId: Repository["_id"],
+  existingParams: IssuesQuery,
+  onParamsChange: (params: IssuesQuery) => any
 };
 
-export const IssuesSearchForm: FC<IssuesSearchFormProps> = ({ existingParams, onParamsChange }) => {
+export const IssuesSearchForm: FC<IssuesSearchFormProps> = ({ repositoryId, existingParams, onParamsChange }) => {
 
-  const [params, setParams] = useState(existingParams);
+  const [params, setParams] = useState<IssuesQuery>(existingParams);
 
-  const { labels } = useLabels('639b3fa0d40531fd5b576f0a');
+  const { labels } = useLabels(repositoryId);
   const labelOptions = labels?.map((l: Label) => ({ value: l._id, label: l.name }));
 
   const { users } = useUsers();

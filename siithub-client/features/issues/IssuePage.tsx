@@ -5,19 +5,24 @@ import { LabelsForm } from "./LabelsForm";
 import { initialIssue as emptyIssue, setIssue, useIssueContext } from "./IssueContext";
 import { IssueHistory } from "./IssueHistory";
 import { AssignessForm } from "./AssignessForm";
+import { type Repository } from "../repository/repository.service";
 
 type IssuePageProps = {
+  repositoryId: Repository["_id"];
   existingIssueId?: string;
 }
 
-export const IssuePage: FC<IssuePageProps> = ({ existingIssueId = undefined }) => {
+export const IssuePage: FC<IssuePageProps> = ({ repositoryId, existingIssueId = undefined }) => {
 
-  const { issue: existingIssue } = useIssue('639b3fa0d40531fd5b576f0a', existingIssueId || '');
+  const { issue: existingIssue } = useIssue(repositoryId, existingIssueId || '');
 
   const { issueDispatcher } = useIssueContext();
 
   useEffect(() => {
-    issueDispatcher(setIssue(existingIssue || emptyIssue));
+    const issue = existingIssue || emptyIssue;
+    issue.repositoryId = repositoryId;
+
+    issueDispatcher(setIssue(issue));
   }, [existingIssue]);
 
 
