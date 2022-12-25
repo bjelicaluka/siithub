@@ -17,14 +17,15 @@ export const AreaField: FC<AreaFieldProps> = ({ label = '', rows = 3, formElemen
   return (
     <>
       { label ?
-        <label className="block text-sm font-medium text-gray-700">{label}</label> :
+        <label className="block text-lg font-medium text-gray-700">{label}</label> :
         <></>
       }
       <textarea
         className={ localErrorMessage ?
           "mt-1 bg-red-50 border border-red-500 text-red-900 placeholder-red-700 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full dark:bg-red-100 dark:border-red-400" :
-          "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-xl"
         }
+        rows={rows}
         {...formElement}
       />
       { localErrorMessage ?

@@ -6,9 +6,10 @@ import { LabelsTable } from "./LabelsTable";
 import { useSearchLabels } from "./useLabels";
 import { LabelsSearchForm } from "./LabelsSearchForm";
 import { useRefresh } from "../../core/hooks/useRefresh";
+import { type Repository } from "../repository/repository.service";
 
 type LabelsPageProps = {
-  repositoryId: string
+  repositoryId: Repository["_id"]
 }
 
 export const LabelsPage: FC<LabelsPageProps> = ({ repositoryId }) => {

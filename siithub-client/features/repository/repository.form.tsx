@@ -9,7 +9,7 @@ import { useNotifications } from "../../core/hooks/useNotifications";
 import { useZodValidatedFrom } from "../../core/hooks/useZodValidatedForm";
 import { extractErrorMessage } from "../../core/utils/errors";
 import {
-  Repository,
+  CreateRepository,
   createRepository,
   repositorySchema,
 } from "./repository.service";
@@ -23,9 +23,9 @@ export const RepositoryForm: FC = () => {
     register,
     handleSubmit,
     formState: { errors },
-  } = useZodValidatedFrom<Repository>(repositorySchema);
+  } = useZodValidatedFrom<CreateRepository>(repositorySchema);
 
-  const createRepositoryAction = useAction<Repository>(repo => createRepository(user?.username ?? "", repo), {
+  const createRepositoryAction = useAction<CreateRepository>(repo => createRepository(user?.username ?? "", repo), {
     onSuccess: () => {
       notifications.success('You have successfully created a new repository.');
       setResult({ status: ResultStatus.Ok, type: "CREATE_REPO" });

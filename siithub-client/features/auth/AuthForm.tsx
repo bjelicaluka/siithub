@@ -1,5 +1,5 @@
-
 import Link from "next/link";
+import { useRouter } from "next/router";
 import { type FC } from "react";
 import { Button } from "../../core/components/Button";
 import { InputField } from "../../core/components/InputField";
@@ -12,7 +12,7 @@ import { extractErrorMessage } from "../../core/utils/errors";
 import { authenticate, type Credentials, type AuthenticatedUser, credentialsSchema } from "./authenticate";
 
 export const AuthForm: FC = () => {
-
+  const router = useRouter();
   const notifications = useNotifications();
   const { setResult } = useResult('auth');
   const { authDispatcher } = useAuthContext();
@@ -23,6 +23,7 @@ export const AuthForm: FC = () => {
     onSuccess: (authUser: AuthenticatedUser) => {
       authDispatcher(onLogin(authUser));
       setResult({ status: ResultStatus.Ok, type: 'AUTHENTICATE' });
+      router.push(`/users/${authUser.user.username}`)
     },
     onError: (error: any) => {
       notifications.error(extractErrorMessage(error));

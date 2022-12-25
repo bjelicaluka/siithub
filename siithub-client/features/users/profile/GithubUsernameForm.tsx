@@ -6,12 +6,12 @@ import { useAction } from "../../../core/hooks/useAction";
 import { useNotifications } from "../../../core/hooks/useNotifications";
 import { useZodValidatedFrom } from "../../../core/hooks/useZodValidatedForm";
 import { extractErrorMessage } from "../../../core/utils/errors";
-import { type GithubAccount } from "../user.model";
+import { type User, type GithubAccount } from "../user.model";
 import { type ChangeGithubAccount, changeGithubAccountBodySchema, changeGithubAccountFor, deleteGithubAccountFor } from "./user-github-actions";
 
 
 type GithubUsernameFormProps = {
-  userId: string,
+  userId: User["_id"],
   githubAccount?: GithubAccount
 }
 
@@ -52,7 +52,7 @@ export const GithubUsernameForm: FC<GithubUsernameFormProps> = ({ userId, github
 
               <div className="col-span-6">
                 <InputField
-                  label="Username"
+                  label="GitHub username"
                   formElement={registrationForm("username")}
                   errorMessage={errors?.username?.message}
                 />
