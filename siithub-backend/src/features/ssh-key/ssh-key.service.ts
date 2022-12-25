@@ -9,7 +9,7 @@ import { userService } from "../user/user.service";
 import type { SshKey, SshKeyCreate, SshKeyUpdate } from "./ssh-key.model";
 import { sshKeyRepo } from "./ssh-key.repo";
 
-async function findOneOrThrow(id: SshKey["_id"]): Promise<SshKey> {
+async function findOneOrThrow(id: SshKey["_id"] | string): Promise<SshKey> {
   const sshKey = await sshKeyRepo.crud.findOne(id);
   if (!sshKey) {
     throw new MissingEntityException("SshKey with given id does not exist.");
@@ -47,16 +47,16 @@ async function updateSshKey(
   keyId: string,
   sshKey: SshKeyUpdate
 ): Promise<SshKey | null> {
-  const foundSshKey = await sshKeyRepo.crud.findOne(keyId);
-  if (!foundSshKey) {
-    throw new MissingEntityException("SshKey not found.", keyId);
-  }
+  const foundSshKey = await findOneOrThrow(keyId);
 
   const sshKeysWithSameName = await sshKeyRepo.crud.findMany({
     name: sshKey.name,
     owner: sshKey.owner,
   });
-  if (sshKeysWithSameName.length) {
+  if (
+    sshKeysWithSameName.length &&
+    sshKeysWithSameName[0]._id !== foundSshKey._id
+  ) {
     throw new DuplicateException(
       "SshKey with same name already exists.",
       sshKey
@@ -82,10 +82,7 @@ async function updateSshKey(
 }
 
 async function deleteSshKey(keyId: string): Promise<SshKey | null> {
-  const foundSshKey = await sshKeyRepo.crud.findOne(keyId);
-  if (!foundSshKey) {
-    throw new MissingEntityException("SshKey not found.", keyId);
-  }
+  const foundSshKey = await findOneOrThrow(keyId);
 
   const existingUser = await userService.findByUsername(foundSshKey.owner);
   if (!existingUser) {
@@ -105,7 +102,7 @@ async function deleteSshKey(keyId: string): Promise<SshKey | null> {
 }
 
 export type SshKeyService = {
-  findOneOrThrow(id: SshKey["_id"]): Promise<SshKey>;
+  findOneOrThrow(id: SshKey["_id"] | string): Promise<SshKey>;
   create(sshKey: SshKeyCreate): Promise<SshKey | null>;
   update(
     keyId: ObjectId | string,

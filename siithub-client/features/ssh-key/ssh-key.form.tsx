@@ -36,7 +36,12 @@ export const SshKeyForm: FC = () => {
   );
 
   return (
-    <form onSubmit={handleSubmit(createSshKeyAction)}>
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        handleSubmit(createSshKeyAction)(e);
+      }}
+    >
       <div className="overflow-hidden shadow sm:rounded-md">
         <div className="bg-white px-4 py-5 sm:p-6">
           <div className="grid grid-cols-6 gap-6">
