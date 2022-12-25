@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "start": "tsc && node dist",
+    "start": "ts-node src",
     "dev": "concurrently \"tsc --watch\" \"nodemon -q dist/index.js\"",
     "build": "tsc",
     "test": "jest"
@@ -13,14 +13,22 @@
   "license": "ISC",
   "devDependencies": {
     "@types/express": "^4.17.14",
+    "@types/jsonwebtoken": "^8.5.9",
     "concurrently": "^7.5.0",
     "jest": "^29.2.2",
     "nodemon": "^2.0.20",
     "ts-jest": "^29.0.3",
+    "ts-node": "^10.9.1",
     "typescript": "^4.8.4"
   },
   "dependencies": {
+    "axios": "^1.2.1",
+    "crypto": "^1.0.1",
     "dotenv": "^16.0.3",
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "express-async-errors": "^3.1.1",
+    "jsonwebtoken": "^8.5.1",
+    "mongodb": "^4.11.0",
+    "zod": "3.19.1"
   }
 }

@@ -1,0 +1,34 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/typescript-node
+{
+  "name": "SiitHub Git Server",
+  "build": {
+    "dockerfile": "../Dockerfile.dev"
+  },
+
+  "containerEnv": {},
+
+  "forwardPorts": [3002, 22],
+
+  "postCreateCommand": "sh -c rc-status; rc-service sshd start", // start sshd service
+
+  "settings": {
+    "terminal.integrated.profiles.linux": {
+      "bash-profile": {
+        "path": "/bin/bash"
+      }
+    },
+    "terminal.integrated.defaultProfile.linux": "bash-profile",
+    "editor.tabSize": 4
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "eamodio.gitlens",
+        "esbenp.prettier-vscode"
+      ]
+    }
+  }
+}
