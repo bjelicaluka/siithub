@@ -5,6 +5,7 @@ import { testRoutes } from "./features/test/test.routes";
 import { userRoutes } from "./features/user/user.routes";
 import { issueRoutes } from "./features/issue/issue.router";
 import { repositoryRoutes } from "./features/repository/repository.routes";
+import { sshKeyRoutes } from "./features/ssh-key/ssh-key.routes";
 import { milestoneRoutes } from "./features/milestone/milestone.routes";
 
 const router = Router();
@@ -15,6 +16,7 @@ router.use("/test", testRoutes)
       .use("/repositories", repositoryRoutes)
       .use("/repositories", labelRoutes)
       .use("/repositories", issueRoutes)
+      .use("/ssh-keys", sshKeyRoutes)
       .use("/", milestoneRoutes);
 
 export { router as apiRoutes };
