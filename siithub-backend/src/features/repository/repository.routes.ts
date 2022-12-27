@@ -1,11 +1,31 @@
 import { type Request, type Response, Router } from "express";
 import { z } from "zod";
 import { ALPHANUMERIC_REGEX } from "../../patterns";
-import { type Repository } from "./repository.model";
 import { repositoryService } from "./repository.service";
 import "express-async-errors";
 
 const router = Router();
+
+const repositorySearchSchema = z.object({
+  term: z.string().optional(),
+  owner: z.string(),
+});
+
+router.get("/", async (req: Request, res: Response) => {
+  const parsedQuery = repositorySearchSchema.safeParse(req.query);
+
+  if (!parsedQuery.success) {
+    res.status(400).send(parsedQuery.error.issues);
+    return;
+  }
+
+  res.send(
+    await repositoryService.search(
+      parsedQuery.data.owner,
+      parsedQuery.data.term
+    )
+  );
+});
 
 const repositoryBodySchema = z.object({
   name: z
