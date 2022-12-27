@@ -55,6 +55,30 @@ async function createRepository(
   return await repositoryRepo.crud.add(repository);
 }
 
+async function deleteRepository(
+  repositoryId: Repository["_id"]
+): Promise<Repository | null> {
+  const repository = await findOneOrThrow(repositoryId);
+
+  const existingUser = await userService.findByUsername(repository.owner);
+  if (!existingUser) {
+    throw new MissingEntityException("User does not exist.", repository.owner);
+  }
+
+  try {
+    await gitServerClient.deleteRepository(
+      existingUser.username,
+      repository.name
+    );
+  } catch (error) {
+    throw new BadLogicException(
+      "Failed to delete repository in the file system."
+    );
+  }
+
+  return await repositoryRepo.crud.delete(repositoryId);
+}
+
 async function findByOwnerAndName(
   owner: string,
   name: string
@@ -83,6 +107,7 @@ async function getNextCounterValue(
 export type RepositoryService = {
   findOneOrThrow(id: Repository["_id"]): Promise<Repository>;
   create(repository: RepositoryCreate): Promise<Repository | null>;
+  delete(id: Repository["_id"]): Promise<Repository | null>;
   findByOwnerAndName(owner: string, name: string): Promise<Repository | null>;
   getNextCounterValue(
     id: Repository["_id"],
@@ -94,6 +119,7 @@ export type RepositoryService = {
 const repositoryService: RepositoryService = {
   findOneOrThrow,
   create: createRepository,
+  delete: deleteRepository,
   findByOwnerAndName,
   getNextCounterValue,
   search,
