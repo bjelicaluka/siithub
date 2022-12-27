@@ -148,4 +148,49 @@ describe("RepositoryService", () => {
       expect(createdRepository2).toHaveProperty("_id");
     });
   });
+
+  describe("search", () => {
+    it("should return all repos of a user if term empty", async () => {
+      await service.create({ name: "test", owner, type: "private" });
+      await service.create({ name: "another", owner, type: "private" });
+      await service.create({ name: "term", owner, type: "private" });
+
+      const result = await service.search(owner, "");
+
+      expect(result).toHaveLength(3);
+    });
+
+    it("should return all repos of a user if term is not provided", async () => {
+      await service.create({ name: "test", owner, type: "private" });
+      await service.create({ name: "another", owner, type: "private" });
+      await service.create({ name: "term", owner, type: "private" });
+
+      const result = await service.search(owner);
+
+      expect(result).toHaveLength(3);
+    });
+
+    it("should return repositories of a user whose name includes term", async () => {
+      await service.create({ name: "test", owner, type: "private" });
+      await service.create({ name: "another", owner, type: "private" });
+      await service.create({ name: "term", owner, type: "private" });
+
+      const result = await service.search(owner, "te");
+
+      expect(result).toHaveLength(2);
+
+      expect(result.find((x) => x.name === "test")).toBeTruthy();
+      expect(result.find((x) => x.name === "term")).toBeTruthy();
+    });
+
+    it("should return no repositories of a user that don't include the term", async () => {
+      await service.create({ name: "test", owner, type: "private" });
+      await service.create({ name: "another", owner, type: "private" });
+      await service.create({ name: "term", owner, type: "private" });
+
+      const result = await service.search(owner, "tem");
+
+      expect(result).toHaveLength(0);
+    });
+  });
 });
