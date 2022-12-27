@@ -18,6 +18,10 @@ export function createRepository(owner: string, repository: CreateRepository) {
   return axios.post("/api/repositories", { ...repository, owner });
 }
 
+export function deleteRepository(id: string) {
+  return axios.delete("/api/repositories/" + id);
+}
+
 export function searchRepositories(owner: string, term: string) {
   return axios.get("/api/repositories", { params: { term, owner } });
 }

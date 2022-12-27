@@ -6,7 +6,7 @@ import { ObjectId } from "mongodb";
 describe("RepositoryService", () => {
   setupTestEnv("RepositoryService");
 
-  const { setCreateRepoHandler } = setupGitServer();
+  const { setCreateRepoHandler, setDeleteRepoHandler } = setupGitServer();
 
   let service: RepositoryService;
   let owner = "testuser";
@@ -191,6 +191,46 @@ describe("RepositoryService", () => {
       const result = await service.search(owner, "tem");
 
       expect(result).toHaveLength(0);
+    });
+  });
+
+  describe("delete", () => {
+    it("should throw MissingEntityException because repo does not exist", async () => {
+      await expect(
+        service.delete("acc93493-9387-4d37-9132-1e1b3818a955" as any)
+      ).rejects.toHaveProperty("name", "MissingEntityException");
+    });
+
+    it("should throw BadLogicException if gitserver fails", async () => {
+      setDeleteRepoHandler(() => {
+        return new Promise((_, rej) => rej(new Error()));
+      });
+      const createdRepository = await service.create({
+        name: "testCreate",
+        description: "testDescription",
+        owner,
+      });
+      expect(createdRepository).not.toBeNull();
+      if (!createdRepository) return;
+
+      await expect(
+        service.delete(createdRepository._id)
+      ).rejects.toHaveProperty("name", "BadLogicException");
+    });
+
+    it("should delete existing repository", async () => {
+      const createdRepository = await service.create({
+        name: "testCreate",
+        description: "testDescription",
+        owner,
+      });
+      expect(createdRepository).not.toBeNull();
+      if (!createdRepository) return;
+
+      const deletedRepository = await service.delete(createdRepository._id);
+
+      expect(deletedRepository).not.toBeNull();
+      expect(deletedRepository).toHaveProperty("_id", createdRepository._id);
     });
   });
 });
