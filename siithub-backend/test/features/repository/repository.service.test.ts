@@ -26,11 +26,17 @@ describe("RepositoryService", () => {
       const id = new ObjectId();
 
       const findOneOrThrow = async () => await service.findOneOrThrow(id);
-      await expect(findOneOrThrow).rejects.toThrowError("Repository with given id does not exist.");
+      await expect(findOneOrThrow).rejects.toThrowError(
+        "Repository with given id does not exist."
+      );
     });
 
     it("should return repository", async () => {
-      const added = await service.create({ name: "existingRepositoryName", owner });
+      const added = await service.create({
+        name: "existingRepositoryName",
+        owner,
+        type: "private",
+      });
 
       expect(added).not.toBeNull();
       expect(added).toHaveProperty("_id");
@@ -38,7 +44,7 @@ describe("RepositoryService", () => {
 
       const found = await service.findOneOrThrow(added._id);
       expect(found).not.toBeNull();
-      expect(found._id + '').toBe(added._id + '');
+      expect(found._id + "").toBe(added._id + "");
     });
   });
 
@@ -50,7 +56,7 @@ describe("RepositoryService", () => {
 
     it("should return repository", async () => {
       const name = "existingName";
-      const added = await service.create({ name, owner });
+      const added = await service.create({ name, owner, type: "private" });
 
       expect(added).not.toBeNull();
       expect(added).toHaveProperty("_id");
@@ -59,21 +65,25 @@ describe("RepositoryService", () => {
       const found = await service.findByOwnerAndName(owner, name);
       expect(found).not.toBeNull();
       if (!found) return;
-      expect(found._id + '').toBe(added._id + '');
+      expect(found._id + "").toBe(added._id + "");
     });
   });
 
   describe("getNextCounterValue", () => {
     it("should get next counter value", async () => {
-      const added = await service.create({ name: "existingRepositoryName", owner });
+      const added = await service.create({
+        name: "existingRepositoryName",
+        owner,
+        type: "private",
+      });
 
       expect(added).not.toBeNull();
       expect(added).toHaveProperty("_id");
       if (!added) return;
 
-      let val = await service.getNextCounterValue(added._id, 'milestone');
+      let val = await service.getNextCounterValue(added._id, "milestone");
       expect(val).toBe(1);
-      val = await service.getNextCounterValue(added._id, 'milestone');
+      val = await service.getNextCounterValue(added._id, "milestone");
       expect(val).toBe(2);
     });
   });
@@ -81,20 +91,20 @@ describe("RepositoryService", () => {
   describe("create", () => {
     it("should throw DuplicateException because repository name already exists", async () => {
       const name = "existingName";
-      const added = await service.create({ name, owner });
+      const added = await service.create({ name, owner, type: "private" });
 
       expect(added).not.toBeNull();
       expect(added).toHaveProperty("_id");
       if (!added) return;
 
       await expect(
-        service.create({ name, owner })
+        service.create({ name, owner, type: "private" })
       ).rejects.toHaveProperty("name", "DuplicateException");
     });
 
     it("should throw MissingEntityException because user does not exist", async () => {
       await expect(
-        service.create({ name: "test", owner: "notexisting" })
+        service.create({ name: "test", owner: "notexisting", type: "private" })
       ).rejects.toHaveProperty("name", "MissingEntityException");
     });
 
@@ -103,7 +113,7 @@ describe("RepositoryService", () => {
         return new Promise((_, rej) => rej(new Error()));
       });
       await expect(
-        service.create({ name: "test", owner })
+        service.create({ name: "test", owner, type: "private" })
       ).rejects.toHaveProperty("name", "BadLogicException");
     });
 
@@ -112,6 +122,7 @@ describe("RepositoryService", () => {
         name: "testCreate",
         description: "testDescription",
         owner,
+        type: "private",
       });
 
       expect(createdRepository).not.toBeNull();
@@ -120,11 +131,19 @@ describe("RepositoryService", () => {
 
     it("should create repositories with same name if users are different", async () => {
       const name = "popular-name";
-      const createdRepository1 = await service.create({ name, owner });
+      const createdRepository1 = await service.create({
+        name,
+        owner,
+        type: "private",
+      });
       expect(createdRepository1).not.toBeNull();
       expect(createdRepository1).toHaveProperty("_id");
 
-      const createdRepository2 = await service.create({ name, owner: "other-user" });
+      const createdRepository2 = await service.create({
+        name,
+        owner: "other-user",
+        type: "private",
+      });
       expect(createdRepository2).not.toBeNull();
       expect(createdRepository2).toHaveProperty("_id");
     });

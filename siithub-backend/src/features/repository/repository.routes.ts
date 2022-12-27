@@ -15,6 +15,7 @@ const repositoryBodySchema = z.object({
       ALPHANUMERIC_REGEX,
       "Name should contain only alphanumeric characters."
     ),
+  type: z.enum(["private", "public"]),
   description: z.string().default(""),
   owner: z.string(),
 });
