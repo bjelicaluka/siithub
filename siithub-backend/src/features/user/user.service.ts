@@ -5,7 +5,7 @@ import { clearPropertiesOfResultWrapper } from "../../utils/wrappers";
 import { getRandomString, getSha256Hash } from "../../utils/crypto";
 import { gitServerClient } from "../gitserver/gitserver.client";
 
-async function findOneOrThrow(id: User['_id']): Promise<User> {
+async function findOneOrThrow(id: User["_id"]): Promise<User> {
   const existingUser = await userRepo.crud.findOne(id);
   if (!existingUser) {
     throw new MissingEntityException("User with given id does not exist.");
@@ -14,7 +14,11 @@ async function findOneOrThrow(id: User['_id']): Promise<User> {
 }
 
 async function findMany(): Promise<User[]> {
-  return await userRepo.crud.findMany();
+  return await userRepo.crud.findMany({}, { projection: { passwordAccount: 0, password: 0 } });
+}
+
+async function findByIds(ids: User["_id"][]): Promise<User[]> {
+  return await userRepo.crud.findMany({ _id: { $in: ids } }, { projection: { username: 1, name: 1 } });
 }
 
 async function findByUsername(username: string): Promise<User | null> {
@@ -34,18 +38,17 @@ async function findByGithubUsername(username: string): Promise<User | null> {
 }
 
 function removePassword(f: any) {
-  return clearPropertiesOfResultWrapper(f, 'password', 'passwordAccount');
-}  
+  return clearPropertiesOfResultWrapper(f, "password", "passwordAccount");
+}
 
 function getHashedPassword(password: string) {
   const salt = getRandomString(16);
   const passwordHash = getSha256Hash(password + salt);
 
-  return { salt, passwordHash }
+  return { salt, passwordHash };
 }
 
 async function createUser(user: UserCreate): Promise<User | null> {
-
   const userWithSameUsername = await userRepo.findByUsername(user.username);
   if (userWithSameUsername) {
     throw new DuplicateException("Username is already taken.", user);
@@ -71,30 +74,35 @@ async function createUser(user: UserCreate): Promise<User | null> {
 
 async function updateProfile(id: User["_id"], profileUpdate: UserUpdate): Promise<User | null> {
   const user = await findOneOrThrow(id);
-  const {name, bio, email} = profileUpdate;
-  return await userRepo.crud.update(id, {name, bio, email});
+  const { name, bio, email } = profileUpdate;
+  return await userRepo.crud.update(id, { name, bio, email });
 }
 
-async function updatePassword(id: User["_id"], passwordUpdate: {oldPassword: string, newPassword: string}): Promise<User | null> {
+async function updatePassword(
+  id: User["_id"],
+  passwordUpdate: { oldPassword: string; newPassword: string }
+): Promise<User | null> {
   const user = await findOneOrThrow(id);
   const passwordHash = getSha256Hash(passwordUpdate.oldPassword + user.passwordAccount?.salt);
   if (passwordHash !== user.passwordAccount?.passwordHash) {
     throw new BadLogicException("Old password is incorrect");
   }
-  console.log(passwordUpdate.newPassword)
-  return await userRepo.crud.update(id, {passwordAccount: getHashedPassword(passwordUpdate.newPassword)});
+  return await userRepo.crud.update(id, {
+    passwordAccount: getHashedPassword(passwordUpdate.newPassword),
+  });
 }
 
 export type UserService = {
-  findOneOrThrow(id: User['_id']): Promise<User>,
-  findByUsername(username: string): Promise<User | null>,
-  findByUsernameOrThrow(username: string): Promise<User>,
-  findByGithubUsername(username: string): Promise<User | null>,
-  findMany(): Promise<User[]>,
-  create(user: UserCreate): Promise<User | null>
-  updateProfile(id: User["_id"], profileUpdate: UserUpdate): Promise<User | null>,
-  updatePassword(id: User["_id"], passwordUpdate: {oldPassword: string, newPassword: string}): Promise<User | null>
-}
+  findOneOrThrow(id: User["_id"]): Promise<User>;
+  findByUsername(username: string): Promise<User | null>;
+  findByUsernameOrThrow(username: string): Promise<User>;
+  findByGithubUsername(username: string): Promise<User | null>;
+  findMany(): Promise<User[]>;
+  create(user: UserCreate): Promise<User | null>;
+  updateProfile(id: User["_id"], profileUpdate: UserUpdate): Promise<User | null>;
+  updatePassword(id: User["_id"], passwordUpdate: { oldPassword: string; newPassword: string }): Promise<User | null>;
+  findByIds(ids: User["_id"][]): Promise<User[]>;
+};
 
 const userService: UserService = {
   findMany,
@@ -104,7 +112,8 @@ const userService: UserService = {
   findByGithubUsername: removePassword(findByGithubUsername),
   create: removePassword(createUser),
   updateProfile: removePassword(updateProfile),
-  updatePassword: removePassword(updatePassword)
-}
+  updatePassword: removePassword(updatePassword),
+  findByIds,
+};
 
 export { userService };
