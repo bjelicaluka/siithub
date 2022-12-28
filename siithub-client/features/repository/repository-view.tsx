@@ -3,7 +3,7 @@ import { FC } from "react";
 
 export const RepositoryView: FC = () => {
   const router = useRouter();
-  const repositoryId = router.query?.repositoryId?.toString() ?? "";
+  const repository = router.query?.repository?.toString() ?? "";
 
-  return <div>{repositoryId}</div>;
+  return <div>{repository}</div>;
 };
