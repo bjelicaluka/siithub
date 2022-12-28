@@ -17,15 +17,13 @@ export const RepositoryView: FC = () => {
     (id) => deleteRepository(id),
     {
       onSuccess: () => {
-        notifications.success(
-          "You have successfully deleted a new repository."
-        );
-        setResult({ status: ResultStatus.Ok, type: "CREATE_REPO" });
+        notifications.success("You have successfully deleted repository.");
+        setResult({ status: ResultStatus.Ok, type: "DELETE_REPO" });
         router.push("/");
       },
       onError: (error: any) => {
         notifications.error(extractErrorMessage(error));
-        setResult({ status: ResultStatus.Error, type: "CREATE_REPO" });
+        setResult({ status: ResultStatus.Error, type: "DELETE_REPO" });
       },
     }
   );
