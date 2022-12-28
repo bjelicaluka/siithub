@@ -63,9 +63,10 @@ async function findByOwnerAndName(
 }
 
 async function search(owner: string, term: string): Promise<Repository[]> {
-  return (await repositoryRepo.crud.findMany({ owner })).filter(
-    (repo) => term === undefined || repo.name.includes(term)
-  );
+  return await repositoryRepo.crud.findMany({
+    owner,
+    ...(term !== undefined ? { name: { $regex: term, $options: "i" } } : {}),
+  });
 }
 
 async function getNextCounterValue(

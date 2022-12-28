@@ -42,14 +42,14 @@ export const HomeView: FC = () => {
         />
         <div className="flex flex-col items-center w-full">
           {repositories.map((repo, i) => (
-            <a
+            <Link
               key={repo._id + i}
-              href={`/repository/${repo._id}`}
+              href={`/${repo.owner}/${repo._id}`}
               className="flex items-center gap-2 text-gray-500 w-full"
             >
               <BookOpenIcon className="h-5 w-5 text-green-600" /> {repo.owner}/
               {repo.name}
-            </a>
+            </Link>
           ))}
         </div>
       </div>
