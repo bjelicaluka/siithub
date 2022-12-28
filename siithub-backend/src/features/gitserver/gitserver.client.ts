@@ -15,6 +15,16 @@ async function createRepository(
   });
 }
 
+async function deleteRepository(
+  username: string,
+  repositoryName: string
+): Promise<any> {
+  return await axios.put(`${config.gitServer.url}/api/repositories/delete`, {
+    username,
+    repositoryName,
+  });
+}
+
 async function addSshKey(username: string, key: string): Promise<any> {
   return await axios.post(`${config.gitServer.url}/api/key`, { username, key });
 }
@@ -41,6 +51,7 @@ async function removeSshKey(username: string, key: string): Promise<any> {
 export type GitServerClient = {
   createUser(username: string): Promise<any>;
   createRepository(username: string, repositoryName: string): Promise<any>;
+  deleteRepository(username: string, repositoryName: string): Promise<any>;
   addSshKey(username: string, key: string): Promise<any>;
   updateSshKey(username: string, oldKey: string, key: string): Promise<any>;
   removeSshKey(username: string, key: string): Promise<any>;
@@ -49,6 +60,7 @@ export type GitServerClient = {
 const gitServerClient: GitServerClient = {
   createUser,
   createRepository,
+  deleteRepository,
   addSshKey,
   updateSshKey,
   removeSshKey,
