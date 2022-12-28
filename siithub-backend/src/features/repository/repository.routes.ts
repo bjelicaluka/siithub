@@ -4,6 +4,8 @@ import { ALPHANUMERIC_REGEX } from "../../patterns";
 import { repositoryService } from "./repository.service";
 import "express-async-errors";
 import { ObjectId } from "mongodb";
+import { objectIdString } from "../../utils/zod";
+import { authorizeRepositoryOwner } from "./repository.middleware";
 
 const router = Router();
 
@@ -42,32 +44,42 @@ const repositoryBodySchema = z.object({
 
 const createRepositoryBodySchema = repositoryBodySchema;
 
-router.post("/", async (req: Request, res: Response) => {
-  const createRepository = createRepositoryBodySchema.safeParse(req.body);
+router.post(
+  "/",
+  authorizeRepositoryOwner(),
+  async (req: Request, res: Response) => {
+    const createRepository = createRepositoryBodySchema.safeParse(req.body);
 
-  if (!createRepository.success) {
-    res.status(400).send(createRepository.error.issues);
-    return;
+    if (!createRepository.success) {
+      res.status(400).send(createRepository.error.issues);
+      return;
+    }
+
+    const repository = createRepository.data;
+
+    res.send(await repositoryService.create(repository));
   }
-
-  const repository = createRepository.data;
-
-  res.send(await repositoryService.create(repository));
-});
+);
 
 const deleteRepositoryParamsSchema = z.object({
-  id: z.string(),
+  id: objectIdString("Invalid id"),
 });
 
-router.delete("/:id", async (req: Request, res: Response) => {
-  const parsedParams = deleteRepositoryParamsSchema.safeParse(req.params);
+router.delete(
+  "/:id",
+  authorizeRepositoryOwner(),
+  async (req: Request, res: Response) => {
+    const parsedParams = deleteRepositoryParamsSchema.safeParse(req.params);
 
-  if (!parsedParams.success) {
-    res.status(400).send(parsedParams.error.issues);
-    return;
+    if (!parsedParams.success) {
+      res.status(400).send(parsedParams.error.issues);
+      return;
+    }
+
+    res.send(
+      await repositoryService.delete(new ObjectId(parsedParams.data.id))
+    );
   }
-
-  res.send(await repositoryService.delete(new ObjectId(parsedParams.data.id)));
-});
+);
 
 export { repositoryBodySchema, router as repositoryRoutes };
