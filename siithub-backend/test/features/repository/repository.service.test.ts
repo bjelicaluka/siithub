@@ -6,7 +6,7 @@ import { ObjectId } from "mongodb";
 describe("RepositoryService", () => {
   setupTestEnv("RepositoryService");
 
-  const { setCreateRepoHandler } = setupGitServer();
+  const { setCreateRepoHandler, setDeleteRepoHandler } = setupGitServer();
 
   let service: RepositoryService;
   let owner = "testuser";
@@ -146,6 +146,91 @@ describe("RepositoryService", () => {
       });
       expect(createdRepository2).not.toBeNull();
       expect(createdRepository2).toHaveProperty("_id");
+    });
+  });
+
+  describe("search", () => {
+    it("should return all repos of a user if term empty", async () => {
+      await service.create({ name: "test", owner, type: "private" });
+      await service.create({ name: "another", owner, type: "private" });
+      await service.create({ name: "term", owner, type: "private" });
+
+      const result = await service.search(owner, "");
+
+      expect(result).toHaveLength(3);
+    });
+
+    it("should return all repos of a user if term is not provided", async () => {
+      await service.create({ name: "test", owner, type: "private" });
+      await service.create({ name: "another", owner, type: "private" });
+      await service.create({ name: "term", owner, type: "private" });
+
+      const result = await service.search(owner);
+
+      expect(result).toHaveLength(3);
+    });
+
+    it("should return repositories of a user whose name includes term", async () => {
+      await service.create({ name: "test", owner, type: "private" });
+      await service.create({ name: "another", owner, type: "private" });
+      await service.create({ name: "term", owner, type: "private" });
+
+      const result = await service.search(owner, "te");
+
+      expect(result).toHaveLength(2);
+
+      expect(result.find((x) => x.name === "test")).toBeTruthy();
+      expect(result.find((x) => x.name === "term")).toBeTruthy();
+    });
+
+    it("should return no repositories of a user that don't include the term", async () => {
+      await service.create({ name: "test", owner, type: "private" });
+      await service.create({ name: "another", owner, type: "private" });
+      await service.create({ name: "term", owner, type: "private" });
+
+      const result = await service.search(owner, "tem");
+
+      expect(result).toHaveLength(0);
+    });
+  });
+
+  describe("delete", () => {
+    it("should throw MissingEntityException because repo does not exist", async () => {
+      await expect(
+        service.delete("acc93493-9387-4d37-9132-1e1b3818a955" as any)
+      ).rejects.toHaveProperty("name", "MissingEntityException");
+    });
+
+    it("should throw BadLogicException if gitserver fails", async () => {
+      setDeleteRepoHandler(() => {
+        return new Promise((_, rej) => rej(new Error()));
+      });
+      const createdRepository = await service.create({
+        name: "testCreate",
+        description: "testDescription",
+        owner,
+      });
+      expect(createdRepository).not.toBeNull();
+      if (!createdRepository) return;
+
+      await expect(
+        service.delete(createdRepository._id)
+      ).rejects.toHaveProperty("name", "BadLogicException");
+    });
+
+    it("should delete existing repository", async () => {
+      const createdRepository = await service.create({
+        name: "testCreate",
+        description: "testDescription",
+        owner,
+      });
+      expect(createdRepository).not.toBeNull();
+      if (!createdRepository) return;
+
+      const deletedRepository = await service.delete(createdRepository._id);
+
+      expect(deletedRepository).not.toBeNull();
+      expect(deletedRepository).toHaveProperty("_id", createdRepository._id);
     });
   });
 });

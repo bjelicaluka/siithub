@@ -1,3 +1,4 @@
+import { useRouter } from "next/router";
 import { type FC } from "react";
 import { AreaField } from "../../core/components/AreaField";
 import { Button } from "../../core/components/Button";
@@ -15,6 +16,7 @@ import {
 } from "./repository.service";
 
 export const RepositoryForm: FC = () => {
+  const router = useRouter();
   const notifications = useNotifications();
   const { user } = useAuthContext();
   const { setResult } = useResult("create-repo");
@@ -37,6 +39,7 @@ export const RepositoryForm: FC = () => {
           "You have successfully created a new repository."
         );
         setResult({ status: ResultStatus.Ok, type: "CREATE_REPO" });
+        router.push("/");
       },
       onError: (error: any) => {
         notifications.error(extractErrorMessage(error));

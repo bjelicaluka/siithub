@@ -9,8 +9,19 @@ export const repositorySchema = z.object({
 
 export type CreateRepository = z.infer<typeof repositorySchema>;
 
-export type Repository = z.infer<typeof repositorySchema> & { _id: string };
+export type Repository = z.infer<typeof repositorySchema> & {
+  _id: string;
+  owner: string;
+};
 
 export function createRepository(owner: string, repository: CreateRepository) {
   return axios.post("/api/repositories", { ...repository, owner });
+}
+
+export function deleteRepository(id: string) {
+  return axios.delete("/api/repositories/" + id);
+}
+
+export function searchRepositories(owner: string, term: string) {
+  return axios.get("/api/repositories", { params: { term, owner } });
 }
