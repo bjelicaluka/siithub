@@ -42,10 +42,12 @@ async function mapGetResponse(collaborators: Collaborator[], name: string): Prom
     return acc;
   }, {});
 
-  return collaborators.map((c: Collaborator) => ({
-    ...c,
-    user: usersMap[c.userId.toString()],
-  }));
+  return collaborators
+    .map((c: Collaborator) => ({
+      ...c,
+      user: usersMap[c.userId.toString()],
+    }))
+    .filter((c) => !!c.user);
 }
 
 router.post("/:username/:repository/collaborators", async (req: Request, res: Response) => {

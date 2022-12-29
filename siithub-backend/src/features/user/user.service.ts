@@ -18,8 +18,8 @@ async function findOneOrThrow(id: User["_id"]): Promise<User> {
   return existingUser;
 }
 
-async function findMany(): Promise<User[]> {
-  return await userRepo.crud.findMany();
+async function findMany(filters?: Filter<User>): Promise<User[]> {
+  return await userRepo.crud.findMany(filters);
 }
 
 async function findManyByIds(ids: User["_id"][], filters: Filter<User> = {}): Promise<User[]> {
@@ -108,7 +108,7 @@ export type UserService = {
   findByUsername(username: string): Promise<User | null>;
   findByUsernameOrThrow(username: string): Promise<User>;
   findByGithubUsername(username: string): Promise<User | null>;
-  findMany(): Promise<User[]>;
+  findMany(filters?: Filter<User>): Promise<User[]>;
   findManyByIds(ids: User["_id"][], filters?: Filter<User>): Promise<User[]>;
   create(user: UserCreate): Promise<User | null>;
   updateProfile(id: User["_id"], profileUpdate: UserUpdate): Promise<User | null>;
