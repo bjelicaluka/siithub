@@ -1,5 +1,6 @@
 import { MissingEntityException } from "../../error-handling/errors";
 import type { Repository } from "../repository/repository.model";
+import { repositoryService } from "../repository/repository.service";
 import type { User } from "../user/user.model";
 import type { Star } from "./star.model";
 import { starRepo } from "./star.repo";
@@ -13,7 +14,7 @@ async function findOneOrThrow(id: Star["_id"]): Promise<Star> {
 }
 
 async function findByRepoId(repoId: Repository["_id"]): Promise<Star[]> {
-  return await starRepo.crud.findMany({ repoId });
+  return await starRepo.crud.findMany({ repoId }, { projection: { repoId: 0 } });
 }
 
 async function countByRepoId(repoId: Repository["_id"]): Promise<number> {
@@ -21,7 +22,7 @@ async function countByRepoId(repoId: Repository["_id"]): Promise<number> {
 }
 
 async function findByUserId(userId: User["_id"]): Promise<Star[]> {
-  return await starRepo.crud.findMany({ userId });
+  return await starRepo.crud.findMany({ userId }, { projection: { userId: 0 } });
 }
 
 async function countByUserId(userId: User["_id"]): Promise<number> {
@@ -37,7 +38,9 @@ async function addStar(userId: User["_id"], repoId: Repository["_id"]): Promise<
   if (existingStar) {
     return existingStar;
   }
-  return await starRepo.crud.add({ userId, repoId, date: new Date() });
+  const star = await starRepo.crud.add({ userId, repoId, date: new Date() });
+  await repositoryService.updateStarCount(repoId);
+  return star;
 }
 
 async function removeStar(userId: User["_id"], repoId: Repository["_id"]): Promise<Star | null> {
@@ -45,7 +48,9 @@ async function removeStar(userId: User["_id"], repoId: Repository["_id"]): Promi
   if (!existingStar) {
     return existingStar;
   }
-  return await starRepo.crud.delete(existingStar._id);
+  const star = await starRepo.crud.delete(existingStar._id);
+  await repositoryService.updateStarCount(repoId, true);
+  return star;
 }
 
 export type StarService = {
