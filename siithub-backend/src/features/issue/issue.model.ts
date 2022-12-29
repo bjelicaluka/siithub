@@ -1,15 +1,27 @@
-import { type BaseEvent, type AggregateRoot } from "../../db/base.repo.utils";
+import { ObjectId } from "mongodb";
+import { type BaseEvent, type BaseEntity, type AggregateRoot } from "../../db/base.repo.utils";
 import { BadLogicException } from "../../error-handling/errors";
 import { type Label } from "../label/label.model";
 import { type Milestone } from "../milestone/milestone.model";
 import { type Repository } from "../repository/repository.model";
 import { type User } from "../user/user.model";
 
+export enum CommentState {
+  Existing,
+  Hidden,
+  Deleted
+};
+
+export type Comment = BaseEntity & {
+  text?: string
+  state?: CommentState
+};
+
 export enum IssueState {
   Open,
   Closed,
   Reopened
-}
+};
 
 export type IssueCSM = {
   timeStamp?: Date,
@@ -20,12 +32,14 @@ export type IssueCSM = {
   labels?: Label['_id'][],
   milestones?: Milestone['_id'][],
   assignees?: User['_id'][],
+  comments?: Comment[]
 };
 
 export type Issue = AggregateRoot & { 
   csm: IssueCSM,
   repositoryId: Repository["_id"] 
 };
+
 export type IssueCreate = Omit<Issue, "_id" | "cms">;
 export type IssueUpdate = Omit<Issue, "cms">;
 
@@ -44,6 +58,11 @@ export type UserUnassignedEvent = BaseEvent & { userId: User['_id'] };
 export type IssueReopenedEvent = BaseEvent & {};
 export type IssueClosedEvent = BaseEvent & {};
 
+export type CommentCreatedEvent = BaseEvent & { commentId: Comment['_id'], text: string };
+export type CommentUpdatedEvent = BaseEvent & { commentId: Comment['_id'], text: string };
+export type CommentHiddenEvent = BaseEvent & { commentId: Comment['_id'] };
+export type CommentDeletedEvent = BaseEvent & { commentId: Comment['_id'] };
+
 export function handleAllFor(issue: Issue, events: BaseEvent[]) {
   events.forEach(e => handleFor(issue, e));
 }
@@ -60,7 +79,8 @@ export function handleFor(issue: Issue, event: BaseEvent) {
         state: IssueState.Open,
         labels: [],
         milestones: [],
-        assignees: []
+        assignees: [],
+        comments: []
       };
       break;
     }
@@ -166,7 +186,49 @@ export function handleFor(issue: Issue, event: BaseEvent) {
       issue.csm.state = IssueState.Closed;
       break;
     }
+    case 'CommentCreatedEvent': {
+      const commentCreated = event as CommentCreatedEvent;
+      commentCreated.commentId = new ObjectId();
 
+      issue.csm.comments?.push({
+        _id: commentCreated.commentId,
+        text: commentCreated.text,
+        state: CommentState.Existing
+      });
+      break;
+    }
+    case 'CommentUpdatedEvent': {
+      const commentUpdated = event as CommentUpdatedEvent;
+
+      if(!canCommentBeModified(issue, commentUpdated.commentId)){
+        throw new BadLogicException("Comment cannot be updated.", event);
+      }
+      const commentToBeUpdated = issue.csm.comments?.find(c => c._id === commentUpdated.commentId) as Comment;
+      commentToBeUpdated.text = commentUpdated.text;
+      break;
+    }
+    case 'CommentHiddenEvent': {
+      const commentHidden = event as CommentHiddenEvent;
+
+      if(!canCommentBeModified(issue, commentHidden.commentId)){
+        throw new BadLogicException("Comment cannot be hidden.", event);
+      }
+
+      const commentToBeHidden = issue.csm.comments?.find(c => c._id === commentHidden.commentId) as Comment;
+      commentToBeHidden.state = CommentState.Hidden;
+      break;
+    }
+    case 'CommentDeletedEvent': {
+      const commentDeleted = event as CommentDeletedEvent;
+
+      if(!canCommentBeModified(issue, commentDeleted.commentId)){
+        throw new BadLogicException("Comment cannot be deleted.", event);
+      }
+
+      const commentToBeHidden = issue.csm.comments?.find(c => c._id === commentDeleted.commentId) as Comment;
+      commentToBeHidden.state = CommentState.Deleted;
+      break;
+    }
     default: throw new BadLogicException("Invalid event type for Issue.", event);
   }
 
@@ -178,4 +240,14 @@ function findLastEvent<T>(events: BaseEvent[], f: (arg0: T) => boolean) {
     .filter(e => f(e as T))
     .sort((e1, e2) => e1.timeStamp.getTime() - e2.timeStamp.getTime())
     .pop();
+}
+
+function canCommentBeModified(issue: Issue, commentId: Comment['_id']): boolean {
+  const lastCommentEvent = findLastEvent<CommentCreatedEvent|CommentHiddenEvent|CommentDeletedEvent>(
+    issue.events, 
+    e => ['CommentCreatedEvent', 'CommentHiddenEvent', 'CommentDeletedEvent'].includes(e.type) &&
+         e.commentId === commentId
+  );
+
+  return !(!lastCommentEvent || lastCommentEvent?.type === 'CommentHiddenEvent' || lastCommentEvent?.type === 'CommentDeletedEvent');
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it, beforeEach } from "@jest/globals";
 import { ObjectId } from "mongodb";
-import { handleFor, type IssueClosedEvent, type IssueCreatedEvent, type IssueReopenedEvent, IssueState, type IssueUpdatedEvent, type LabelAssignedEvent, type LabelUnassignedEvent, type UserAssignedEvent, type UserUnassignedEvent, type MilestoneAssignedEvent, type MilestoneUnassignedEvent } from '../../../src/features/issue/issue.model'
+import { handleFor, type IssueClosedEvent, type IssueCreatedEvent, type IssueReopenedEvent, IssueState, type IssueUpdatedEvent, type LabelAssignedEvent, type LabelUnassignedEvent, type UserAssignedEvent, type UserUnassignedEvent, type MilestoneAssignedEvent, type MilestoneUnassignedEvent, CommentCreatedEvent, CommentUpdatedEvent, CommentHiddenEvent, CommentDeletedEvent, CommentState } from '../../../src/features/issue/issue.model'
 import { createEvent } from './utils'
 
 describe("IssueModel", () => {
@@ -16,7 +16,8 @@ describe("IssueModel", () => {
         csm: {
           labels: [],
           assignees: [],
-          milestones: []
+          milestones: [],
+          comments: []
         },
         events: []
       }
@@ -603,6 +604,342 @@ describe("IssueModel", () => {
       handleFor(issue, issueClosed);
 
       expect(issue.csm).toHaveProperty("state", IssueState.Closed);
+    })
+
+    it ("should create comment ", () => {
+      const issueCreated = createEvent<IssueCreatedEvent>({
+        type: 'IssueCreatedEvent',
+        title: 'Issue Created'
+      });
+      const commentCreated = createEvent<CommentCreatedEvent>({
+        type: 'CommentCreatedEvent',
+        text: 'test'
+      });
+
+      const issue = {
+        ...emptyIssue,
+        events: [issueCreated]
+      };
+      handleFor(issue, commentCreated);
+
+      expect(issue.csm.comments.length).toBeTruthy();
+    })
+
+    it ("should throw Comment cannot be updated error because comment is not created", () => {
+      const issueCreated = createEvent<IssueCreatedEvent>({
+        type: 'IssueCreatedEvent',
+        title: 'Issue Created'
+      });
+      const commentUpdated = createEvent<CommentUpdatedEvent>({
+        type: 'CommentUpdatedEvent',
+        text: 'test'
+      });
+
+      const issue = {
+        ...emptyIssue,
+        events: [issueCreated]
+      };
+      const updateComment = () => handleFor(issue, commentUpdated);
+
+      expect(updateComment).toThrowError("Comment cannot be updated.");
+    })
+
+    it ("should throw Comment cannot be updated error because comment is hidden", () => {
+      const issueCreated = createEvent<IssueCreatedEvent>({
+        type: 'IssueCreatedEvent',
+        title: 'Issue Created'
+      });
+      const commentCreated = createEvent<CommentCreatedEvent>({
+        type: 'CommentCreatedEvent',
+        text: 'test'
+      });
+      
+      const issue = {
+        ...emptyIssue,
+        events: [issueCreated]
+      };
+      handleFor(issue, commentCreated);
+
+      const commentId = issue.csm.comments[0]._id;
+      const commentHidden = createEvent<CommentHiddenEvent>({
+        type: 'CommentHiddenEvent',
+        commentId
+      });
+      handleFor(issue, commentHidden);
+
+      const commentUpdated = createEvent<CommentUpdatedEvent>({
+        type: 'CommentUpdatedEvent',
+        text: 'testUpdated',
+        commentId 
+      });
+      const updateComment = () => handleFor(issue, commentUpdated);
+
+      expect(updateComment).toThrowError("Comment cannot be updated.");
+    })
+
+    it ("should throw Comment cannot be updated error because comment is deleted", () => {
+      const issueCreated = createEvent<IssueCreatedEvent>({
+        type: 'IssueCreatedEvent',
+        title: 'Issue Created'
+      });
+      const commentCreated = createEvent<CommentCreatedEvent>({
+        type: 'CommentCreatedEvent',
+        text: 'test'
+      });
+      
+      const issue = {
+        ...emptyIssue,
+        events: [issueCreated]
+      };
+      handleFor(issue, commentCreated);
+
+      const commentId = issue.csm.comments[0]._id;
+      const commentDeleted = createEvent<CommentDeletedEvent>({
+        type: 'CommentDeletedEvent',
+        commentId
+      });
+      handleFor(issue, commentDeleted);
+
+      const commentUpdated = createEvent<CommentUpdatedEvent>({
+        type: 'CommentUpdatedEvent',
+        text: 'testUpdated',
+        commentId 
+      });
+      const updateComment = () => handleFor(issue, commentUpdated);
+
+      expect(updateComment).toThrowError("Comment cannot be updated.");
+    })
+
+    it ("should update comment", () => {
+      const issueCreated = createEvent<IssueCreatedEvent>({
+        type: 'IssueCreatedEvent',
+        title: 'Issue Created'
+      });
+      const commentCreated = createEvent<CommentCreatedEvent>({
+        type: 'CommentCreatedEvent',
+        text: 'test'
+      });
+      
+      const issue = {
+        ...emptyIssue,
+        events: [issueCreated]
+      };
+      handleFor(issue, commentCreated);
+
+      const commentId = issue.csm.comments[0]._id;
+      const commentUpdated = createEvent<CommentUpdatedEvent>({
+        type: 'CommentUpdatedEvent',
+        text: 'testUpdated',
+        commentId 
+      });
+      handleFor(issue, commentUpdated);
+
+      expect(issue.csm.comments[0].text).toBe("testUpdated");
+    })
+
+    it ("should throw Comment cannot be hidden error because comment is not created", () => {
+      const issueCreated = createEvent<IssueCreatedEvent>({
+        type: 'IssueCreatedEvent',
+        title: 'Issue Created'
+      });
+
+      const issue = {
+        ...emptyIssue,
+        events: [issueCreated]
+      };
+
+      const commentHidden = createEvent<CommentHiddenEvent>({
+        type: 'CommentHiddenEvent',
+        commentId: null
+      });
+      const hideComment = () => handleFor(issue, commentHidden);
+
+      expect(hideComment).toThrowError("Comment cannot be hidden.");
+    })
+
+    it ("should throw Comment cannot be hidden error because comment is hidden", () => {
+      const issueCreated = createEvent<IssueCreatedEvent>({
+        type: 'IssueCreatedEvent',
+        title: 'Issue Created'
+      });
+      const commentCreated = createEvent<CommentCreatedEvent>({
+        type: 'CommentCreatedEvent',
+        text: 'test'
+      });
+      
+      const issue = {
+        ...emptyIssue,
+        events: [issueCreated]
+      };
+      handleFor(issue, commentCreated);
+
+      const commentId = issue.csm.comments[0]._id;
+      const commentHidden = createEvent<CommentHiddenEvent>({
+        type: 'CommentHiddenEvent',
+        commentId
+      });
+      handleFor(issue, commentHidden);
+      const hideComment = () => handleFor(issue, commentHidden);
+
+      expect(hideComment).toThrowError("Comment cannot be hidden.");
+    })
+
+    it ("should throw Comment cannot be hidden error because comment is deleted", () => {
+      const issueCreated = createEvent<IssueCreatedEvent>({
+        type: 'IssueCreatedEvent',
+        title: 'Issue Created'
+      });
+      const commentCreated = createEvent<CommentCreatedEvent>({
+        type: 'CommentCreatedEvent',
+        text: 'test'
+      });
+      
+      const issue = {
+        ...emptyIssue,
+        events: [issueCreated]
+      };
+      handleFor(issue, commentCreated);
+
+      const commentId = issue.csm.comments[0]._id;
+      const commentDeleted = createEvent<CommentDeletedEvent>({
+        type: 'CommentDeletedEvent',
+        commentId
+      });
+      handleFor(issue, commentDeleted);
+
+      const commentHidden = createEvent<CommentHiddenEvent>({
+        type: 'CommentHiddenEvent',
+        commentId 
+      });
+      const hideComment = () => handleFor(issue, commentHidden);
+
+      expect(hideComment).toThrowError("Comment cannot be hidden.");
+    })
+
+    it ("should hide comment", () => {
+      const issueCreated = createEvent<IssueCreatedEvent>({
+        type: 'IssueCreatedEvent',
+        title: 'Issue Created'
+      });
+      const commentCreated = createEvent<CommentCreatedEvent>({
+        type: 'CommentCreatedEvent',
+        text: 'test'
+      });
+      
+      const issue = {
+        ...emptyIssue,
+        events: [issueCreated]
+      };
+      handleFor(issue, commentCreated);
+
+      const commentId = issue.csm.comments[0]._id;
+      const commentHidden = createEvent<CommentHiddenEvent>({
+        type: 'CommentHiddenEvent',
+        commentId 
+      });
+      handleFor(issue, commentHidden);
+
+      expect(issue.csm.comments[0].state).toBe(CommentState.Hidden);
+    })
+    it ("should throw Comment cannot be deleted error because comment is not created", () => {
+      const issueCreated = createEvent<IssueCreatedEvent>({
+        type: 'IssueCreatedEvent',
+        title: 'Issue Created'
+      });
+
+      const issue = {
+        ...emptyIssue,
+        events: [issueCreated]
+      };
+
+      const commentDeleted = createEvent<CommentDeletedEvent>({
+        type: 'CommentDeletedEvent',
+        commentId: null
+      });
+      const deleteComment = () => handleFor(issue, commentDeleted);
+
+      expect(deleteComment).toThrowError("Comment cannot be deleted.");
+    })
+
+    it ("should throw Comment cannot be deleted error because comment is hidden", () => {
+      const issueCreated = createEvent<IssueCreatedEvent>({
+        type: 'IssueCreatedEvent',
+        title: 'Issue Created'
+      });
+      const commentCreated = createEvent<CommentCreatedEvent>({
+        type: 'CommentCreatedEvent',
+        text: 'test'
+      });
+      
+      const issue = {
+        ...emptyIssue,
+        events: [issueCreated]
+      };
+      handleFor(issue, commentCreated);
+
+      const commentId = issue.csm.comments[0]._id;
+      const commentDeleted = createEvent<CommentDeletedEvent>({
+        type: 'CommentDeletedEvent',
+        commentId
+      });
+      handleFor(issue, commentDeleted);
+      const deleteComment = () => handleFor(issue, commentDeleted);
+
+      expect(deleteComment).toThrowError("Comment cannot be deleted.");
+    })
+
+    it ("should throw Comment cannot be deleted error because comment is deleted", () => {
+      const issueCreated = createEvent<IssueCreatedEvent>({
+        type: 'IssueCreatedEvent',
+        title: 'Issue Created'
+      });
+      const commentCreated = createEvent<CommentCreatedEvent>({
+        type: 'CommentCreatedEvent',
+        text: 'test'
+      });
+      
+      const issue = {
+        ...emptyIssue,
+        events: [issueCreated]
+      };
+      handleFor(issue, commentCreated);
+
+      const commentId = issue.csm.comments[0]._id;
+      const commentDeleted = createEvent<CommentDeletedEvent>({
+        type: 'CommentDeletedEvent',
+        commentId
+      });
+      handleFor(issue, commentDeleted);
+
+      const deleteComment = () => handleFor(issue, commentDeleted);
+
+      expect(deleteComment).toThrowError("Comment cannot be deleted.");
+    })
+
+    it ("should delete comment", () => {
+      const issueCreated = createEvent<IssueCreatedEvent>({
+        type: 'IssueCreatedEvent',
+        title: 'Issue Created'
+      });
+      const commentCreated = createEvent<CommentCreatedEvent>({
+        type: 'CommentCreatedEvent',
+        text: 'test'
+      });
+      
+      const issue = {
+        ...emptyIssue,
+        events: [issueCreated]
+      };
+      handleFor(issue, commentCreated);
+
+      const commentId = issue.csm.comments[0]._id;
+      const commentDeleted = createEvent<CommentDeletedEvent>({
+        type: 'CommentDeletedEvent',
+        commentId 
+      });
+      handleFor(issue, commentDeleted);
+
+      expect(issue.csm.comments[0].state).toBe(CommentState.Deleted);
     })
 
     it ("should throw error because type does not exist", () => {
