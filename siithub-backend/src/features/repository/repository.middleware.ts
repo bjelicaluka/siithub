@@ -17,16 +17,12 @@ function authorizeRepositoryOwner() {
       user = await userService.findByUsername(req.body.owner);
     }
     if (req.params.id) {
-      const repository = await repositoryService.findOneOrThrow(
-        new ObjectId(req.params.id)
-      );
+      const repository = await repositoryService.findOneOrThrow(new ObjectId(req.params.id));
       user = await userService.findByUsername(repository.owner);
     }
 
-    if (payload.id !== user?._id) {
-      throw new ForbiddenException(
-        "You are not authorized to delete someone else's repositories."
-      );
+    if (payload.id !== user?._id.toString()) {
+      throw new ForbiddenException("You are not authorized to delete someone else's repositories.");
     }
 
     next();

@@ -26,9 +26,7 @@ describe("RepositoryService", () => {
       const id = new ObjectId();
 
       const findOneOrThrow = async () => await service.findOneOrThrow(id);
-      await expect(findOneOrThrow).rejects.toThrowError(
-        "Repository with given id does not exist."
-      );
+      await expect(findOneOrThrow).rejects.toThrowError("Repository with given id does not exist.");
     });
 
     it("should return repository", async () => {
@@ -97,9 +95,10 @@ describe("RepositoryService", () => {
       expect(added).toHaveProperty("_id");
       if (!added) return;
 
-      await expect(
-        service.create({ name, owner, type: "private" })
-      ).rejects.toHaveProperty("name", "DuplicateException");
+      await expect(service.create({ name, owner, type: "private" })).rejects.toHaveProperty(
+        "name",
+        "DuplicateException"
+      );
     });
 
     it("should throw MissingEntityException because user does not exist", async () => {
@@ -112,9 +111,10 @@ describe("RepositoryService", () => {
       setCreateRepoHandler(() => {
         return new Promise((_, rej) => rej(new Error()));
       });
-      await expect(
-        service.create({ name: "test", owner, type: "private" })
-      ).rejects.toHaveProperty("name", "BadLogicException");
+      await expect(service.create({ name: "test", owner, type: "private" })).rejects.toHaveProperty(
+        "name",
+        "BadLogicException"
+      );
     });
 
     it("should create new repository", async () => {
@@ -209,13 +209,15 @@ describe("RepositoryService", () => {
         name: "testCreate",
         description: "testDescription",
         owner,
+        type: "public",
       });
       expect(createdRepository).not.toBeNull();
       if (!createdRepository) return;
 
-      await expect(
-        service.delete(createdRepository._id)
-      ).rejects.toHaveProperty("name", "BadLogicException");
+      await expect(service.delete(createdRepository._id)).rejects.toHaveProperty(
+        "name",
+        "BadLogicException"
+      );
     });
 
     it("should delete existing repository", async () => {
@@ -223,6 +225,7 @@ describe("RepositoryService", () => {
         name: "testCreate",
         description: "testDescription",
         owner,
+        type: "public",
       });
       expect(createdRepository).not.toBeNull();
       if (!createdRepository) return;
