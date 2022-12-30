@@ -14,6 +14,8 @@ import "express-async-errors";
 import { userGithubService } from "./user-github.service";
 import { asOptionalField, objectIdString } from "../../utils/zod";
 import { getUserIdFromRequest } from "../auth/auth.utils";
+import { authorize } from "../auth/auth.middleware";
+import { modifyingOwnAccount } from "./user.middleware";
 
 const router = Router();
 
@@ -53,9 +55,7 @@ const createUserBodySchema = z.object({
     .min(3, "Username should have at least 3 characters.")
     .regex(ALPHANUMERIC_REGEX, "Username should contain only alphanumeric characters."),
   password: passwordSchema,
-  githubUsername: asOptionalField(
-    z.string().regex(GITHUB_ACCOUNT, "Github username should be valid.")
-  ),
+  githubUsername: asOptionalField(z.string().regex(GITHUB_ACCOUNT, "Github username should be valid.")),
   name: z.string().min(1, "Name should be provided."),
   email: z.string().email("Email should be valid."),
   bio: z.string().default(""),
@@ -76,7 +76,7 @@ const updateProfileBodySchema = z.object({
   bio: z.string().default(""),
 });
 
-router.put("/", async (req: Request, res: Response) => {
+router.put("/", authorize(), async (req: Request, res: Response) => {
   const id = getUserIdFromRequest(req);
   const updateUser = updateProfileBodySchema.safeParse(req.body);
   if (!updateUser.success) {
@@ -91,7 +91,7 @@ const passwordBodySchema = z.object({
   newPassword: passwordSchema,
 });
 
-router.put("/change-password", async (req: Request, res: Response) => {
+router.put("/change-password", authorize(), modifyingOwnAccount, async (req: Request, res: Response) => {
   const id = getUserIdFromRequest(req);
   const passwordUpdate = passwordBodySchema.safeParse(req.body);
   if (!passwordUpdate.success) {
@@ -106,7 +106,7 @@ const changeGithubAccountBodySchema = z.object({
   username: z.string().regex(GITHUB_ACCOUNT, "Github username should be valid."),
 });
 
-router.put("/:id/github", async (req: Request, res: Response) => {
+router.put("/:id/github", authorize(), modifyingOwnAccount, async (req: Request, res: Response) => {
   const id = idSchema.parse(req.params.id);
   const githubAccount = changeGithubAccountBodySchema.safeParse(req.body);
 
@@ -118,7 +118,7 @@ router.put("/:id/github", async (req: Request, res: Response) => {
   res.send(await userGithubService.update(id, githubAccount.data));
 });
 
-router.delete("/:id/github", async (req: Request, res: Response) => {
+router.delete("/:id/github", authorize(), async (req: Request, res: Response) => {
   const id = idSchema.parse(req.params.id);
 
   res.send(await userGithubService.delete(id));

@@ -1,16 +1,15 @@
 import { type Request, type Response, Router } from "express";
 import { collaboratorsService } from "./collaborators.service";
 import { getRepoIdFromPath } from "../../utils/getRepo";
-import {
-  type CollaboratorRemove,
-  type CollaboratorAdd,
-  type Collaborator,
-} from "./collaborators.model";
+import { type CollaboratorRemove, type CollaboratorAdd, type Collaborator } from "./collaborators.model";
 import { z } from "zod";
 import { objectIdString } from "../../utils/zod";
 import "express-async-errors";
 import { userService } from "../user/user.service";
 import { type User } from "../user/user.model";
+import { authorize } from "../auth/auth.middleware";
+import { isAllowedToAccessRepo } from "./collaborators.middleware";
+import { authorizeRepositoryOwner } from "../repository/repository.middleware";
 
 const router = Router();
 
@@ -23,14 +22,19 @@ const nameQuerySchema = z.object({
   name: z.string().default(""),
 });
 
-router.get("/:username/:repository/collaborators", async (req: Request, res: Response) => {
-  const repositoryId = await getRepoIdFromPath(req);
-  const { name } = nameQuerySchema.parse(req.query);
+router.get(
+  "/:username/:repository/collaborators",
+  authorize(),
+  isAllowedToAccessRepo(),
+  async (req: Request, res: Response) => {
+    const repositoryId = await getRepoIdFromPath(req);
+    const { name } = nameQuerySchema.parse(req.query);
 
-  const collaborators = await collaboratorsService.findByRepository(repositoryId);
+    const collaborators = await collaboratorsService.findByRepository(repositoryId);
 
-  res.send(await mapGetResponse(collaborators, name));
-});
+    res.send(await mapGetResponse(collaborators, name));
+  }
+);
 
 async function mapGetResponse(collaborators: Collaborator[], name: string): Promise<any[]> {
   const collaboratorUserIds = collaborators?.map((c) => c.userId);
@@ -50,29 +54,39 @@ async function mapGetResponse(collaborators: Collaborator[], name: string): Prom
     .filter((c) => !!c.user);
 }
 
-router.post("/:username/:repository/collaborators", async (req: Request, res: Response) => {
-  const addCollaboratorParsed = addCollaboratorSchema.parse(req.body);
+router.post(
+  "/:username/:repository/collaborators",
+  authorize(),
+  authorizeRepositoryOwner(),
+  async (req: Request, res: Response) => {
+    const addCollaboratorParsed = addCollaboratorSchema.parse(req.body);
 
-  const repositoryId = await getRepoIdFromPath(req);
-  const addCollaborator: CollaboratorAdd = {
-    ...addCollaboratorParsed,
-    repositoryId,
-  };
+    const repositoryId = await getRepoIdFromPath(req);
+    const addCollaborator: CollaboratorAdd = {
+      ...addCollaboratorParsed,
+      repositoryId,
+    };
 
-  res.send(await collaboratorsService.add(addCollaborator));
-});
+    res.send(await collaboratorsService.add(addCollaborator));
+  }
+);
 
-router.delete("/:username/:repository/collaborators", async (req: Request, res: Response) => {
-  const removeCollaboratorParsed = removeCollaboratorSchema.parse(req.body);
+router.delete(
+  "/:username/:repository/collaborators",
+  authorize(),
+  authorizeRepositoryOwner(),
+  async (req: Request, res: Response) => {
+    const removeCollaboratorParsed = removeCollaboratorSchema.parse(req.body);
 
-  const repositoryId = await getRepoIdFromPath(req);
-  const removeCollaborator: CollaboratorRemove = {
-    ...removeCollaboratorParsed,
-    repositoryId,
-  };
+    const repositoryId = await getRepoIdFromPath(req);
+    const removeCollaborator: CollaboratorRemove = {
+      ...removeCollaboratorParsed,
+      repositoryId,
+    };
 
-  res.send(await collaboratorsService.remove(removeCollaborator));
-});
+    res.send(await collaboratorsService.remove(removeCollaborator));
+  }
+);
 
 export { addCollaboratorSchema, removeCollaboratorSchema };
 

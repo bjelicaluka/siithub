@@ -20,10 +20,8 @@ function authorizeSshKeyOwner() {
       user = await userService.findByUsername(sshKey.owner);
     }
 
-    if (payload.id !== user?._id) {
-      throw new ForbiddenException(
-        "You are not authorized to set up someone else's keys."
-      );
+    if (payload.id !== user?._id.toString()) {
+      throw new ForbiddenException("You are not authorized to set up someone else's keys.");
     }
 
     next();
