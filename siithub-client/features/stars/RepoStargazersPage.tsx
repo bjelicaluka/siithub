@@ -11,12 +11,14 @@ type RepoStargazersPageProps = {
 
 export const RepoStargazersPage: FC<RepoStargazersPageProps> = ({ username, repo }) => {
   const { result, setResult } = useResult("repositories");
-  const { users, error } = useStargazers(username, repo, [result]);
+  const { result: starResult, setResult: setStarResult } = useResult("stars");
+  const { users, error } = useStargazers(username, repo, [result, starResult]);
 
   useEffect(() => {
-    if (!result) return;
+    if (!result && !starResult) return;
     setResult(undefined);
-  }, [result, setResult]);
+    setStarResult(undefined);
+  }, [result, setResult, starResult, setStarResult]);
 
   return (
     <div>
