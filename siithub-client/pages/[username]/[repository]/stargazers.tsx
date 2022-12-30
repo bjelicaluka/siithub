@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
-import { RepositoryView } from "../../../features/repository/repository-view";
+import { RepoStargazersPage } from "../../../features/stars/RepoStargazersPage";
 
-const Repository = () => {
+const RepositoryStargazers = () => {
   const router = useRouter();
   const { repository, username } = router.query;
 
@@ -10,7 +10,7 @@ const Repository = () => {
       {!!repository && !!username ? (
         <>
           <div className="m-10">
-            <RepositoryView repo={repository.toString()} username={username.toString()} />
+            <RepoStargazersPage repo={repository.toString()} username={username.toString()} />
           </div>
         </>
       ) : (
@@ -20,4 +20,4 @@ const Repository = () => {
   );
 };
 
-export default Repository;
+export default RepositoryStargazers;

@@ -8,6 +8,7 @@ import { repositoryRoutes } from "./features/repository/repository.routes";
 import { sshKeyRoutes } from "./features/ssh-key/ssh-key.routes";
 import { milestoneRoutes } from "./features/milestone/milestone.routes";
 import { collaboratorsRoutes } from "./features/collaborators/collaborators.routes";
+import { starRoutes } from "./features/star/star.routes";
 
 const router = Router();
 
@@ -20,6 +21,7 @@ router
   .use("/repositories", issueRoutes)
   .use("/repositories", collaboratorsRoutes)
   .use("/ssh-keys", sshKeyRoutes)
-  .use("/", milestoneRoutes);
+  .use("/", milestoneRoutes)
+  .use("/", starRoutes);
 
 export { router as apiRoutes };

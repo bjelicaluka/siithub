@@ -1,8 +1,4 @@
-import {
-  BadLogicException,
-  DuplicateException,
-  MissingEntityException,
-} from "../../error-handling/errors";
+import { BadLogicException, DuplicateException, MissingEntityException } from "../../error-handling/errors";
 import { UserType, type UserUpdate, type User, type UserCreate } from "./user.model";
 import { userRepo } from "./user.repo";
 import { clearPropertiesOfResultWrapper } from "../../utils/wrappers";
@@ -19,7 +15,7 @@ async function findOneOrThrow(id: User["_id"]): Promise<User> {
 }
 
 async function findMany(filters?: Filter<User>): Promise<User[]> {
-  return await userRepo.crud.findMany(filters);
+  return await userRepo.crud.findMany(filters, { projection: { username: 1, name: 1 } });
 }
 
 async function findManyByIds(ids: User["_id"][], filters: Filter<User> = {}): Promise<User[]> {
@@ -29,6 +25,10 @@ async function findManyByIds(ids: User["_id"][], filters: Filter<User> = {}): Pr
       { projection: { _id: 1, username: 1, email: 1, name: 1 } }
     )
   ).toArray();
+}
+
+async function findByIds(ids: User["_id"][]): Promise<User[]> {
+  return await userRepo.crud.findMany({ _id: { $in: ids } }, { projection: { username: 1, name: 1 } });
 }
 
 async function findByUsername(username: string): Promise<User | null> {
@@ -97,7 +97,7 @@ async function updatePassword(
   if (passwordHash !== user.passwordAccount?.passwordHash) {
     throw new BadLogicException("Old password is incorrect");
   }
-  console.log(passwordUpdate.newPassword);
+
   return await userRepo.crud.update(id, {
     passwordAccount: getHashedPassword(passwordUpdate.newPassword),
   });
@@ -109,18 +109,17 @@ export type UserService = {
   findByUsernameOrThrow(username: string): Promise<User>;
   findByGithubUsername(username: string): Promise<User | null>;
   findMany(filters?: Filter<User>): Promise<User[]>;
+  findByIds(ids: User["_id"][]): Promise<User[]>;
   findManyByIds(ids: User["_id"][], filters?: Filter<User>): Promise<User[]>;
   create(user: UserCreate): Promise<User | null>;
   updateProfile(id: User["_id"], profileUpdate: UserUpdate): Promise<User | null>;
-  updatePassword(
-    id: User["_id"],
-    passwordUpdate: { oldPassword: string; newPassword: string }
-  ): Promise<User | null>;
+  updatePassword(id: User["_id"], passwordUpdate: { oldPassword: string; newPassword: string }): Promise<User | null>;
 };
 
 const userService: UserService = {
   findMany,
   findManyByIds,
+  findByIds,
   findOneOrThrow: removePassword(findOneOrThrow),
   findByUsername,
   findByUsernameOrThrow: removePassword(findByUsernameOrThrow),

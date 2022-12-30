@@ -2,6 +2,7 @@ import { describe, expect, it, beforeEach } from "@jest/globals";
 import { setupGitServer, setupTestEnv } from "../../jest-hooks.utils";
 import { type RepositoryService } from "../../../src/features/repository/repository.service";
 import { ObjectId } from "mongodb";
+import { RepositoryCreate } from "../../../src/features/repository/repository.model";
 
 describe("RepositoryService", () => {
   setupTestEnv("RepositoryService");
@@ -12,9 +13,7 @@ describe("RepositoryService", () => {
   let owner = "testuser";
 
   beforeEach(async () => {
-    const { repositoryService } = await import(
-      "../../../src/features/repository/repository.service"
-    );
+    const { repositoryService } = await import("../../../src/features/repository/repository.service");
     const { userRepo } = await import("../../../src/features/user/user.repo");
     service = repositoryService;
     await userRepo.crud.add({ username: owner } as any);
@@ -67,7 +66,7 @@ describe("RepositoryService", () => {
     });
   });
 
-  describe("getNextCounterValue", () => {
+  describe("increaseCounterValue", () => {
     it("should get next counter value", async () => {
       const added = await service.create({
         name: "existingRepositoryName",
@@ -79,9 +78,9 @@ describe("RepositoryService", () => {
       expect(added).toHaveProperty("_id");
       if (!added) return;
 
-      let val = await service.getNextCounterValue(added._id, "milestone");
+      let val = await service.increaseCounterValue(added._id, "milestone");
       expect(val).toBe(1);
-      val = await service.getNextCounterValue(added._id, "milestone");
+      val = await service.increaseCounterValue(added._id, "milestone");
       expect(val).toBe(2);
     });
   });
@@ -102,9 +101,10 @@ describe("RepositoryService", () => {
     });
 
     it("should throw MissingEntityException because user does not exist", async () => {
-      await expect(
-        service.create({ name: "test", owner: "notexisting", type: "private" })
-      ).rejects.toHaveProperty("name", "MissingEntityException");
+      await expect(service.create({ name: "test", owner: "notexisting", type: "private" })).rejects.toHaveProperty(
+        "name",
+        "MissingEntityException"
+      );
     });
 
     it("should throw BadLogicException if gitserver fails", async () => {
@@ -196,9 +196,7 @@ describe("RepositoryService", () => {
 
   describe("delete", () => {
     it("should throw MissingEntityException because repo does not exist", async () => {
-      await expect(
-        service.delete("acc93493-9387-4d37-9132-1e1b3818a955" as any)
-      ).rejects.toHaveProperty("name", "MissingEntityException");
+      await expect(service.delete(owner, "not-repo")).rejects.toHaveProperty("name", "MissingEntityException");
     });
 
     it("should throw BadLogicException if gitserver fails", async () => {
@@ -210,11 +208,11 @@ describe("RepositoryService", () => {
         description: "testDescription",
         owner,
         type: "public",
-      });
+      } as RepositoryCreate);
       expect(createdRepository).not.toBeNull();
       if (!createdRepository) return;
 
-      await expect(service.delete(createdRepository._id)).rejects.toHaveProperty(
+      await expect(service.delete(createdRepository.owner, createdRepository.name)).rejects.toHaveProperty(
         "name",
         "BadLogicException"
       );
@@ -226,11 +224,11 @@ describe("RepositoryService", () => {
         description: "testDescription",
         owner,
         type: "public",
-      });
+      } as RepositoryCreate);
       expect(createdRepository).not.toBeNull();
       if (!createdRepository) return;
 
-      const deletedRepository = await service.delete(createdRepository._id);
+      const deletedRepository = await service.delete(createdRepository.owner, createdRepository.name);
 
       expect(deletedRepository).not.toBeNull();
       expect(deletedRepository).toHaveProperty("_id", createdRepository._id);
