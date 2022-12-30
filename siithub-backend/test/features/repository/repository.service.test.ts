@@ -66,7 +66,7 @@ describe("RepositoryService", () => {
     });
   });
 
-  describe("getNextCounterValue", () => {
+  describe("increaseCounterValue", () => {
     it("should get next counter value", async () => {
       const added = await service.create({
         name: "existingRepositoryName",
@@ -78,9 +78,9 @@ describe("RepositoryService", () => {
       expect(added).toHaveProperty("_id");
       if (!added) return;
 
-      let val = await service.getNextCounterValue(added._id, "milestone");
+      let val = await service.increaseCounterValue(added._id, "milestone");
       expect(val).toBe(1);
-      val = await service.getNextCounterValue(added._id, "milestone");
+      val = await service.increaseCounterValue(added._id, "milestone");
       expect(val).toBe(2);
     });
   });

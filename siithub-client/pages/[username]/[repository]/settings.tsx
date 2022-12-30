@@ -10,9 +10,7 @@ const RepositorySettings = () => {
       {!!repository && !!username ? (
         <>
           <div className="m-10">
-            <div className="">
-              <RepoSettingsPage repo={repository.toString()} username={username.toString()} />
-            </div>
+            <RepoSettingsPage repo={repository.toString()} username={username.toString()} />
           </div>
         </>
       ) : (

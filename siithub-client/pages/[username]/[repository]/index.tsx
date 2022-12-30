@@ -10,9 +10,7 @@ const Repository = () => {
       {!!repository && !!username ? (
         <>
           <div className="m-10">
-            <div className="">
-              <RepositoryView repo={repository.toString()} username={username.toString()} />
-            </div>
+            <RepositoryView repo={repository.toString()} username={username.toString()} />
           </div>
         </>
       ) : (

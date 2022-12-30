@@ -5,10 +5,6 @@ import type { StarCreate, Star } from "./star.model";
 
 const collectionName = "star";
 
-async function countByRepoId(repoId: Repository["_id"]): Promise<number> {
-  return await starRepo.crud.count({ repoId });
-}
-
 async function findByUserIdAndRepoId(userId: User["_id"], repoId: Repository["_id"]): Promise<Star | null> {
   return (await starRepo.crud.findManyCursor({ userId, repoId })).next();
 }

@@ -39,7 +39,7 @@ async function addStar(userId: User["_id"], repoId: Repository["_id"]): Promise<
     return existingStar;
   }
   const star = await starRepo.crud.add({ userId, repoId, date: new Date() });
-  await repositoryService.updateStarCount(repoId);
+  await repositoryService.increaseCounterValue(repoId, "star");
   return star;
 }
 
@@ -49,7 +49,7 @@ async function removeStar(userId: User["_id"], repoId: Repository["_id"]): Promi
     return existingStar;
   }
   const star = await starRepo.crud.delete(existingStar._id);
-  await repositoryService.updateStarCount(repoId, true);
+  await repositoryService.decreaseCounterValue(repoId, "star");
   return star;
 }
 

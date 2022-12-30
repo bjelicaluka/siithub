@@ -10,9 +10,7 @@ const Stars = () => {
       {username ? (
         <>
           <div className="m-10">
-            <div className="">
-              <StarredRepos username={username.toString()} />
-            </div>
+            <StarredRepos username={username.toString()} />
           </div>
         </>
       ) : (

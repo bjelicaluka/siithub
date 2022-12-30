@@ -63,7 +63,7 @@ async function search(owner: string, term: string): Promise<Repository[]> {
   });
 }
 
-async function getNextCounterValue(id: Repository["_id"], thing: "milestone" | "issue"): Promise<number> {
+async function increaseCounterValue(id: Repository["_id"], thing: "milestone" | "issue" | "star"): Promise<number> {
   const repo = await findOneOrThrow(id);
   const counters = repo.counters ?? { [thing]: 0 };
   counters[thing] = counters[thing] + 1 || 1;
@@ -71,11 +71,12 @@ async function getNextCounterValue(id: Repository["_id"], thing: "milestone" | "
   return counters[thing];
 }
 
-async function updateStarCount(id: Repository["_id"], remove = false) {
+async function decreaseCounterValue(id: Repository["_id"], thing: "star"): Promise<number> {
   const repo = await findOneOrThrow(id);
-  const counters = repo.counters ?? { stars: 0 };
-  counters.stars = remove ? counters.stars - 1 : counters.stars + 1 || 1;
+  const counters = repo.counters ?? { [thing]: 0 };
+  counters[thing] = counters[thing] - 1 || -1;
   await repositoryRepo.crud.update(id, { counters } as RepositoryUpdate);
+  return counters[thing];
 }
 
 async function findByIds(ids: Repository["_id"][]): Promise<Repository[]> {
@@ -87,10 +88,10 @@ export type RepositoryService = {
   create(repository: RepositoryCreate): Promise<Repository | null>;
   delete(owner: string, name: string): Promise<Repository | null>;
   findByOwnerAndName(owner: string, name: string): Promise<Repository | null>;
-  getNextCounterValue(id: Repository["_id"], thing: "milestone" | "issue"): Promise<number>;
+  increaseCounterValue(id: Repository["_id"], thing: "milestone" | "issue" | "star"): Promise<number>;
   search(owner: string, term?: string): Promise<Repository[]>;
   findByIds(ids: Repository["_id"][]): Promise<Repository[]>;
-  updateStarCount(id: Repository["_id"], remove?: boolean): Promise<void>;
+  decreaseCounterValue(id: Repository["_id"], thing: "star"): Promise<number>;
 };
 
 const repositoryService: RepositoryService = {
@@ -98,10 +99,10 @@ const repositoryService: RepositoryService = {
   create: createRepository,
   delete: deleteRepository,
   findByOwnerAndName,
-  getNextCounterValue,
+  increaseCounterValue,
   search,
   findByIds,
-  updateStarCount,
+  decreaseCounterValue,
 };
 
 export { repositoryService };
