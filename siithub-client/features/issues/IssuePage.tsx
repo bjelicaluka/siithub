@@ -7,6 +7,7 @@ import { IssueHistory } from "./IssueHistory";
 import { AssignessForm } from "./AssignessForm";
 import { type Repository } from "../repository/repository.service";
 import { MilestonesForm } from "./MilestonesForm";
+import { CommentForm } from "./CommentForm";
 
 type IssuePageProps = {
   repositoryId: Repository["_id"];
@@ -16,8 +17,9 @@ type IssuePageProps = {
 export const IssuePage: FC<IssuePageProps> = ({ repositoryId, existingIssueId = undefined }) => {
 
   const { issue: existingIssue } = useIssue(repositoryId, existingIssueId || '');
+  const isEdit = !!existingIssueId;
 
-  const { issueDispatcher } = useIssueContext();
+  const { issue, issueDispatcher } = useIssueContext();
 
   useEffect(() => {
     const issue = existingIssue || emptyIssue;
@@ -37,6 +39,7 @@ export const IssuePage: FC<IssuePageProps> = ({ repositoryId, existingIssueId = 
 
           <IssueHistory/>
 
+          { isEdit ? <div key={issue?.csm?.comments?.length}><CommentForm/></div> : <></> }
         </div>
         <div className="col-span-4">
           <div className="bg-white py-6">
