@@ -1,5 +1,4 @@
 import { FC, useEffect, useState } from "react";
-import { Button } from "../../core/components/Button";
 import { BookOpenIcon } from "@heroicons/react/24/outline";
 import { useAuthContext } from "../../core/contexts/Auth";
 import { useSearchRepositories } from "../repository/useRepositories";
@@ -41,14 +40,13 @@ export const HomeView: FC = () => {
           onChange={(e) => setTerm(e.target.value)}
         />
         <div className="flex flex-col items-center w-full">
-          {repositories.map((repo, i) => (
+          {repositories.map((repo) => (
             <Link
-              key={repo._id + i}
-              href={`/${repo.owner}/${repo._id}`}
+              key={repo._id}
+              href={`/${repo.owner}/${repo.name}`}
               className="flex items-center gap-2 text-gray-500 w-full"
             >
-              <BookOpenIcon className="h-5 w-5 text-green-600" /> {repo.owner}/
-              {repo.name}
+              <BookOpenIcon className="h-5 w-5 text-green-600" /> {repo.owner}/{repo.name}
             </Link>
           ))}
         </div>
