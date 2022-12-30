@@ -63,7 +63,7 @@ async function search(owner: string, term: string): Promise<Repository[]> {
   });
 }
 
-async function increaseCounterValue(id: Repository["_id"], thing: "milestone" | "issue" | "star"): Promise<number> {
+async function increaseCounterValue(id: Repository["_id"], thing: "milestone" | "issue" | "stars"): Promise<number> {
   const repo = await findOneOrThrow(id);
   const counters = repo.counters ?? { [thing]: 0 };
   counters[thing] = counters[thing] + 1 || 1;
@@ -71,10 +71,10 @@ async function increaseCounterValue(id: Repository["_id"], thing: "milestone" | 
   return counters[thing];
 }
 
-async function decreaseCounterValue(id: Repository["_id"], thing: "star"): Promise<number> {
+async function decreaseCounterValue(id: Repository["_id"], thing: "stars"): Promise<number> {
   const repo = await findOneOrThrow(id);
   const counters = repo.counters ?? { [thing]: 0 };
-  counters[thing] = counters[thing] - 1 || -1;
+  counters[thing] = counters[thing] - 1 || 0;
   await repositoryRepo.crud.update(id, { counters } as RepositoryUpdate);
   return counters[thing];
 }
@@ -88,10 +88,10 @@ export type RepositoryService = {
   create(repository: RepositoryCreate): Promise<Repository | null>;
   delete(owner: string, name: string): Promise<Repository | null>;
   findByOwnerAndName(owner: string, name: string): Promise<Repository | null>;
-  increaseCounterValue(id: Repository["_id"], thing: "milestone" | "issue" | "star"): Promise<number>;
+  increaseCounterValue(id: Repository["_id"], thing: "milestone" | "issue" | "stars"): Promise<number>;
   search(owner: string, term?: string): Promise<Repository[]>;
   findByIds(ids: Repository["_id"][]): Promise<Repository[]>;
-  decreaseCounterValue(id: Repository["_id"], thing: "star"): Promise<number>;
+  decreaseCounterValue(id: Repository["_id"], thing: "stars"): Promise<number>;
 };
 
 const repositoryService: RepositoryService = {

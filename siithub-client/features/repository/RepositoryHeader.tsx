@@ -14,12 +14,14 @@ type RepositoryHeaderProps = {
 
 export const RepositoryHeader: FC<RepositoryHeaderProps> = ({ username, repo, activeTab }) => {
   const { result, setResult } = useResult("repositories");
-  const { repository, error } = useRepository(username, repo, [result]);
+  const { result: starResult, setResult: setStarResult } = useResult("stars");
+  const { repository, error } = useRepository(username, repo, [result, starResult]);
 
   useEffect(() => {
-    if (!result) return;
+    if (!result && !starResult) return;
     setResult(undefined);
-  }, [result, setResult]);
+    setStarResult(undefined);
+  }, [result, setResult, starResult, setStarResult]);
 
   if (error) return <NotFound />;
 
