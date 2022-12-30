@@ -1,11 +1,12 @@
 import { type FC, PropsWithChildren, createContext, useContext } from "react";
-import { type CreateIssue, type Issue, IssueState, type UpdateIssue, createIssue, updateIssue } from "./issueActions"
+import { type CreateIssue, type Issue, IssueState, type UpdateIssue, createIssue, updateIssue, CommentState } from "./issueActions"
 import { useReducerWithThunk } from "../../core/hooks/useReducerWithThunk";
 import Router from 'next/router'
 import { notifications } from "../../core/hooks/useNotifications";
 import { type User } from "../users/user.model";
 import { type Label } from "../labels/labelActions";
 import { type Milestone } from "../milestones/milestoneActions";
+import { type Comment } from "./issueActions";
 
 
 type IssueContextType = {
@@ -23,6 +24,7 @@ export const initialIssue = {
     labels: [],
     milestones: [],
     assignees: [],
+    comments: [],
     title: '',
     description: ''
   }
@@ -141,7 +143,54 @@ function issueReducer(issue: Issue, action: ActionType) {
         }
       };
     }
+    case 'CREATE_COMMENT': {
+      const comments = [...issue.csm?.comments ?? [], action.payload]
+      return {
+        ...issue,
+        csm: {
+          ...issue.csm,
+          comments
+        }
+      }
+    }
+    case 'UPDATE_COMMENT': {
+      const comments = [...issue.csm?.comments ?? []]
+      const commentToBeUpdated = comments.find(c => c._id === action.payload._id) as Comment;
+      commentToBeUpdated.text = action.payload.text;
+      return {
+        ...issue,
+        csm: {
+          ...issue.csm,
+          comments
+        }
+      }
+    }
+    case 'DELETE_COMMENT': {
+      const comments = [...issue.csm?.comments ?? []]
+      const commentToBeDeleted = comments.find(c => c._id === action.payload) as Comment;
+      commentToBeDeleted.state = CommentState.Deleted;
 
+      return {
+        ...issue,
+        csm: {
+          ...issue.csm,
+          comments
+        }
+      }
+    }
+    case 'HIDE_COMMENT': {
+      const comments = [...issue.csm?.comments ?? []]
+      const commentToBeDeleted = comments.find(c => c._id === action.payload) as Comment;
+      commentToBeDeleted.state = CommentState.Hidden;
+
+      return {
+        ...issue,
+        csm: {
+          ...issue.csm,
+          comments
+        }
+      }
+    }
     default: return {
       ...issue
     }
@@ -353,6 +402,71 @@ export function instantCloseIssue(issue: Issue, by: User["_id"]) {
     })
     .catch(_ => {});
 }
+
+export function instantCreateComment(issue: Issue, by: User["_id"], text: string) {
+  const newIssue: UpdateIssue = {
+    _id: issue._id,
+    events: [{ by, type: 'CommentCreatedEvent', text }],
+    repositoryId: issue.repositoryId
+  };
+
+  return (dispatch:any) => updateIssue(newIssue)
+    .then(resp => {
+      notifications.success("You have successfully created a comment.");
+      const commentCreated = resp.data.events.pop();
+      dispatch({ type: 'CREATE_COMMENT', payload: { _id: commentCreated.commentId, text, state: CommentState.Existing }});
+      dispatch({ type: 'ADD_EVENT', payload: commentCreated });
+    })
+    .catch(_ => {});
+}
+
+export function instantUpdateComment(issue: Issue, by: User["_id"], commentId: string, text: string) {
+  const newIssue: UpdateIssue = {
+    _id: issue._id,
+    events: [{ by, type: 'CommentUpdatedEvent',commentId, text }],
+    repositoryId: issue.repositoryId
+  };
+
+  return (dispatch:any) => updateIssue(newIssue)
+    .then(resp => {
+      notifications.success("You have successfully updated a comment.");
+      const commentUpdated = resp.data.events.pop();
+      dispatch({ type: 'UPDATE_COMMENT', payload: { _id: commentId, text }});
+      dispatch({ type: 'ADD_EVENT', payload: commentUpdated });
+    })
+    .catch(_ => {});
+}
+export function instantDeleteComment(issue: Issue, by: User["_id"], commentId: string) {
+  const newIssue: UpdateIssue = {
+    _id: issue._id,
+    events: [{ by, type: 'CommentDeletedEvent', commentId}],
+    repositoryId: issue.repositoryId
+  };
+
+  return (dispatch:any) => updateIssue(newIssue)
+    .then(resp => {
+      notifications.success("You have successfully deleted a comment.");
+      dispatch({ type: 'DELETE_COMMENT', payload: commentId });
+      dispatch({ type: 'ADD_EVENT', payload: resp.data.events.pop() });
+    })
+    .catch(_ => {});
+}
+
+export function instantHideComment(issue: Issue, by: User["_id"], commentId: string) {
+  const newIssue: UpdateIssue = {
+    _id: issue._id,
+    events: [{ by, type: 'CommentHiddenEvent', commentId}],
+    repositoryId: issue.repositoryId
+  };
+
+  return (dispatch:any) => updateIssue(newIssue)
+  .then(resp => {
+    notifications.success("You have successfully hid a comment.");
+    dispatch({ type: 'HIDE_COMMENT', payload: commentId });
+    dispatch({ type: 'ADD_EVENT', payload: resp.data.events.pop() });
+  })
+}
+
 
 const IssueContext = createContext<IssueContextType>(initialIssueContextValues);
 

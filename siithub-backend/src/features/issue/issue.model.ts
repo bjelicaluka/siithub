@@ -203,7 +203,10 @@ export function handleFor(issue: Issue, event: BaseEvent) {
       if(!canCommentBeModified(issue, commentUpdated.commentId)){
         throw new BadLogicException("Comment cannot be updated.", event);
       }
-      const commentToBeUpdated = issue.csm.comments?.find(c => c._id === commentUpdated.commentId) as Comment;
+      const commentToBeUpdated = issue.csm.comments?.find(c => 
+        c._id === commentUpdated.commentId ||
+        c._id?.toString() === commentUpdated.commentId?.toString()
+      ) as Comment;
       commentToBeUpdated.text = commentUpdated.text;
       break;
     }
@@ -214,19 +217,25 @@ export function handleFor(issue: Issue, event: BaseEvent) {
         throw new BadLogicException("Comment cannot be hidden.", event);
       }
 
-      const commentToBeHidden = issue.csm.comments?.find(c => c._id === commentHidden.commentId) as Comment;
+      const commentToBeHidden = issue.csm.comments?.find(c => 
+        c._id === commentHidden.commentId ||
+        c._id?.toString() === commentHidden.commentId?.toString()
+      ) as Comment;
       commentToBeHidden.state = CommentState.Hidden;
       break;
     }
     case 'CommentDeletedEvent': {
       const commentDeleted = event as CommentDeletedEvent;
-
+      console.log(commentDeleted)
       if(!canCommentBeModified(issue, commentDeleted.commentId)){
         throw new BadLogicException("Comment cannot be deleted.", event);
       }
 
-      const commentToBeHidden = issue.csm.comments?.find(c => c._id === commentDeleted.commentId) as Comment;
-      commentToBeHidden.state = CommentState.Deleted;
+      const commentToBeDeleted = issue.csm.comments?.find(c =>
+        c._id === commentDeleted.commentId ||
+        c._id?.toString() === commentDeleted.commentId?.toString()
+      ) as Comment;
+      commentToBeDeleted.state = CommentState.Deleted;
       break;
     }
     default: throw new BadLogicException("Invalid event type for Issue.", event);
@@ -243,10 +252,11 @@ function findLastEvent<T>(events: BaseEvent[], f: (arg0: T) => boolean) {
 }
 
 function canCommentBeModified(issue: Issue, commentId: Comment['_id']): boolean {
+  console.log(issue.events)
   const lastCommentEvent = findLastEvent<CommentCreatedEvent|CommentHiddenEvent|CommentDeletedEvent>(
     issue.events, 
     e => ['CommentCreatedEvent', 'CommentHiddenEvent', 'CommentDeletedEvent'].includes(e.type) &&
-         e.commentId === commentId
+         e.commentId === commentId || e.commentId?.toString() === commentId?.toString()
   );
 
   return !(!lastCommentEvent || lastCommentEvent?.type === 'CommentHiddenEvent' || lastCommentEvent?.type === 'CommentDeletedEvent');
