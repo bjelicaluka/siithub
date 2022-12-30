@@ -226,7 +226,6 @@ export function handleFor(issue: Issue, event: BaseEvent) {
     }
     case 'CommentDeletedEvent': {
       const commentDeleted = event as CommentDeletedEvent;
-      console.log(commentDeleted)
       if(!canCommentBeModified(issue, commentDeleted.commentId)){
         throw new BadLogicException("Comment cannot be deleted.", event);
       }
