@@ -7,7 +7,11 @@ import { authorizeRepositoryOwner } from "./repository.middleware";
 import { starService } from "../star/star.service";
 import { getUserIdFromPath } from "../../utils/getUser";
 import { authorize } from "../auth/auth.middleware";
-import { isAllowedToAccessRepo } from "../collaborators/collaborators.middleware";
+import { Repository } from "./repository.model";
+import { labelSeeder } from "../label/label.seeder";
+import { userService } from "../user/user.service";
+import { collaboratorsService } from "../collaborators/collaborators.service";
+import { type User } from "../user/user.model";
 
 const router = Router();
 
@@ -49,8 +53,24 @@ const createRepositoryBodySchema = repositoryBodySchema;
 
 router.post("/", authorize(), authorizeRepositoryOwner(), async (req: Request, res: Response) => {
   const repository = createRepositoryBodySchema.parse(req.body);
-  res.send(await repositoryService.create(repository));
+
+  const createdRepository = await repositoryService.create(repository);
+  if (!createdRepository) {
+    res.status(400).send("Error while creating repository");
+    return;
+  }
+
+  await initRepoData(createdRepository);
+
+  res.send(createdRepository);
 });
+
+async function initRepoData(repository: Repository) {
+  await labelSeeder.seedDefaultLabels(repository?._id);
+  const user = (await userService.findByUsername(repository.owner)) as User;
+
+  await collaboratorsService.add({ repositoryId: repository._id, userId: user?._id });
+}
 
 router.delete(
   "/:username/:repository",
