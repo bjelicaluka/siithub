@@ -7,16 +7,19 @@ import { issueRoutes } from "./features/issue/issue.router";
 import { repositoryRoutes } from "./features/repository/repository.routes";
 import { sshKeyRoutes } from "./features/ssh-key/ssh-key.routes";
 import { milestoneRoutes } from "./features/milestone/milestone.routes";
+import { starRoutes } from "./features/star/star.routes";
 
 const router = Router();
 
-router.use("/test", testRoutes)
-      .use("/users", userRoutes)
-      .use("/auth", authRoutes)
-      .use("/repositories", repositoryRoutes)
-      .use("/repositories", labelRoutes)
-      .use("/repositories", issueRoutes)
-      .use("/ssh-keys", sshKeyRoutes)
-      .use("/", milestoneRoutes);
+router
+  .use("/test", testRoutes)
+  .use("/users", userRoutes)
+  .use("/auth", authRoutes)
+  .use("/repositories", repositoryRoutes)
+  .use("/repositories", labelRoutes)
+  .use("/repositories", issueRoutes)
+  .use("/ssh-keys", sshKeyRoutes)
+  .use("/", milestoneRoutes)
+  .use("/", starRoutes);
 
 export { router as apiRoutes };

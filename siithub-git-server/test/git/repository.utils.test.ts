@@ -28,6 +28,11 @@ describe("Repository Utils", () => {
     } catch (error) {
       //
     }
+    try {
+      await execCmd(`rm -r /home/_deleted`);
+    } catch (error) {
+      //
+    }
   });
 
   describe("createRepo", () => {
@@ -52,6 +57,17 @@ describe("Repository Utils", () => {
       await expect(
         execCmd(`ls -la /home/test-user/test-repository-name`)
       ).rejects.not.toHaveLength(0);
+
+      await expect(
+        execCmd(`ls -la /home/_deleted/test-repository-name`)
+      ).resolves.not.toHaveLength(0);
+
+      await expect(
+        execCmd(`ls -la /home/_deleted/test-repository-name`)
+      ).resolves.not.toHaveLength(0);
+
+      const result = await execCmd(`ls -l /home/_deleted`);
+      expect(result.includes("test-user")).toBeFalsy();
     });
   });
 });
