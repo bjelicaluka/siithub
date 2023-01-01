@@ -29,7 +29,7 @@ export const DirectoryTable: FC<DirectoryTableProps> = ({ username, repoName, br
   const pathToParent = () => {
     const p = treePath.split("/");
     p.pop();
-    return `/${username}/${repoName}/tree/${branch}/${p.join("/")}`;
+    return `/${username}/${repoName}/tree/${encodeURIComponent(branch)}/${p.join("/")}`;
   };
 
   if (error) return <NotFound />;
@@ -48,28 +48,45 @@ export const DirectoryTable: FC<DirectoryTableProps> = ({ username, repoName, br
         ) : (
           <></>
         )}
-        {treeEntries?.map((e) => (
-          <tr key={e.name} className="bg-white border-b dark:bg-gray-900 dark:border-gray-700 text-md dark:text-white">
-            <td className="p-3 w-3">
-              {e.isFolder ? (
-                <FolderIcon className="h-5 w-5 text-gray-300" />
-              ) : (
-                <DocumentIcon className="h-5 w-5 text-gray-300" />
-              )}
+        {treeEntries ? (
+          treeEntries.map((e) => (
+            <tr
+              key={e.name}
+              className="bg-white border-b dark:bg-gray-900 dark:border-gray-700 text-md dark:text-white"
+            >
+              <td className="p-3 w-3">
+                {e.isFolder ? (
+                  <FolderIcon className="h-5 w-5 text-gray-300" />
+                ) : (
+                  <DocumentIcon className="h-5 w-5 text-gray-300" />
+                )}
+              </td>
+              <td className="p-3 hover:text-blue-400 hover:underline dark:text-white w-2/6">
+                <Link
+                  href={`/${username}/${repoName}/${e.isFolder ? "tree" : "blob"}/${encodeURIComponent(branch)}/${
+                    e.path
+                  }`}
+                >
+                  {e.name}
+                </Link>
+              </td>
+              <td className="p-3 text-gray-400 w-3/6">
+                <HashtagLink href={`/${username}/${repoName}/commits/${e.commit.sha}`}>
+                  {truncate(e.commit.message, 72)}
+                </HashtagLink>
+              </td>
+              <td className="p-3 text-gray-400">{moment(e.commit.date).fromNow()}</td>
+            </tr>
+          ))
+        ) : (
+          <tr className="bg-white border-b dark:bg-gray-900 dark:border-gray-700 text-md dark:text-white">
+            <td colSpan={4}>
+              <div className="flex min-h-full items-center justify-center">
+                <div className="w-16 h-16 rounded-full border-spacing-40 border-8 border-dashed border-blue-500 animate-spin m-4"></div>
+              </div>
             </td>
-            <td className="p-3 hover:text-blue-400 hover:underline dark:text-white w-2/6">
-              <Link href={`/${username}/${repoName}/${e.isFolder ? "tree" : "blob"}/${branch}/${e.path}`}>
-                {e.name}
-              </Link>
-            </td>
-            <td className="p-3 text-gray-400 w-3/6">
-              <HashtagLink href={`/${username}/${repoName}/commits/${e.commit.sha}`}>
-                {truncate(e.commit.message, 72)}
-              </HashtagLink>
-            </td>
-            <td className="p-3 text-gray-400">{moment(e.commit.date).fromNow()}</td>
           </tr>
-        ))}
+        )}
       </tbody>
     </table>
   );
