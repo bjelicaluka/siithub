@@ -1,13 +1,11 @@
 import { Commit, Repository, Revwalk } from "nodegit";
-import path from "path";
 
 const homePath = "/home";
 
 export async function getTree(username: string, repoName: string, branch: string, treePath: string) {
   try {
     const repoPath = `${homePath}/${username}/${repoName}`;
-    // const repo = await Repository.open(repoPath+"/.git");
-    const repo = await Repository.open(path.resolve(__dirname, "../../../../.git")); //this repo for testing
+    const repo = await Repository.open(repoPath + "/.git");
     const commit = await repo.getBranchCommit(branch);
     let tree = await commit.getTree();
     if (treePath) {

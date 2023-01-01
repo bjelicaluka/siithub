@@ -2,7 +2,9 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { Children, type FC, type ReactNode } from "react";
 
-export const HashtagLink: FC<{ children: ReactNode; href?: string }> = ({ children, href }) => {
+type HashtagLinkProps = { children: ReactNode; href?: string };
+
+export const HashtagLink: FC<HashtagLinkProps> = ({ children, href }) => {
   const router = useRouter();
   const { repository, username } = router.query;
   const things = { I: "issues", M: "milestones", P: "pulls" };

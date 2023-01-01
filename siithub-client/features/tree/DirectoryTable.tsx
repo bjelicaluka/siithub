@@ -7,6 +7,7 @@ import NotFound from "../../core/components/NotFound";
 import { useResult } from "../../core/contexts/Result";
 import { useTree } from "./useTree";
 import { HashtagLink } from "../../core/components/HashtagLink";
+import { Spinner } from "../../core/components/Spinner";
 
 type DirectoryTableProps = {
   username: string;
@@ -17,7 +18,7 @@ type DirectoryTableProps = {
 
 export const DirectoryTable: FC<DirectoryTableProps> = ({ username, repoName, branch, treePath }) => {
   const { result, setResult } = useResult("trees");
-  const { treeEntries, error } = useTree(username, repoName, branch, treePath, [result]);
+  const { treeEntries, error, isLoading } = useTree(username, repoName, branch, treePath, [result]);
 
   useEffect(() => {
     if (!result) return;
@@ -48,8 +49,16 @@ export const DirectoryTable: FC<DirectoryTableProps> = ({ username, repoName, br
         ) : (
           <></>
         )}
-        {treeEntries ? (
-          treeEntries.map((e) => (
+        {isLoading ? (
+          <tr className="bg-white border-b dark:bg-gray-900 dark:border-gray-700 text-md dark:text-white">
+            <td colSpan={4}>
+              <div className="flex min-h-full items-center justify-center">
+                <Spinner />
+              </div>
+            </td>
+          </tr>
+        ) : (
+          treeEntries?.map((e) => (
             <tr
               key={e.name}
               className="bg-white border-b dark:bg-gray-900 dark:border-gray-700 text-md dark:text-white"
@@ -78,14 +87,6 @@ export const DirectoryTable: FC<DirectoryTableProps> = ({ username, repoName, br
               <td className="p-3 text-gray-400">{moment(e.commit.date).fromNow()}</td>
             </tr>
           ))
-        ) : (
-          <tr className="bg-white border-b dark:bg-gray-900 dark:border-gray-700 text-md dark:text-white">
-            <td colSpan={4}>
-              <div className="flex min-h-full items-center justify-center">
-                <div className="w-16 h-16 rounded-full border-spacing-40 border-8 border-dashed border-blue-500 animate-spin m-4"></div>
-              </div>
-            </td>
-          </tr>
         )}
       </tbody>
     </table>
