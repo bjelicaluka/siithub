@@ -6,6 +6,12 @@ import "express-async-errors";
 import { authorizeRepositoryOwner } from "./repository.middleware";
 import { starService } from "../star/star.service";
 import { getUserIdFromPath } from "../../utils/getUser";
+import { authorize } from "../auth/auth.middleware";
+import { Repository } from "./repository.model";
+import { labelSeeder } from "../label/label.seeder";
+import { userService } from "../user/user.service";
+import { collaboratorsService } from "../collaborators/collaborators.service";
+import { type User } from "../user/user.model";
 
 const router = Router();
 
@@ -14,18 +20,18 @@ const repositorySearchSchema = z.object({
   owner: z.string(),
 });
 
-router.get("/", async (req: Request, res: Response) => {
+router.get("/", authorize(), async (req: Request, res: Response) => {
   const query = repositorySearchSchema.parse(req.query);
   res.send(await repositoryService.search(query.owner, query.term));
 });
 
-router.get("/starred-by/:username", async (req: Request, res: Response) => {
+router.get("/starred-by/:username", authorize(), async (req: Request, res: Response) => {
   const userId = await getUserIdFromPath(req);
   const stars = await starService.findByUserId(userId);
   res.send(await repositoryService.findByIds(stars.map((s) => s.repoId)));
 });
 
-router.get("/r/:username/:repository", async (req: Request, res: Response) => {
+router.get("/r/:username/:repository", authorize(), async (req: Request, res: Response) => {
   const repo = await repositoryService.findByOwnerAndName(req.params.username, req.params.repository);
   if (!repo) {
     res.status(404).send("Repository not found");
@@ -45,13 +51,34 @@ const repositoryBodySchema = z.object({
 
 const createRepositoryBodySchema = repositoryBodySchema;
 
-router.post("/", authorizeRepositoryOwner(), async (req: Request, res: Response) => {
+router.post("/", authorize(), authorizeRepositoryOwner(), async (req: Request, res: Response) => {
   const repository = createRepositoryBodySchema.parse(req.body);
-  res.send(await repositoryService.create(repository));
+
+  const createdRepository = await repositoryService.create(repository);
+  if (!createdRepository) {
+    res.status(400).send("Error while creating repository");
+    return;
+  }
+
+  await initRepoData(createdRepository);
+
+  res.send(createdRepository);
 });
 
-router.delete("/:username/:repository", authorizeRepositoryOwner(), async (req: Request, res: Response) => {
-  res.send(await repositoryService.delete(req.params.username, req.params.repository));
-});
+async function initRepoData(repository: Repository) {
+  await labelSeeder.seedDefaultLabels(repository?._id);
+  const user = (await userService.findByUsername(repository.owner)) as User;
+
+  await collaboratorsService.add({ repositoryId: repository._id, userId: user?._id });
+}
+
+router.delete(
+  "/:username/:repository",
+  authorize(),
+  authorizeRepositoryOwner(),
+  async (req: Request, res: Response) => {
+    res.send(await repositoryService.delete(req.params.username, req.params.repository));
+  }
+);
 
 export { repositoryBodySchema, router as repositoryRoutes };

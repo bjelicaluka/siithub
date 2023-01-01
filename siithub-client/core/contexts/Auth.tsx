@@ -1,49 +1,50 @@
-import axios from "axios"
-import { createContext, type FC, type PropsWithChildren, useContext, useEffect, useReducer } from "react"
-import { setAxiosInterceptors } from "../utils/axios"
-import { getToken, getUserIdFromToken, removeToken, setToken } from "../utils/token"
+import axios from "axios";
+import { createContext, type FC, type PropsWithChildren, useContext, useEffect, useReducer } from "react";
+import { setAxiosInterceptors } from "../utils/axios";
+import { getToken, getUserIdFromToken, removeToken, setToken } from "../utils/token";
 
 export enum AuthUserType {
   None = -1,
   Developer,
-  Admin
-};
+  Admin,
+}
 
 export type AuthUser = {
-  _id: string,
-  username: string,
-  type: AuthUserType
-}
+  _id: string;
+  username: string;
+  name: string;
+  email: string;
+  type: AuthUserType;
+};
 
 type AuthContextType = {
-  user?: AuthUser,
-  isAuthenticated: boolean,
-  authDispatcher: (f: any) => any
-}
+  user?: AuthUser;
+  isAuthenticated: boolean;
+  authDispatcher: (f: any) => any;
+};
 
 const initialAuthContextValues = {
   user: undefined,
   isAuthenticated: false,
-  authDispatcher: () => {}
+  authDispatcher: () => {},
 };
 
 const AuthContext = createContext<AuthContextType>(initialAuthContextValues);
 
-
 type ActionType = {
-  type: string,
-  payload?: AuthUser
-}
+  type: string;
+  payload?: AuthUser;
+};
 
 function authReducer(user: AuthUser | undefined, action: ActionType) {
   switch (action.type) {
-    case 'login': {
+    case "login": {
       return {
         ...user,
-        ...action.payload
+        ...action.payload,
       };
     }
-    case 'logout': {
+    case "logout": {
       return undefined;
     }
   }
@@ -54,11 +55,11 @@ export function onLogin({ user, token }: any) {
 
   setAxiosInterceptors(axios, () => {
     _authDispatcher(onLogout());
-  })
+  });
 
   return {
-    type: 'login',
-    payload: user
+    type: "login",
+    payload: user,
   };
 }
 
@@ -67,7 +68,7 @@ export function onLogout() {
   window.location.href = "/";
 
   return {
-    type: 'logout'
+    type: "logout",
   };
 }
 
@@ -76,7 +77,6 @@ export const useAuthContext = () => useContext(AuthContext);
 let _authDispatcher: any = null;
 
 export const AuthContextProvider: FC<PropsWithChildren> = ({ children }) => {
-
   const [user, authDispatcher] = useReducer<any>(authReducer, undefined);
   const isAuthenticated = !!user;
   _authDispatcher = authDispatcher;
@@ -84,9 +84,10 @@ export const AuthContextProvider: FC<PropsWithChildren> = ({ children }) => {
   useEffect(() => {
     if (!getToken()) return;
 
-    axios.get('/api/users/' + getUserIdFromToken())
+    axios
+      .get("/api/users/" + getUserIdFromToken())
       .then((response: any) => {
-        const auth = { user: response.data as AuthUser, token: getToken() + '' };
+        const auth = { user: response.data as AuthUser, token: getToken() + "" };
         _authDispatcher(onLogin(auth));
       })
       .catch(() => {});
@@ -96,6 +97,5 @@ export const AuthContextProvider: FC<PropsWithChildren> = ({ children }) => {
     <AuthContext.Provider value={{ user: user as AuthUser, isAuthenticated, authDispatcher }}>
       {children}
     </AuthContext.Provider>
-
   );
-}
+};

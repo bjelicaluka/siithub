@@ -1,13 +1,13 @@
-import { type FC } from "react";
 import "../styles/globals.css";
+import Head from "next/head";
 import type { AppProps } from "next/app";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { ToastContainer, type ToastContainerProps } from "react-toastify";
 import { ResultContextProvider } from "../core/contexts/Result";
-import Head from "next/head";
 import { AuthContextProvider } from "../core/contexts/Auth";
-import { useIsAuthorized } from "../core/hooks/useIsAuthorized";
-import ErrorPage from 'next/error'
+import { AppLayout } from "../core/app-layout/App";
+import { NestedLayoutResolver } from "./_layouting";
+import { AuthComponentWrapper, SecuredNextPage } from "./_auth";
 
 import "react-toastify/dist/ReactToastify.css";
 
@@ -26,28 +26,16 @@ const toastrOptions: ToastContainerProps = {
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: false
-    }
-  }
+      retry: false,
+    },
+  },
 });
 
+type CustomAppProps = AppProps & {
+  Component: SecuredNextPage;
+};
 
-const AuthComponentWrapper: FC<any> = ({ Component, pageProps }: any) => {
-  const anyComponent = Component as any;
-  const isAuthorized = useIsAuthorized();
-
-  return (
-    anyComponent.requireAuth ? 
-    ( isAuthorized({ roles: anyComponent.allowedRoles }) ?
-      <Component {...pageProps} /> :
-      <ErrorPage statusCode={404} />
-    ) :
-    <Component {...pageProps} />
-  )
-}
-
-export default function App({ Component, pageProps }: AppProps) {
-  
+export default function App({ Component, pageProps }: CustomAppProps) {
   return (
     <>
       <Head>
@@ -57,7 +45,13 @@ export default function App({ Component, pageProps }: AppProps) {
       <QueryClientProvider client={queryClient}>
         <ResultContextProvider>
           <AuthContextProvider>
-            <AuthComponentWrapper Component={Component} pageProps={pageProps} />
+            <AuthComponentWrapper {...Component}>
+              <AppLayout>
+                <NestedLayoutResolver>
+                  <Component {...pageProps} />
+                </NestedLayoutResolver>
+              </AppLayout>
+            </AuthComponentWrapper>
           </AuthContextProvider>
         </ResultContextProvider>
       </QueryClientProvider>
