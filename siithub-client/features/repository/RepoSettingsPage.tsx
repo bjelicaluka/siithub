@@ -6,7 +6,6 @@ import { useAction } from "../../core/hooks/useAction";
 import { useNotifications } from "../../core/hooks/useNotifications";
 import { extractErrorMessage } from "../../core/utils/errors";
 import { deleteRepository } from "./repository.service";
-import { RepositoryHeader } from "./RepositoryHeader";
 
 type RepoSettingsPageProps = {
   repo: string;
@@ -31,10 +30,17 @@ export const RepoSettingsPage: FC<RepoSettingsPageProps> = ({ username, repo }) 
   });
 
   return (
-    <div>
-      <RepositoryHeader username={username} repo={repo} activeTab={"settings"} />
-      <p className="text-xl m-3">Settings</p>
-      <Button onClick={deleteRepositoryAction}>Delete</Button>
-    </div>
+    <>
+      <div className="flex items-center border-2 rounded-lg border-red-700 p-2">
+        <div className="grow">
+          <p className="font-medium">Delete this repository</p>
+          <p>Once you delete a repository, there is no going back. Please be certain.</p>
+        </div>
+
+        <Button className="text-right" onClick={deleteRepositoryAction}>
+          Delete this repo
+        </Button>
+      </div>
+    </>
   );
 };
