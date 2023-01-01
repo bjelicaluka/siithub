@@ -9,32 +9,35 @@ import { ResultStatus, useResult } from "../../../core/contexts/Result";
 import { useAction } from "../../../core/hooks/useAction";
 import { useZodValidatedFrom } from "../../../core/hooks/useZodValidatedForm";
 import { useRouter } from "next/router";
-
+import Link from "next/link";
 
 export const RegistrationForm: FC = () => {
-
   const notifications = useNotifications();
   const router = useRouter();
-  const { setResult } = useResult('users');
+  const { setResult } = useResult("users");
 
-  const { register: registrationForm, handleSubmit, formState: { errors } } = useZodValidatedFrom<CreateUser>(createUserSchema);
+  const {
+    register: registrationForm,
+    handleSubmit,
+    formState: { errors },
+  } = useZodValidatedFrom<CreateUser>(createUserSchema);
 
   const createUserAction = useAction<CreateUser>(createUser, {
     onSuccess: () => {
-      notifications.success('You have successfully created a new account.');
-      setResult({ status: ResultStatus.Ok, type: 'CREATE_USER' });
+      notifications.success("You have successfully created a new account.");
+      setResult({ status: ResultStatus.Ok, type: "CREATE_USER" });
     },
     onError: (error: any) => {
       notifications.error(extractErrorMessage(error));
-      setResult({ status: ResultStatus.Error, type: 'CREATE_USER' });
-    }
+      setResult({ status: ResultStatus.Error, type: "CREATE_USER" });
+    },
   });
 
   const onCreateUserAction = (user: CreateUser) => {
     const { githubUsername } = router.query;
     user.githubUsername = githubUsername as string;
     return createUserAction(user);
-  }
+  };
 
   return (
     <>
@@ -42,7 +45,6 @@ export const RegistrationForm: FC = () => {
         <div className="overflow-hidden shadow sm:rounded-md">
           <div className="bg-white px-4 py-5 sm:p-6">
             <div className="grid grid-cols-6 gap-6">
-
               <div className="col-span-6">
                 <InputField
                   label="Username"
@@ -61,11 +63,7 @@ export const RegistrationForm: FC = () => {
               </div>
 
               <div className="col-span-6">
-                <InputField
-                  label="Name"
-                  formElement={registrationForm("name")}
-                  errorMessage={errors?.name?.message}
-                />
+                <InputField label="Name" formElement={registrationForm("name")} errorMessage={errors?.name?.message} />
               </div>
 
               <div className="col-span-6">
@@ -77,20 +75,24 @@ export const RegistrationForm: FC = () => {
               </div>
 
               <div className="col-span-6">
-                <AreaField
-                  label="Bio"
-                  formElement={registrationForm("bio")}
-                />
+                <AreaField label="Bio" formElement={registrationForm("bio")} />
               </div>
-
             </div>
           </div>
-          <div className="bg-gray-50 px-4 py-3 text-right sm:px-6">
-            <Button>Save</Button>
+
+          <div className="grid grid-cols-12 bg-gray-50 sm:px-6 px-2 py-2">
+            <div className="col-span-6 text-left">
+              <Button type="button">
+                <Link href="/auth">Login</Link>
+              </Button>
+            </div>
+
+            <div className="col-span-6 text-right">
+              <Button>Save</Button>
+            </div>
           </div>
         </div>
       </form>
     </>
-
-  )
-}
+  );
+};

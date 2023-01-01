@@ -1,4 +1,4 @@
-import { FC, PropsWithChildren } from "react";
+import { FC, PropsWithChildren, useMemo } from "react";
 import { useAuthContext } from "../contexts/Auth";
 import { NotAuthenticatedLayout } from "./NotAuthenticated";
 import { AuthenticatedLayout } from "./Authenticated";
@@ -6,7 +6,7 @@ import { AuthenticatedLayout } from "./Authenticated";
 export const AppLayout: FC<PropsWithChildren> = ({ children }) => {
   const { user } = useAuthContext();
 
-  if (!user) return <NotAuthenticatedLayout>{children}</NotAuthenticatedLayout>;
+  const Layout = useMemo(() => (user ? AuthenticatedLayout : NotAuthenticatedLayout), [user]);
 
-  return <AuthenticatedLayout>{children}</AuthenticatedLayout>;
+  return <Layout>{children}</Layout>;
 };

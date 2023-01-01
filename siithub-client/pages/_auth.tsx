@@ -1,7 +1,7 @@
-import { type FC } from "react";
+import { useEffect, type FC } from "react";
 import { type NextPage } from "next";
-import ErrorPage from "next/error";
 import { useIsAuthorized } from "../core/hooks/useIsAuthorized";
+import { useRouter } from "next/router";
 
 export type SecuredNextPage<P = {}, IP = P> = NextPage<P, IP> & {
   requireAuth: boolean;
@@ -16,10 +16,14 @@ type AuthComponentWrapperProps = {
 
 export const AuthComponentWrapper: FC<AuthComponentWrapperProps> = ({ requireAuth, allowedRoles, children }) => {
   const isAuthorized = useIsAuthorized();
+  const router = useRouter();
 
-  if (!requireAuth) {
-    return children;
-  }
+  useEffect(() => {
+    if (requireAuth && !isAuthorized({ roles: allowedRoles })) {
+      router && router.push("/auth");
+      return;
+    }
+  }, [router, requireAuth, allowedRoles, isAuthorized]);
 
-  return isAuthorized({ roles: allowedRoles }) ? children : <ErrorPage statusCode={404} />;
+  return children;
 };

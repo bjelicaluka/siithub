@@ -1,8 +1,8 @@
-import { ReactNode } from "react";
+import { ReactNode, useMemo } from "react";
 import { NextRouter, useRouter } from "next/router";
 import { Cog8ToothIcon, UsersIcon } from "@heroicons/react/24/solid";
 import { useRepositoryLayout } from "../_repository.layout";
-import { RepositoryContextProvider } from "../../../../features/repository/RepositoryContext";
+import { VerticalMenu } from "../../../../core/components/VerticalMenu";
 
 function getLinks(router: NextRouter, username: string, repository: string) {
   return [
@@ -31,10 +31,6 @@ const useRepositorySettingsLayout = (page: ReactNode) => {
 
   const links = getLinks(router, username?.toString() ?? "", repository?.toString() ?? "");
 
-  const isActive = (path: string) => {
-    return router.pathname === path;
-  };
-
   if (!username || !repository) return <></>;
 
   return (
@@ -43,24 +39,7 @@ const useRepositorySettingsLayout = (page: ReactNode) => {
         <div>
           <aside className="w-72" aria-label="Sidebar">
             <div className="overflow-y-auto py-4 px-3 bg-gray-50 rounded">
-              <ul className="space-y-2">
-                {links?.map((l) => {
-                  return (
-                    <li key={l.title}>
-                      <a
-                        onClick={l.onClick}
-                        className={
-                          "flex items-center p-2 text-base font-normal text-gray-900 rounded-lg hover:bg-gray-300" +
-                          (isActive(l.path) ? " bg-gray-200" : " ")
-                        }
-                      >
-                        {l.icon}
-                        <span className="ml-3">{l.title}</span>
-                      </a>
-                    </li>
-                  );
-                })}
-              </ul>
+              <VerticalMenu links={links} />
             </div>
           </aside>
         </div>

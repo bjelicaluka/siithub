@@ -1,11 +1,23 @@
-import { type FC, PropsWithChildren, ReactNode } from "react";
+import { type FC, PropsWithChildren, ReactNode, ReactElement } from "react";
 import { useSettingsLayout } from "./settings/_settings.layout";
 import { useProfileLayout } from "./users/[username]/_profile.layout";
 import { useRouter } from "next/router";
 import { useRepositoryLayout } from "./[username]/[repository]/_repository.layout";
 import { useRepositorySettingsLayout } from "./[username]/[repository]/settings/_repository-settings.layout";
 
-const registeredLayouts = [
+type NestedLayout = {
+  path: string;
+  pathMatch: "startsWith" | "exact";
+  layoutFactory: (page: ReactNode) => ReactElement;
+  children?: NestedLayoutChild[];
+};
+
+type NestedLayoutChild = {
+  path: string;
+  layoutFactory: (page: ReactNode) => ReactElement;
+};
+
+const registeredLayouts: NestedLayout[] = [
   {
     path: "/settings",
     pathMatch: "startsWith",
@@ -46,7 +58,7 @@ export const NestedLayoutResolver: FC<PropsWithChildren> = ({ children }) => {
     for (const layout of registeredLayouts) {
       for (const childLayout of layout.children || []) {
         if (match(layout.path + childLayout.path, r.pathname, layout.pathMatch)) {
-          return (children: any) => layout.layoutFactory(childLayout.layoutFactory(children));
+          return (children: ReactNode) => layout.layoutFactory(childLayout.layoutFactory(children));
         }
       }
 
