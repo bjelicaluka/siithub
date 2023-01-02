@@ -10,8 +10,8 @@ function authorizeRepositoryOwner() {
     let username: string = req.body.owner || req.params.username;
     let user = username ? await userService.findByUsername(username) : null;
 
-    if (userId !== user?._id) {
-      throw new ForbiddenException("You are not authorized to delete someone else's repositories.");
+    if (userId?.toString() !== user?._id.toString()) {
+      throw new ForbiddenException("You are not authorized to access someone else's repository.");
     }
 
     next();
