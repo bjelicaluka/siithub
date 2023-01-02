@@ -858,7 +858,7 @@ describe("IssueModel", () => {
       expect(issue.csm.comments[0].state).toBe(CommentState.Deleted);
     });
 
-    it("should throw Reaction cannot be put error because reaction is already put for that user", () => {
+    it("should throw Reaction cannot be added error because reaction is already added for that user", () => {
       const [issue, commentCreated] = initializeIssueAndComment();
       handleFor(issue, commentCreated);
       const by = commentCreated.by;
@@ -875,7 +875,31 @@ describe("IssueModel", () => {
 
       const addReaction = () => handleFor(issue, reactionAdded);
 
-      expect(addReaction).toThrowError("Reaction cannot be put.");
+      expect(addReaction).toThrowError("Reaction cannot be added.");
+    });
+
+    it("should throw Reaction cannot be added because comment does not exist", () => {
+      const issueCreated = createEvent<IssueCreatedEvent>({
+        type: "IssueCreatedEvent",
+        title: "Issue Created",
+      });
+
+      const issue = {
+        ...emptyIssue,
+        events: [issueCreated],
+      };
+
+      const reactionAdded = createEvent<UserReactedEvent>({
+        type: "UserReactedEvent",
+        commentId: new ObjectId(),
+        code: "Proba",
+      });
+
+      reactionAdded.by = new ObjectId();
+
+      const addReaction = () => handleFor(issue, reactionAdded);
+
+      expect(addReaction).toThrowError("Reaction cannot be added because comment does not exist.");
     });
 
     it("should add user reaction to the comment", () => {
@@ -914,6 +938,39 @@ describe("IssueModel", () => {
       const removeReaction = () => handleFor(issue, reactionRemoved);
 
       expect(removeReaction).toThrowError("Reaction cannot be removed.");
+    });
+
+    it("should throw Reaction cannot be added because comment does not exist", () => {
+      const [issue, commentCreated] = initializeIssueAndComment();
+      handleFor(issue, commentCreated);
+
+      const by = commentCreated.by;
+      const commentId = issue.csm.comments[0]._id;
+
+      const reactionAdded = createEvent<UserReactedEvent>({
+        type: "UserReactedEvent",
+        commentId,
+        code: "Proba",
+      });
+      reactionAdded.by = by;
+      handleFor(issue, reactionAdded);
+
+      const commentDeleted = createEvent<CommentDeletedEvent>({
+        type: "CommentDeletedEvent",
+        commentId,
+      });
+      handleFor(issue, commentDeleted);
+
+      const reactionRemoved = createEvent<UserUnreactedEvent>({
+        type: "UserUnreactedEvent",
+        commentId,
+        code: "Proba",
+      });
+      reactionRemoved.by = by;
+
+      const removeReaction = () => handleFor(issue, reactionRemoved);
+
+      expect(removeReaction).toThrowError("Reaction cannot be added because comment does not exist.");
     });
 
     it("should throw Reaction cannot be removed error because reaction is already removed for that user", () => {

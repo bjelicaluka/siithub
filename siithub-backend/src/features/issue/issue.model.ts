@@ -284,12 +284,12 @@ export function handleFor(issue: Issue, event: BaseEvent) {
           e?.code === userReacted?.code
       );
       if (lastReactionStateEvent?.type === "UserReactedEvent") {
-        throw new BadLogicException("Reaction cannot be put.", event);
+        throw new BadLogicException("Reaction cannot be added.", event);
       }
 
       const comment = findComment(issue, userReacted.commentId);
       if (!comment || comment.state != CommentState.Existing) {
-        throw new BadLogicException("Reaction cannot be put because comment does not exist");
+        throw new BadLogicException("Reaction cannot be added because comment does not exist.", event);
       }
 
       comment.reactions[userReacted.code] = comment.reactions[userReacted.code] + 1 || 1;
@@ -311,7 +311,7 @@ export function handleFor(issue: Issue, event: BaseEvent) {
 
       const comment = findComment(issue, userUnreacted.commentId);
       if (comment.state != CommentState.Existing) {
-        throw new BadLogicException("Reaction cannot be put because comment does not exist");
+        throw new BadLogicException("Reaction cannot be added because comment does not exist.");
       }
 
       comment.reactions[userUnreacted.code] = comment.reactions[userUnreacted.code] - 1;
