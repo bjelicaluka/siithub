@@ -12,10 +12,14 @@ export enum CommentState {
   Deleted,
 }
 
+type Reactions = {
+  [code: string]: number
+}
+
 export type Comment = BaseEntity & {
   text: string;
   state: CommentState;
-  reactions: any;
+  reactions: Reactions;
 };
 
 export enum IssueState {
@@ -315,6 +319,10 @@ export function handleFor(issue: Issue, event: BaseEvent) {
       }
 
       comment.reactions[userUnreacted.code] = comment.reactions[userUnreacted.code] - 1;
+
+      if (comment.reactions[userUnreacted.code] === 0) {
+        delete comment.reactions[userUnreacted.code];
+      }
       break;
     }
     default:

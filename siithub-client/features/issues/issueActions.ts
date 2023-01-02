@@ -13,7 +13,8 @@ export enum CommentState {
 export type Comment = {
   _id: string,
   text: string,
-  state: CommentState
+  state: CommentState,
+  reactions: any
 };
 
 export enum IssueState {
