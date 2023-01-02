@@ -8,6 +8,8 @@ import { LabelPreview } from "../labels/LabelPreview";
 import { type User } from "../users/user.model";
 import { type Milestone } from "../milestones/milestoneActions";
 import { useMilestonesByRepoId } from "./useMillestones";
+import { CommentPreview } from "./CommentPreview";
+import { type Comment } from "./issueActions";
 
 
 export const IssueHistory: FC = () => {
@@ -60,6 +62,24 @@ export const IssueHistory: FC = () => {
 
         case 'IssueReopenedEvent': return <>reopened this issue</>
         case 'IssueClosedEvent': return <>closed this issue</>
+
+        case 'CommentCreatedEvent': return <>commented <br/><CommentPreview comment = { issue.csm.comments?.find(c => c._id === event.commentId) as Comment }/></>
+        case 'CommentUpdatedEvent': {
+          const commentById = issue.events?.find(e => e.commentId === event.commentId && e.type === 'CommentCreatedEvent').by;
+          const commentedBy = users?.find((u: User) => u._id === commentById)?.name;
+          return <> edited comment from {commentedBy}</>
+        }
+        case 'CommentHiddenEvent': {
+          const commentById = issue.events?.find(e => e.commentId === event.commentId && e.type === 'CommentCreatedEvent').by;
+          const commentedBy = users?.find((u: User) => u._id === commentById)?.name;
+          return <> hid comment from {commentedBy}</>
+        }
+        case 'CommentDeletedEvent': {
+          const commentById = issue.events?.find(e => e.commentId === event.commentId && e.type === 'CommentCreatedEvent').by;
+          const commentedBy = users?.find((u: User) => u._id === commentById)?.name;
+          return <> deleted comment from {commentedBy}</>
+        }
+
         default: return <></>
       }
     };
@@ -76,13 +96,22 @@ export const IssueHistory: FC = () => {
       <span className="flex absolute -left-3 justify-center items-center w-6 h-6 bg-blue-200 rounded-full ring-8 ring-white dark:ring-gray-900 dark:bg-blue-900">
         <img className="rounded-full shadow-lg" src="https://avatars.githubusercontent.com/u/55081607?v=4" alt="Bonnie image" />
       </span>
-      <div className="justify-between items-center p-4 bg-white rounded-lg border border-gray-200 shadow-sm sm:flex dark:bg-gray-700 dark:border-gray-600">
-        <time className="mb-1 text-xs font-normal text-gray-400 sm:order-last sm:mb-0">
-          {moment(event.timeStamp).fromNow()}
-        </time>
-        <div className="text-sm font-normal text-gray-500 dark:text-gray-300">
-          <DoneBy userId={event.by} /> <EventText event={event} />
+      <div className="p-4 bg-white rounded-lg border border-gray-200 shadow-sm dark:bg-gray-700 dark:border-gray-600">
+
+        <div className="grid grid-cols-12">
+          <div className="col-span-10 text-left ">
+            <DoneBy userId={event.by} /> <EventText event={event} />
+          </div>
+        
+          <div className="col-span-2 text-right">
+            <time className="mb-1 text-xs font-normal text-gray-400 sm:order-last sm:mb-0">
+              {moment(event.timeStamp).fromNow()}
+            </time>
+          </div>
         </div>
+
+       
+
       </div>
     </li>
 

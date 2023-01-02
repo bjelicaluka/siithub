@@ -22,7 +22,7 @@ async function findByRepositoryIdAndLocalId(repositoryId: Repository["_id"], loc
 
 async function findByTitleAndRepositoryId(title: string, repositoryId: Repository["_id"]): Promise<Milestone | null> {
   return await milestoneRepo.findByTitleAndRepositoryId(title, repositoryId);
-}  
+}
 
 async function findOneOrThrow(id: Milestone["_id"]): Promise<Milestone> {
   const milestone = await findOne(id);
@@ -42,7 +42,7 @@ async function createMilestone(milestone: MilestoneCreate): Promise<Milestone | 
     throw new DuplicateException("Milestone with same title already exists.", milestone);
   }
   milestone.isOpen = true;
-  milestone.localId = await repositoryService.getNextCounterValue(milestone.repositoryId, "milestone");
+  milestone.localId = await repositoryService.increaseCounterValue(milestone.repositoryId, "milestone");
   return await milestoneRepo.crud.add(milestone);
 }
 
@@ -50,7 +50,7 @@ async function updateMilestone(milestone: MilestoneUpdate): Promise<Milestone | 
   const existingMilestone = await findByRepositoryIdAndLocalId(milestone.repositoryId, milestone.localId);
 
   const milestoneWithSameName = await findByTitleAndRepositoryId(milestone.title, milestone.repositoryId);
-  if (milestoneWithSameName && milestoneWithSameName._id + '' !== existingMilestone._id + '') {
+  if (milestoneWithSameName && milestoneWithSameName._id + "" !== existingMilestone._id + "") {
     throw new DuplicateException("Milestone with same title already exists.", milestone);
   }
 
@@ -66,23 +66,27 @@ async function deleteMilestone(repositoryId: Repository["_id"], localId: number)
   return await milestoneRepo.crud.delete(existingMilestone._id);
 }
 
-async function changeStatus(repositoryId: Repository["_id"], localId: number, open: boolean): Promise<Milestone | null> {
+async function changeStatus(
+  repositoryId: Repository["_id"],
+  localId: number,
+  open: boolean
+): Promise<Milestone | null> {
   const existingMilestone = await findByRepositoryIdAndLocalId(repositoryId, localId);
-  return await milestoneRepo.crud.update(existingMilestone._id, {isOpen: open} as MilestoneUpdate);
+  return await milestoneRepo.crud.update(existingMilestone._id, { isOpen: open } as MilestoneUpdate);
 }
 
 export type MilestoneService = {
-  create(Milestone: MilestoneCreate): Promise<Milestone | null>,
-  update(Milestone: MilestoneUpdate): Promise<Milestone | null>,
-  delete(repositoryId: Repository["_id"], localId: number): Promise<Milestone | null>,
-  findOne(id: Milestone['_id']): Promise<Milestone | null>,
-  findOneOrThrow(id: Milestone["_id"]): Promise<Milestone>,
-  findByRepositoryId(repositoryId: Repository["_id"], isOpen?: boolean): Promise<Milestone[]>,
-  findByTitleAndRepositoryId(title: string, repositoryId: Repository["_id"]): Promise<Milestone | null>,
-  searchByTitle(title: string, repositoryId: Repository["_id"]): Promise<Milestone[] | null>,
-  changeStatus(repositoryId: Repository["_id"], localId: number, open: boolean): Promise<Milestone | null>,
-  findByRepositoryIdAndLocalId(repositoryId: Repository["_id"], localId: number): Promise<Milestone>,
-}
+  create(Milestone: MilestoneCreate): Promise<Milestone | null>;
+  update(Milestone: MilestoneUpdate): Promise<Milestone | null>;
+  delete(repositoryId: Repository["_id"], localId: number): Promise<Milestone | null>;
+  findOne(id: Milestone["_id"]): Promise<Milestone | null>;
+  findOneOrThrow(id: Milestone["_id"]): Promise<Milestone>;
+  findByRepositoryId(repositoryId: Repository["_id"], isOpen?: boolean): Promise<Milestone[]>;
+  findByTitleAndRepositoryId(title: string, repositoryId: Repository["_id"]): Promise<Milestone | null>;
+  searchByTitle(title: string, repositoryId: Repository["_id"]): Promise<Milestone[] | null>;
+  changeStatus(repositoryId: Repository["_id"], localId: number, open: boolean): Promise<Milestone | null>;
+  findByRepositoryIdAndLocalId(repositoryId: Repository["_id"], localId: number): Promise<Milestone>;
+};
 
 const milestoneService: MilestoneService = {
   findOne,
@@ -95,6 +99,6 @@ const milestoneService: MilestoneService = {
   update: updateMilestone,
   delete: deleteMilestone,
   findByRepositoryIdAndLocalId,
-}
+};
 
-export { milestoneService }
+export { milestoneService };

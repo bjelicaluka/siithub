@@ -67,7 +67,7 @@ export const DescribeIssueForm: FC = () => {
       <form onSubmit={handleSubmit(onSubmit)}>
 
           
-          <div className="bg-white px-4 py-5 sm:p-6">
+          <div className="bg-white px-4 py-5 sm:p-6 mb-1">
             <div className="grid grid-cols-6 gap-6">
               <div className="col-span-6">
                 <InputField

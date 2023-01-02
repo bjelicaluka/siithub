@@ -12,7 +12,8 @@ const errorHandler = (error: TypeError , request: Request, response: Response, n
   next(error);
 };
 
-app.use(express.json())
+app.use(express.json({limit: '10mb'}))
+   .use(express.urlencoded({limit: '10mb'}))
    .use("/api", apiRoutes)
    .use(errorHandler);
 
