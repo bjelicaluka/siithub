@@ -1,9 +1,12 @@
+import { useEffect } from "react";
 import { onLogout, useAuthContext } from "../core/contexts/Auth";
 
 export default function Logout() {
   const { authDispatcher } = useAuthContext();
 
-  authDispatcher(onLogout());
+  useEffect(() => {
+    authDispatcher(onLogout());
+  }, [authDispatcher]);
 
   return (
     <>

@@ -1,4 +1,4 @@
-import { useEffect, type FC } from "react";
+import { useEffect, useState, type FC } from "react";
 import { type NextPage } from "next";
 import { useIsAuthorized } from "../core/hooks/useIsAuthorized";
 import { useRouter } from "next/router";
@@ -16,14 +16,19 @@ type AuthComponentWrapperProps = {
 
 export const AuthComponentWrapper: FC<AuthComponentWrapperProps> = ({ requireAuth, allowedRoles, children }) => {
   const isAuthorized = useIsAuthorized();
+  const authorized = isAuthorized({ roles: allowedRoles });
   const router = useRouter();
+  const [calledPush, setCalledPush] = useState(false);
 
   useEffect(() => {
-    if (requireAuth && !isAuthorized({ roles: allowedRoles })) {
-      router && router.push("/auth");
+    if (requireAuth && !authorized) {
+      router && !calledPush && router.push("/auth");
+      setCalledPush(true);
       return;
     }
-  }, [router, requireAuth, allowedRoles, isAuthorized]);
+  }, [router, calledPush, requireAuth, authorized]);
+
+  if (requireAuth && !authorized) return <></>;
 
   return children;
 };

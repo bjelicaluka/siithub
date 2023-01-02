@@ -1,5 +1,5 @@
 import axios from "axios";
-import { createContext, type FC, type PropsWithChildren, useContext, useEffect, useReducer } from "react";
+import { createContext, type FC, type PropsWithChildren, useContext, useEffect, useReducer, useState } from "react";
 import { setAxiosInterceptors } from "../utils/axios";
 import { getToken, getUserIdFromToken, removeToken, setToken } from "../utils/token";
 
@@ -77,25 +77,32 @@ export const useAuthContext = () => useContext(AuthContext);
 let _authDispatcher: any = null;
 
 export const AuthContextProvider: FC<PropsWithChildren> = ({ children }) => {
+  const [isInitialized, setIsInitialized] = useState(false);
   const [user, authDispatcher] = useReducer<any>(authReducer, undefined);
   const isAuthenticated = !!user;
   _authDispatcher = authDispatcher;
 
   useEffect(() => {
-    if (!getToken()) return;
+    if (!getToken()) {
+      setIsInitialized(true);
+      return;
+    }
 
     axios
       .get("/api/users/" + getUserIdFromToken())
       .then((response: any) => {
         const auth = { user: response.data as AuthUser, token: getToken() + "" };
         _authDispatcher(onLogin(auth));
+        setIsInitialized(true);
       })
-      .catch(() => {});
+      .catch(() => {
+        setIsInitialized(true);
+      });
   }, []);
 
   return (
     <AuthContext.Provider value={{ user: user as AuthUser, isAuthenticated, authDispatcher }}>
-      {children}
+      {isInitialized ? children : <></>}
     </AuthContext.Provider>
   );
 };

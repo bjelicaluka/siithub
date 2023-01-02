@@ -17,7 +17,6 @@ export const AuthGithubCallbackPage: FC = () => {
 
   const authenticateAction = useAction<GithubAuth, AuthenticatedUser>(authenticateGithub, {
     onSuccess: (authUser: AuthenticatedUser) => {
-      console.log(authUser);
       authDispatcher(onLogin(authUser));
       setResult({ status: ResultStatus.Ok, type: "AUTHENTICATE" });
       router.push("/");
@@ -40,7 +39,6 @@ export const AuthGithubCallbackPage: FC = () => {
     const { code, state } = router.query;
     if (!code || !state) return <></>;
 
-    console.log("cafaas");
     authenticateAction({ code: code as string, state: state as string });
     sent = true;
   }
