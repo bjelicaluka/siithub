@@ -8,6 +8,7 @@ import { repositoryRoutes } from "./features/repository/repository.routes";
 import { sshKeyRoutes } from "./features/ssh-key/ssh-key.routes";
 import { milestoneRoutes } from "./features/milestone/milestone.routes";
 import { starRoutes } from "./features/star/star.routes";
+import { blobRoutes } from "./features/blob/blob.routes";
 import { treeRoutes } from "./features/tree/tree.routes";
 
 const router = Router();
@@ -22,6 +23,7 @@ router
   .use("/ssh-keys", sshKeyRoutes)
   .use("/", milestoneRoutes)
   .use("/", starRoutes)
-  .use("/", treeRoutes);
+  .use("/", treeRoutes)
+  .use("/", blobRoutes);
 
 export { router as apiRoutes };
