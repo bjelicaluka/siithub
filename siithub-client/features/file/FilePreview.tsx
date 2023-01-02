@@ -6,7 +6,7 @@ import SyntaxHighlighter from "react-syntax-highlighter";
 import { a11yDark } from "react-syntax-highlighter/dist/cjs/styles/hljs";
 import { Spinner } from "../../core/components/Spinner";
 import Link from "next/link";
-import { ClipboardDocumentIcon } from "@heroicons/react/24/outline";
+import { ArrowDownTrayIcon, ClipboardDocumentIcon } from "@heroicons/react/24/outline";
 import { useNotifications } from "../../core/hooks/useNotifications";
 import { ImagePreview } from "./ImagePreview";
 import { getLang } from "../../core/utils/languages";
@@ -21,7 +21,7 @@ type FilePreviewProps = {
 export const FilePreview: FC<FilePreviewProps> = ({ username, repoName, branch, blobPath }) => {
   const { result, setResult } = useResult("files");
   const notification = useNotifications();
-  const { content, size, isBinary, error, isLoading } = useFile(username, repoName, branch, blobPath, [result]);
+  const { content, size, isBinary, error, isLoading, url } = useFile(username, repoName, branch, blobPath, [result]);
   let path = `/${username}/${repoName}/tree/${encodeURIComponent(branch)}`;
 
   useEffect(() => {
@@ -70,19 +70,27 @@ export const FilePreview: FC<FilePreviewProps> = ({ username, repoName, branch, 
               bytes
             </p>
             <div className="text-right">
-              <button
-                onClick={() =>
-                  navigator.clipboard.writeText(content).then(() => notification.success("Copied to clipboard"))
-                }
-              >
-                <ClipboardDocumentIcon className="w-5 h-5 dark:text-white" />
-              </button>
+              {isBinary ? (
+                <button>
+                  <a href={url} download={blobPath.substring(blobPath.lastIndexOf("/") + 1)}>
+                    <ArrowDownTrayIcon className="w-5 h-5 dark:text-white" />
+                  </a>
+                </button>
+              ) : (
+                <button
+                  onClick={() =>
+                    navigator.clipboard.writeText(content).then(() => notification.success("Copied to clipboard"))
+                  }
+                >
+                  <ClipboardDocumentIcon className="w-5 h-5 dark:text-white" />
+                </button>
+              )}
             </div>
           </div>
           <div>
             {content ? (
               isBinary ? (
-                <ImagePreview content={content} />
+                <ImagePreview url={url} />
               ) : Number(size) > 20000 ? (
                 <div className="whitespace-pre-wrap bg-white border-b dark:bg-gray-800 dark:border-gray-700 p-4 dark:text-white">
                   {content}

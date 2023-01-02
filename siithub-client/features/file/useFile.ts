@@ -26,6 +26,7 @@ export function useFile(
         isBinary,
         size,
         content: isBinary ? res.data : text,
+        url: URL.createObjectURL(res.data),
       };
     },
     {
