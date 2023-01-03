@@ -1,8 +1,8 @@
-import Avatar from "boring-avatars";
 import moment from "moment";
 import Link from "next/link";
 import { type FC, ReactElement, useState } from "react";
 import { Button } from "../../core/components/Button";
+import { ProfilePicture } from "../../core/components/ProfilePicture";
 import { RepositoryCard } from "../repository/RepositoryCard";
 import { type Activity, type NewCommentActivity, type NewIssueActivity, type StaringActivity } from "./activityActions";
 import { useActivities } from "./useActivities";
@@ -16,12 +16,7 @@ const ActivitySharedWrapper: FC<ActivitySharedWrapperProps> = ({ activity, child
     <>
       <li className="mb-5 ml-6">
         <span className="flex absolute -left-3 justify-center items-center bg-blue-200 rounded-full">
-          <Avatar
-            size={34}
-            name={activity.userId}
-            variant="pixel"
-            colors={["#92A1C6", "#146A7C", "#F0AB3D", "#C271B4", "#C20D90"]}
-          />
+          <ProfilePicture username={activity.username} size={34} />
         </span>
         <div className="pl-2">
           <div className="grid grid-cols-12">
