@@ -14,6 +14,35 @@ describe("UserService", () => {
     service = userService;
   });
 
+  describe("findByManyIds", () => {
+    it("shouldn't find any user", async () => {
+      await service.create({ username: "existingUsernameId1" } as any);
+      await service.create({ username: "existingUsernameId2" } as any);
+
+      const id1 = new ObjectId();
+      const id2 = new ObjectId();
+
+      const found = await service.findManyByIds([id1, id2]);
+
+      await expect(found.length).toBeFalsy();
+    });
+
+    it("should return user", async () => {
+      const id1 = new ObjectId();
+      const id2 = new ObjectId();
+
+      await service.create({ _id: id1, username: "existingUsernameId1" } as any);
+      await service.create({ username: "existingUsernameId2" } as any);
+      await service.create({ _id: id2, username: "existingUsernameId3" } as any);
+
+      const found = await service.findManyByIds([id1, id2]);
+
+      expect(found.length).toBe(2);
+      expect(found[0]).toHaveProperty("username", "existingUsernameId1");
+      expect(found[1]).toHaveProperty("username", "existingUsernameId3");
+    });
+  });
+
   describe("findOneOrThrow", () => {
     it("should throw MissingEntityException because user does not exist", async () => {
       const id = new ObjectId();
@@ -23,7 +52,7 @@ describe("UserService", () => {
     });
 
     it("should return user", async () => {
-      const added = await service.create({ username: 'existingUsernameId' } as any);
+      const added = await service.create({ username: "existingUsernameId" } as any);
 
       expect(added).not.toBeNull();
       expect(added).toHaveProperty("_id");
@@ -31,12 +60,11 @@ describe("UserService", () => {
 
       const found = await service.findOneOrThrow(added._id);
       expect(found).not.toBeNull();
-      expect(found._id + '').toBe(added._id + '');
+      expect(found._id + "").toBe(added._id + "");
     });
   });
 
   describe("create", () => {
-
     it("should throw DuplicateException because username is taken", async () => {
       const username = "existingUsername";
       const added = await service.create({ username } as any);
@@ -47,7 +75,6 @@ describe("UserService", () => {
 
       const createDuplicate = async () => service.create({ username, password: "Test" } as any);
       await expect(createDuplicate).rejects.toThrowError("Username is already taken.");
-
     });
 
     it("should throw DuplicateException because github username is taken", async () => {
@@ -58,9 +85,13 @@ describe("UserService", () => {
       expect(added).toHaveProperty("_id");
       if (!added) return;
 
-      const createDuplicate = async () => service.create({ username: "nonExistingUsername", githubUsername: username, password: "Test" } as any);
+      const createDuplicate = async () =>
+        service.create({
+          username: "nonExistingUsername",
+          githubUsername: username,
+          password: "Test",
+        } as any);
       await expect(createDuplicate).rejects.toThrowError("Github username is already taken.");
-
     });
 
     it("should create a new user", async () => {
@@ -70,7 +101,7 @@ describe("UserService", () => {
         githubUsername: "test",
         name: "Test",
         email: "test@siithub.com",
-        bio: "Some random text"
+        bio: "Some random text",
       });
 
       expect(createdUser).not.toBeNull();
@@ -83,4 +114,4 @@ describe("UserService", () => {
       expect(createdUser?.githubAccount?.username).toBe("test");
     });
   });
-})
+});

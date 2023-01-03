@@ -4,6 +4,7 @@ import { userRepo } from "./user.repo";
 import { clearPropertiesOfResultWrapper } from "../../utils/wrappers";
 import { getRandomString, getSha256Hash } from "../../utils/crypto";
 import { gitServerClient } from "../gitserver/gitserver.client";
+import { Filter } from "mongodb";
 
 async function findOneOrThrow(id: User["_id"]): Promise<User> {
   const existingUser = await userRepo.crud.findOne(id);
@@ -13,8 +14,17 @@ async function findOneOrThrow(id: User["_id"]): Promise<User> {
   return existingUser;
 }
 
-async function findMany(): Promise<User[]> {
-  return await userRepo.crud.findMany({}, { projection: { passwordAccount: 0, password: 0 } });
+async function findMany(filters?: Filter<User>): Promise<User[]> {
+  return await userRepo.crud.findMany(filters, { projection: { username: 1, name: 1 } });
+}
+
+async function findManyByIds(ids: User["_id"][], filters: Filter<User> = {}): Promise<User[]> {
+  return await (
+    await userRepo.crud.findManyCursor(
+      { _id: { $in: ids }, ...filters },
+      { projection: { _id: 1, username: 1, email: 1, name: 1 } }
+    )
+  ).toArray();
 }
 
 async function findByIds(ids: User["_id"][]): Promise<User[]> {
@@ -87,6 +97,7 @@ async function updatePassword(
   if (passwordHash !== user.passwordAccount?.passwordHash) {
     throw new BadLogicException("Old password is incorrect");
   }
+
   return await userRepo.crud.update(id, {
     passwordAccount: getHashedPassword(passwordUpdate.newPassword),
   });
@@ -97,15 +108,18 @@ export type UserService = {
   findByUsername(username: string): Promise<User | null>;
   findByUsernameOrThrow(username: string): Promise<User>;
   findByGithubUsername(username: string): Promise<User | null>;
-  findMany(): Promise<User[]>;
+  findMany(filters?: Filter<User>): Promise<User[]>;
+  findByIds(ids: User["_id"][]): Promise<User[]>;
+  findManyByIds(ids: User["_id"][], filters?: Filter<User>): Promise<User[]>;
   create(user: UserCreate): Promise<User | null>;
   updateProfile(id: User["_id"], profileUpdate: UserUpdate): Promise<User | null>;
   updatePassword(id: User["_id"], passwordUpdate: { oldPassword: string; newPassword: string }): Promise<User | null>;
-  findByIds(ids: User["_id"][]): Promise<User[]>;
 };
 
 const userService: UserService = {
   findMany,
+  findManyByIds,
+  findByIds,
   findOneOrThrow: removePassword(findOneOrThrow),
   findByUsername,
   findByUsernameOrThrow: removePassword(findByUsernameOrThrow),
@@ -113,7 +127,6 @@ const userService: UserService = {
   create: removePassword(createUser),
   updateProfile: removePassword(updateProfile),
   updatePassword: removePassword(updatePassword),
-  findByIds,
 };
 
 export { userService };
