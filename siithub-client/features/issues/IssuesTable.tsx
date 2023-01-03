@@ -10,81 +10,78 @@ import { type Issue, IssueState } from "./issueActions";
 import { findLastEvent } from "./utils";
 import { type User } from "../users/user.model";
 import { type Repository } from "../repository/repository.service";
+import { useRepositoryContext } from "../repository/RepositoryContext";
 
 type IssuesTableType = {
-  repositoryId: Repository["_id"],
-  issues: Issue[]
-}
+  repositoryId: Repository["_id"];
+  issues: Issue[];
+};
 
 export const IssuesTable: FC<IssuesTableType> = ({ repositoryId, issues }) => {
-  
+  const { repository } = useRepositoryContext();
   const router = useRouter();
-  const { labels } = useLabels("639b3fa0d40531fd5b576f0a");
+  const { labels } = useLabels(repositoryId);
   const { users } = useUsers();
 
-  const navigateToIssueEdit = (issueId: Issue["_id"]) => router.push(`/repository/${repositoryId}/issues/${issueId}`);
+  const navigateToIssueEdit = (issueId: Issue["_id"]) =>
+    router.push(`/${repository?.owner ?? ""}/${repository?.name ?? ""}/issues/${issueId}`);
 
   const AdditionalText = ({ issue }: { issue: Issue }) => {
-    
-    const issueCreated = findLastEvent(issue.events, (e: any) => e.type === 'IssueCreatedEvent');
-    const issueClosed = findLastEvent(issue.events, (e: any) => e.type === 'IssueClosedEvent');
+    const issueCreated = findLastEvent(issue.events, (e: any) => e.type === "IssueCreatedEvent");
+    const issueClosed = findLastEvent(issue.events, (e: any) => e.type === "IssueClosedEvent");
 
     const findUser = (userId: User["_id"]) => users?.find((u: any) => u._id === userId);
 
-    return <>
-    {
-      [IssueState.Open, IssueState.Reopened].includes(issue.csm.state ?? -1) ?
-        <div>was opened by {findUser(issueCreated.by)?.name} {moment(issueCreated.timeStamp).fromNow()}</div> :
-        <div>{findUser(issueClosed.by)?.name} closed {moment(issueClosed.timeStamp).fromNow()}</div>
-    }
-    </>
-  }
+    return (
+      <>
+        {[IssueState.Open, IssueState.Reopened].includes(issue.csm.state ?? -1) ? (
+          <div>
+            was opened by {findUser(issueCreated.by)?.name} {moment(issueCreated.timeStamp).fromNow()}
+          </div>
+        ) : (
+          <div>
+            {findUser(issueClosed.by)?.name} closed {moment(issueClosed.timeStamp).fromNow()}
+          </div>
+        )}
+      </>
+    );
+  };
   return (
     <>
       <div className="overflow-x-auto relative shadow-md sm:rounded-lg">
-
-        <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-          <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+        <table className="w-full text-sm text-left text-gray-500">
+          <thead className="text-xs text-gray-700 uppercase bg-gray-50">
             <tr>
-              <th scope="col" className="py-3 px-6"/>
+              <th scope="col" className="py-3 px-6" />
             </tr>
           </thead>
           <tbody>
-            {
-              issues?.map((issue: Issue) =>
-                <tr key={issue._id} className="bg-white border-b dark:bg-gray-900 dark:border-gray-700">
-                  <td className="py-4 px-6">
-                    <div onClick={() => navigateToIssueEdit(issue._id)}>
-                      <div className="flex">
-                        <span className="mr-2 mt-2">
-                          { issue.csm.state === IssueState.Closed ?
-                            <ClosedIcon /> :
-                            <OpenedIcon />
-                          }
-                        </span>
-                        <span className="text-xl mr-2">
-                          {issue.csm.title}
-                        </span>
-                        <span>
-                          {
-                            issue.csm.labels?.map(lId => {
-                              const label = labels?.find((l: Label) => l._id === lId) ?? {};
-                              return <LabelPreview key={label._id} {...label} />
-                            })
-                          }
-                          </span>
-                        </div>
-                        <div className="ml-6">
-                          <AdditionalText issue={issue} />
-                        </div>
+            {issues?.map((issue: Issue) => (
+              <tr key={issue._id} className="bg-white border-b">
+                <td className="py-4 px-6">
+                  <div onClick={() => navigateToIssueEdit(issue._id)}>
+                    <div className="flex">
+                      <span className="mr-2 mt-2">
+                        {issue.csm.state === IssueState.Closed ? <ClosedIcon /> : <OpenedIcon />}
+                      </span>
+                      <span className="text-xl mr-2">{issue.csm.title}</span>
+                      <span>
+                        {issue.csm.labels?.map((lId) => {
+                          const label = labels?.find((l: Label) => l._id === lId) ?? {};
+                          return <LabelPreview key={label._id} {...label} />;
+                        })}
+                      </span>
                     </div>
-                  </td>
-                </tr>
-              )
-            }
+                    <div className="ml-6">
+                      <AdditionalText issue={issue} />
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
     </>
-  )
-}
+  );
+};

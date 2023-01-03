@@ -76,7 +76,7 @@ export const useProfileLayout = (page: ReactNode) => {
               <ProfilePicture username={username} size={300} />
               <UserInformations user={user} />
 
-              <div className="pt-4 mt-4 space-y-2 border-t border-gray-200 dark:border-gray-700" />
+              <div className="pt-4 mt-4 space-y-2 border-t border-gray-200" />
 
               <VerticalMenu links={links} />
             </div>

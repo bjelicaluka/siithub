@@ -54,15 +54,15 @@ export const FilePreviewPage: FC<FilePreviewPageProps> = ({ username, repoName, 
   const FileOptions: FC = () => {
     const lines = typeof content === "string" ? (content.match(/\r\n|\r|\n/g)?.length ?? 0) + 1 : 0;
     return (
-      <div className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 p-4 grid grid-cols-6">
-        <p className="text-base font-semibold dark:text-white col-span-5">
+      <div className="bg-white border-b p-4 grid grid-cols-6">
+        <p className="text-base font-semibold col-span-5">
           {lines ? `${lines} line${lines === 1 ? "" : "s"} |` : ""} {size} bytes
         </p>
         <div className="text-right">
           {isBinary ? (
             <button>
               <a href={url} download={blobPath.substring(blobPath.lastIndexOf("/") + 1)}>
-                <ArrowDownTrayIcon className="w-5 h-5 dark:text-white" />
+                <ArrowDownTrayIcon className="w-5 h-5" />
               </a>
             </button>
           ) : (
@@ -71,7 +71,7 @@ export const FilePreviewPage: FC<FilePreviewPageProps> = ({ username, repoName, 
                 navigator.clipboard.writeText(content).then(() => notification.success("Copied to clipboard"))
               }
             >
-              <ClipboardDocumentIcon className="w-5 h-5 dark:text-white" />
+              <ClipboardDocumentIcon className="w-5 h-5" />
             </button>
           )}
         </div>
@@ -83,32 +83,36 @@ export const FilePreviewPage: FC<FilePreviewPageProps> = ({ username, repoName, 
 
   return (
     <>
-      <div className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 p-4 text-lg dark:text-white items-center">
-        <FilePath />
+      <div className="overflow-x-auto relative shadow-md sm:rounded-lg">
+        <div className="w-full border-2 border-gray-200">
+          <div className="bg-white border-b p-4 text-lg items-center">
+            <FilePath />
+          </div>
+          {isLoading ? (
+            <>
+              <div className="flex bg-white border-b p-4">
+                <Spinner size={4} />
+              </div>
+              <div className="flex items-center justify-center bg-white border-b p-4">
+                <Spinner size={16} />
+              </div>
+            </>
+          ) : (
+            <>
+              <FileOptions />
+              <div>
+                <FilePreview
+                  url={url ?? ""}
+                  content={content}
+                  extension={blobPath.substring(blobPath.lastIndexOf(".") + 1)}
+                  size={size ?? 0}
+                  isBinary={isBinary ?? false}
+                />
+              </div>
+            </>
+          )}
+        </div>
       </div>
-      {isLoading ? (
-        <>
-          <div className="flex bg-white border-b dark:bg-gray-800 dark:border-gray-700 p-4">
-            <Spinner size={4} />
-          </div>
-          <div className="flex items-center justify-center bg-white border-b dark:bg-gray-800 dark:border-gray-700 p-4">
-            <Spinner size={16} />
-          </div>
-        </>
-      ) : (
-        <>
-          <FileOptions />
-          <div>
-            <FilePreview
-              url={url ?? ""}
-              content={content}
-              extension={blobPath.substring(blobPath.lastIndexOf(".") + 1)}
-              size={size ?? 0}
-              isBinary={isBinary ?? false}
-            />
-          </div>
-        </>
-      )}
     </>
   );
 };

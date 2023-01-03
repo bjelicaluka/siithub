@@ -10,126 +10,141 @@ import { type Milestone } from "../milestones/milestoneActions";
 import { useMilestonesByRepoId } from "./useMillestones";
 import { CommentPreview } from "./CommentPreview";
 import { type Comment } from "./issueActions";
-import Avatar from "boring-avatars";
+import { ProfilePicture } from "../../core/components/ProfilePicture";
 
-const eventTypesToExclude = [
-  "UserReactedEvent",
-  "UserUnreactedEvent"
-];
+const eventTypesToExclude = ["UserReactedEvent", "UserUnreactedEvent"];
 
 export const IssueHistory: FC = () => {
-
   const { issue } = useIssueContext();
   const { labels } = useLabels(issue.repositoryId);
   const { milestones } = useMilestonesByRepoId(issue.repositoryId);
   const { users } = useUsers();
 
-
   const IssuesWrapper = ({ events }: any) => {
-    return <ol className="relative border-l border-gray-200 dark:border-gray-700">
-      <div key={events.length}>
-        {
-          events.filter((e: any) => e._id && !eventTypesToExclude.includes(e.type)).map((e: any, i: number) => {
-            return <IssueComponent event={e} key={i} />
-          })
-        }
-      </div>
-    </ol>
+    return (
+      <ol className="relative border-l border-gray-200">
+        <div key={events.length}>
+          {events
+            .filter((e: any) => e._id && !eventTypesToExclude.includes(e.type))
+            .map((e: any, i: number) => {
+              return <IssueComponent event={e} key={i} />;
+            })}
+        </div>
+      </ol>
+    );
   };
 
   const IssueComponent = ({ event }: any) => {
-
     const username = useMemo(() => {
-      return users?.find((u: any) => u._id === event.by)?.name
+      return users?.find((u: any) => u._id === event.by)?.name;
     }, [event.by]);
 
     const EventText = ({ event }: any) => {
       switch (event.type) {
-        case 'IssueCreatedEvent': return <>has opened this issue</>
-        case 'IssueUpdatedEvent': return <>has updated this issue</>
+        case "IssueCreatedEvent":
+          return <>has opened this issue</>;
+        case "IssueUpdatedEvent":
+          return <>has updated this issue</>;
 
-        case 'LabelAssignedEvent': {
+        case "LabelAssignedEvent": {
           const label = labels?.find((l: Label) => l._id === event.labelId) ?? {};
-          return <>added the <LabelPreview {...label} /> label</>
+          return (
+            <>
+              added the <LabelPreview {...label} /> label
+            </>
+          );
         }
-        case 'LabelUnassignedEvent': {
+        case "LabelUnassignedEvent": {
           const label = labels?.find((l: Label) => l._id === event.labelId) ?? {};
-          return <>removed the <LabelPreview {...label} /> label</>
+          return (
+            <>
+              removed the <LabelPreview {...label} /> label
+            </>
+          );
         }
 
-        case 'MilestoneAssignedEvent': {
+        case "MilestoneAssignedEvent": {
           const milestone = milestones?.find((m: Milestone) => m._id === event.milestoneId) ?? {};
-          return <>added the {milestone.title} milestone</>
+          return <>added the {milestone.title} milestone</>;
         }
-        case 'MilestoneUnassignedEvent': {
+        case "MilestoneUnassignedEvent": {
           const milestone = milestones?.find((m: Milestone) => m._id === event.milestoneId) ?? {};
-          return <>removed the {milestone.title} milestone</>
+          return <>removed the {milestone.title} milestone</>;
         }
 
-        case 'UserAssignedEvent': return <>assigned {users?.find((u: User) => u._id === event.userId)?.name}</>
-        case 'UserUnassignedEvent': return <>removed {users?.find((u: User) => u._id === event.userId)?.name}</>
+        case "UserAssignedEvent":
+          return <>assigned {users?.find((u: User) => u._id === event.userId)?.name}</>;
+        case "UserUnassignedEvent":
+          return <>removed {users?.find((u: User) => u._id === event.userId)?.name}</>;
 
-        case 'IssueReopenedEvent': return <>reopened this issue</>
-        case 'IssueClosedEvent': return <>closed this issue</>
+        case "IssueReopenedEvent":
+          return <>reopened this issue</>;
+        case "IssueClosedEvent":
+          return <>closed this issue</>;
 
-        case 'CommentCreatedEvent': return <>commented <br/><CommentPreview comment = { issue.csm.comments?.find(c => c._id === event.commentId) as Comment }/></>
-        case 'CommentUpdatedEvent': {
-          const commentById = issue.events?.find(e => e.commentId === event.commentId && e.type === 'CommentCreatedEvent').by;
+        case "CommentCreatedEvent":
+          return (
+            <>
+              commented <br />
+              <CommentPreview comment={issue.csm.comments?.find((c) => c._id === event.commentId) as Comment} />
+            </>
+          );
+        case "CommentUpdatedEvent": {
+          const commentById = issue.events?.find(
+            (e) => e.commentId === event.commentId && e.type === "CommentCreatedEvent"
+          ).by;
           const commentedBy = users?.find((u: User) => u._id === commentById)?.name;
-          return <> edited comment from {commentedBy}</>
+          return <> edited comment from {commentedBy}</>;
         }
-        case 'CommentHiddenEvent': {
-          const commentById = issue.events?.find(e => e.commentId === event.commentId && e.type === 'CommentCreatedEvent').by;
+        case "CommentHiddenEvent": {
+          const commentById = issue.events?.find(
+            (e) => e.commentId === event.commentId && e.type === "CommentCreatedEvent"
+          ).by;
           const commentedBy = users?.find((u: User) => u._id === commentById)?.name;
-          return <> hid comment from {commentedBy}</>
+          return <> hid comment from {commentedBy}</>;
         }
-        case 'CommentDeletedEvent': {
-          const commentById = issue.events?.find(e => e.commentId === event.commentId && e.type === 'CommentCreatedEvent').by;
+        case "CommentDeletedEvent": {
+          const commentById = issue.events?.find(
+            (e) => e.commentId === event.commentId && e.type === "CommentCreatedEvent"
+          ).by;
           const commentedBy = users?.find((u: User) => u._id === commentById)?.name;
-          return <> deleted comment from {commentedBy}</>
+          return <> deleted comment from {commentedBy}</>;
         }
 
-        default: return <></>
+        default:
+          return <></>;
       }
     };
 
     const DoneBy = () => {
-      return <>{username}</>
+      return <>{username}</>;
     };
 
-    return <li className="mb-10 ml-6">
-      <span className="flex absolute -left-3 justify-center items-center w-6 h-6 bg-blue-200 rounded-full ring-8 ring-white dark:ring-gray-900 dark:bg-blue-900">
-        <Avatar
-          size={40}
-          name={username}
-          variant="pixel"
-          colors={["#92A1C6", "#146A7C", "#F0AB3D", "#C271B4", "#C20D90"]}
-        />
-      </span>
-      <div className="p-4 bg-white rounded-lg border border-gray-200 shadow-sm dark:bg-gray-700 dark:border-gray-600">
+    return (
+      <li className="mb-10 ml-6">
+        <span className="flex absolute -left-3 justify-center items-center w-6 h-6 bg-blue-200 rounded-full ring-8 ring-white">
+          <ProfilePicture username={username} size={40} />
+        </span>
+        <div className="p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
+          <div className="grid grid-cols-12">
+            <div className="col-span-10 text-left ">
+              <DoneBy /> <EventText event={event} />
+            </div>
 
-        <div className="grid grid-cols-12">
-          <div className="col-span-10 text-left ">
-            <DoneBy /> <EventText event={event} />
-          </div>
-        
-          <div className="col-span-2 text-right">
-            <time className="mb-1 text-xs font-normal text-gray-400 sm:order-last sm:mb-0">
-              {moment(event.timeStamp).fromNow()}
-            </time>
+            <div className="col-span-2 text-right">
+              <time className="mb-1 text-xs font-normal text-gray-400 sm:order-last sm:mb-0">
+                {moment(event.timeStamp).fromNow()}
+              </time>
+            </div>
           </div>
         </div>
-
-       
-
-      </div>
-    </li>
-
-  }
+      </li>
+    );
+  };
 
   return (
     <>
       <IssuesWrapper events={issue?.events} />
     </>
-  )
+  );
 };

@@ -5,6 +5,8 @@ import { RepositoryHeader } from "../../../features/repository/RepositoryHeader"
 import { CodeBracketIcon } from "@heroicons/react/24/outline";
 import { CalendarIcon } from "@heroicons/react/24/outline";
 import { StarIcon } from "@heroicons/react/24/outline";
+import { TagIcon } from "@heroicons/react/24/outline";
+import { TicketIcon } from "@heroicons/react/24/outline";
 import { Cog8ToothIcon } from "@heroicons/react/24/outline";
 import { RepositoryContextProvider } from "../../../features/repository/RepositoryContext";
 import { RepositoryMenu } from "../../../features/repository/RepositoryMenu";
@@ -15,8 +17,19 @@ function getLinks(router: NextRouter, username: string, repository: string) {
       title: "Code",
       icon: <CodeBracketIcon className="h-4 w-4 mr-2" />,
       path: "/[username]/[repository]",
+      isMultimenu: true,
+      menus: ["/tree", "/blob"],
       onClick: async () => {
         await router.push(`/${username}/${repository}`);
+      },
+    },
+    {
+      title: "Issues",
+      icon: <TicketIcon className="h-4 w-4 mr-2" />,
+      path: "/[username]/[repository]/issues",
+      hasChildrens: true,
+      onClick: async () => {
+        await router.push(`/${username}/${repository}/issues`);
       },
     },
     {
@@ -30,7 +43,7 @@ function getLinks(router: NextRouter, username: string, repository: string) {
     },
     {
       title: "Labels",
-      icon: <CalendarIcon className="h-4 w-4 mr-2" />,
+      icon: <TagIcon className="h-4 w-4 mr-2" />,
       path: "/[username]/[repository]/labels",
       onClick: async () => {
         await router.push(`/${username}/${repository}/labels`);
