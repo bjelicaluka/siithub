@@ -15,18 +15,21 @@ export function useFile(
         `/api/${username}/${repoName}/blob/${encodeURIComponent(branch)}/${encodeURIComponent(blobPath)}`,
         {
           responseType: "blob",
-          headers: {},
         }
       );
       const isBinary = res?.headers["bin"] === "1";
       const size = +(res?.headers["size"] ?? 0);
       const text = isBinary ? "" : await new Response(res.data).text();
+      let url = "";
+      if (blobPath.substring(blobPath.lastIndexOf(".") + 1) === "pdf") {
+        url = URL.createObjectURL(new Blob([res.data], { type: "application/pdf" }));
+      }
 
       return {
         isBinary,
         size,
         content: isBinary ? res.data : text,
-        url: URL.createObjectURL(res.data),
+        url: url || URL.createObjectURL(res.data),
       };
     },
     {
