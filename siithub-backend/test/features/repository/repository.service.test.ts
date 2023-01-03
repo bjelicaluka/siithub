@@ -207,6 +207,7 @@ describe("RepositoryService", () => {
         name: "testCreate",
         description: "testDescription",
         owner,
+        type: "public",
       } as RepositoryCreate);
       expect(createdRepository).not.toBeNull();
       if (!createdRepository) return;
@@ -222,6 +223,7 @@ describe("RepositoryService", () => {
         name: "testCreate",
         description: "testDescription",
         owner,
+        type: "public",
       } as RepositoryCreate);
       expect(createdRepository).not.toBeNull();
       if (!createdRepository) return;
