@@ -9,6 +9,7 @@ import { milestoneRoutes } from "./features/milestone/milestone.routes";
 import { collaboratorsRoutes } from "./features/collaborators/collaborators.routes";
 import { starRoutes } from "./features/star/star.routes";
 import { activitiesRoutes } from "./features/activities/activities.routes";
+import { blobRoutes } from "./features/blob/blob.routes";
 import { treeRoutes } from "./features/tree/tree.routes";
 
 const router = Router();
@@ -24,6 +25,7 @@ router
   .use("/", milestoneRoutes)
   .use("/", starRoutes)
   .use("/", activitiesRoutes)
-  .use("/", treeRoutes);
+  .use("/", treeRoutes)
+  .use("/", blobRoutes);
 
 export { router as apiRoutes };

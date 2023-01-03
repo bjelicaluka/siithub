@@ -10,7 +10,12 @@ import { type Milestone } from "../milestones/milestoneActions";
 import { useMilestonesByRepoId } from "./useMillestones";
 import { CommentPreview } from "./CommentPreview";
 import { type Comment } from "./issueActions";
+import Avatar from "boring-avatars";
 
+const eventTypesToExclude = [
+  "UserReactedEvent",
+  "UserUnreactedEvent"
+];
 
 export const IssueHistory: FC = () => {
 
@@ -24,7 +29,7 @@ export const IssueHistory: FC = () => {
     return <ol className="relative border-l border-gray-200 dark:border-gray-700">
       <div key={events.length}>
         {
-          events.filter((e: any) => e._id).map((e: any, i: number) => {
+          events.filter((e: any) => e._id && !eventTypesToExclude.includes(e.type)).map((e: any, i: number) => {
             return <IssueComponent event={e} key={i} />
           })
         }
@@ -33,6 +38,10 @@ export const IssueHistory: FC = () => {
   };
 
   const IssueComponent = ({ event }: any) => {
+
+    const username = useMemo(() => {
+      return users?.find((u: any) => u._id === event.by)?.name
+    }, [event.by]);
 
     const EventText = ({ event }: any) => {
       switch (event.type) {
@@ -84,23 +93,24 @@ export const IssueHistory: FC = () => {
       }
     };
 
-    const DoneBy = ({ userId }: any) => {
-      const username = useMemo(() => {
-        return users?.find((u: any) => u._id === userId)?.name
-      }, [userId]);
-
+    const DoneBy = () => {
       return <>{username}</>
     };
 
     return <li className="mb-10 ml-6">
       <span className="flex absolute -left-3 justify-center items-center w-6 h-6 bg-blue-200 rounded-full ring-8 ring-white dark:ring-gray-900 dark:bg-blue-900">
-        <img className="rounded-full shadow-lg" src="https://avatars.githubusercontent.com/u/55081607?v=4" alt="Bonnie image" />
+        <Avatar
+          size={40}
+          name={username}
+          variant="pixel"
+          colors={["#92A1C6", "#146A7C", "#F0AB3D", "#C271B4", "#C20D90"]}
+        />
       </span>
       <div className="p-4 bg-white rounded-lg border border-gray-200 shadow-sm dark:bg-gray-700 dark:border-gray-600">
 
         <div className="grid grid-cols-12">
           <div className="col-span-10 text-left ">
-            <DoneBy userId={event.by} /> <EventText event={event} />
+            <DoneBy /> <EventText event={event} />
           </div>
         
           <div className="col-span-2 text-right">

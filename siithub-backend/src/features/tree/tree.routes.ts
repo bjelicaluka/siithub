@@ -1,4 +1,5 @@
 import { type Request, type Response, Router } from "express";
+import "express-async-errors";
 import { getRepoIdFromPath } from "../../utils/getRepo";
 import { gitServerClient } from "../gitserver/gitserver.client";
 
