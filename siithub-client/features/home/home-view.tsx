@@ -5,6 +5,7 @@ import { useSearchRepositories } from "../repository/useRepositories";
 import debounce from "lodash.debounce";
 import { useRouter } from "next/router";
 import Link from "next/link";
+import { Activities } from "./Activities";
 
 const debouncedCb = debounce((cb: () => void) => cb(), 300);
 
@@ -22,8 +23,8 @@ export const HomeView: FC = () => {
   }, [term]);
 
   return (
-    <div className="w-full h-full flex justify-between items-center">
-      <div className="w-56 lg:w-72 h-full border-r border-gray-400 flex flex-col items-center p-3">
+    <div className="w-full h-full flex justify-between">
+      <div className="w-56 lg:w-72 min-h-full border-r border-gray-400 flex flex-col items-center p-3">
         <div className="flex items-center justify-between w-full">
           <div className="text-gray-500">Top Repositories</div>
           <Link
@@ -51,7 +52,9 @@ export const HomeView: FC = () => {
           ))}
         </div>
       </div>
-      <div className="flex-1 h-full"></div>
+      <div className="flex-1 h-full">
+        <Activities />
+      </div>
     </div>
   );
 };

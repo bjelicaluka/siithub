@@ -10,6 +10,10 @@ async function findByRepository(repositoryId: Repository["_id"]): Promise<Collab
   return await collaboratorsRepo.findByRepository(repositoryId);
 }
 
+async function findByUser(userId: User["_id"]): Promise<Collaborator[]> {
+  return await collaboratorsRepo.findByUser(userId);
+}
+
 async function findByRepositoryAndUser(
   repositoryId: Repository["_id"],
   userId: User["_id"]
@@ -46,16 +50,15 @@ export type CollaboratorService = {
   add(collaborator: CollaboratorAdd): Promise<Collaborator | null>;
   remove(collaborator: CollaboratorRemove): Promise<Collaborator | null>;
   findByRepository(repositoryId: Repository["_id"]): Promise<Collaborator[]>;
-  findByRepositoryAndUser(
-    repositoryId: Repository["_id"],
-    userId: User["_id"]
-  ): Promise<Collaborator | null>;
+  findByUser(userId: User["_id"]): Promise<Collaborator[]>;
+  findByRepositoryAndUser(repositoryId: Repository["_id"], userId: User["_id"]): Promise<Collaborator | null>;
 };
 
 const collaboratorsService: CollaboratorService = {
   add: addCollaborator,
   remove: removeCollaborator,
   findByRepository,
+  findByUser,
   findByRepositoryAndUser,
 };
 

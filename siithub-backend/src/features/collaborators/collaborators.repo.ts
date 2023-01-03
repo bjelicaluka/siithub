@@ -9,6 +9,10 @@ async function findByRepository(repositoryId: Repository["_id"]): Promise<Collab
   return await collaboratorsRepo.crud.findMany({ repositoryId });
 }
 
+async function findByUser(userId: User["_id"]): Promise<Collaborator[]> {
+  return await collaboratorsRepo.crud.findMany({ userId });
+}
+
 async function findByRepositoryAndUser(
   repositoryId: Repository["_id"],
   userId: User["_id"]
@@ -19,16 +23,14 @@ async function findByRepositoryAndUser(
 export type CollaboratorsRepo = {
   crud: BaseRepo<Collaborator, CollaboratorAdd>;
   findByRepository(repositoryId: Repository["_id"]): Promise<Collaborator[]>;
-
-  findByRepositoryAndUser(
-    repositoryId: Repository["_id"],
-    userId: User["_id"]
-  ): Promise<Collaborator | null>;
+  findByUser(userId: User["_id"]): Promise<Collaborator[]>;
+  findByRepositoryAndUser(repositoryId: Repository["_id"], userId: User["_id"]): Promise<Collaborator | null>;
 };
 
 const collaboratorsRepo: CollaboratorsRepo = {
   crud: BaseRepoFactory<Collaborator, CollaboratorAdd>(collectionName),
   findByRepository,
+  findByUser,
   findByRepositoryAndUser,
 };
 

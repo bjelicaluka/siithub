@@ -4,6 +4,7 @@ import { type StarService } from "../../../src/features/star/star.service";
 import { User } from "../../../src/features/user/user.model";
 import { Repository } from "../../../src/features/repository/repository.model";
 import { RepositoryRepo } from "../../../src/features/repository/repository.repo";
+import { ObjectId } from "mongodb";
 
 describe("StarService", () => {
   setupTestEnv("StarService");
@@ -13,6 +14,7 @@ describe("StarService", () => {
   let user1: User;
   let user2: User;
   let repo1: Repository;
+  let repo2: Repository;
 
   beforeEach(async () => {
     const { starService } = await import("../../../src/features/star/star.service");
@@ -23,6 +25,34 @@ describe("StarService", () => {
     user1 = (await userRepo.crud.add({ username: "user1" } as any)) as User;
     user2 = (await userRepo.crud.add({ username: "user2" } as any)) as User;
     repo1 = (await repositoryRepo.crud.add({ owner: user2.username, name: "name2" } as any)) as Repository;
+    repo2 = (await repositoryRepo.crud.add({ owner: user2.username, name: "name3" } as any)) as Repository;
+  });
+
+  describe("findByRepoIds", () => {
+    it("shouldn't find any repo", async () => {
+      await service.addStar(user1._id, repo1._id);
+      await service.addStar(user2._id, repo2._id);
+
+      const repoId1 = new ObjectId();
+      const repoId2 = new ObjectId();
+
+      const found = await service.findByRepoIds([repoId1, repoId2]);
+
+      expect(found.length).toBeFalsy();
+    });
+
+    it("should return stars", async () => {
+      await service.addStar(user1._id, repo1._id);
+      await service.addStar(user2._id, repo2._id);
+      await service.addStar(user1._id, repo2._id);
+
+      const found = await service.findByRepoIds([repo1._id, repo2._id]);
+
+      expect(found.length).toBe(3);
+      expect(found[0]).toHaveProperty("repoId", repo1._id);
+      expect(found[1]).toHaveProperty("repoId", repo2._id);
+      expect(found[2]).toHaveProperty("repoId", repo2._id);
+    });
   });
 
   describe("addStar", () => {
