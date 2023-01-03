@@ -51,7 +51,7 @@ const repositoryBodySchema = z.object({
 
 const createRepositoryBodySchema = repositoryBodySchema;
 
-router.post("/", authorize(), authorizeRepositoryOwner(), async (req: Request, res: Response) => {
+router.post("/", authorizeRepositoryOwner(), async (req: Request, res: Response) => {
   const repository = createRepositoryBodySchema.parse(req.body);
 
   const createdRepository = await repositoryService.create(repository);
@@ -72,13 +72,8 @@ async function initRepoData(repository: Repository) {
   await collaboratorsService.add({ repositoryId: repository._id, userId: user?._id });
 }
 
-router.delete(
-  "/:username/:repository",
-  authorize(),
-  authorizeRepositoryOwner(),
-  async (req: Request, res: Response) => {
-    res.send(await repositoryService.delete(req.params.username, req.params.repository));
-  }
-);
+router.delete("/:username/:repository", authorizeRepositoryOwner(), async (req: Request, res: Response) => {
+  res.send(await repositoryService.delete(req.params.username, req.params.repository));
+});
 
 export { repositoryBodySchema, router as repositoryRoutes };

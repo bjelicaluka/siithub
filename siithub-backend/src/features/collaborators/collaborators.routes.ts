@@ -54,26 +54,20 @@ async function mapGetResponse(collaborators: Collaborator[], name: string): Prom
     .filter((c) => !!c.user);
 }
 
-router.post(
-  "/:username/:repository/collaborators",
-  authorize(),
-  authorizeRepositoryOwner(),
-  async (req: Request, res: Response) => {
-    const addCollaboratorParsed = addCollaboratorSchema.parse(req.body);
+router.post("/:username/:repository/collaborators", authorizeRepositoryOwner(), async (req: Request, res: Response) => {
+  const addCollaboratorParsed = addCollaboratorSchema.parse(req.body);
 
-    const repositoryId = await getRepoIdFromPath(req);
-    const addCollaborator: CollaboratorAdd = {
-      ...addCollaboratorParsed,
-      repositoryId,
-    };
+  const repositoryId = await getRepoIdFromPath(req);
+  const addCollaborator: CollaboratorAdd = {
+    ...addCollaboratorParsed,
+    repositoryId,
+  };
 
-    res.send(await collaboratorsService.add(addCollaborator));
-  }
-);
+  res.send(await collaboratorsService.add(addCollaborator));
+});
 
 router.delete(
   "/:username/:repository/collaborators",
-  authorize(),
   authorizeRepositoryOwner(),
   async (req: Request, res: Response) => {
     const removeCollaboratorParsed = removeCollaboratorSchema.parse(req.body);

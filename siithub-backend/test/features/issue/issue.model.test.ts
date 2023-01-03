@@ -18,7 +18,8 @@ import {
   type CommentHiddenEvent,
   type CommentDeletedEvent,
   CommentState,
-  Issue,
+  type UserReactedEvent,
+  type UserUnreactedEvent,
 } from "../../../src/features/issue/issue.model";
 import { createEvent } from "./utils";
 
@@ -854,6 +855,175 @@ describe("IssueModel", () => {
       handleFor(issue, commentDeleted);
 
       expect(issue.csm.comments[0].state).toBe(CommentState.Deleted);
+    });
+
+    it("should throw Reaction cannot be added error because reaction is already added for that user", () => {
+      const [issue, commentCreated] = initializeIssueAndComment();
+      handleFor(issue, commentCreated);
+      const by = commentCreated.by;
+
+      const commentId = issue.csm.comments[0]._id;
+      const reactionAdded = createEvent<UserReactedEvent>({
+        type: "UserReactedEvent",
+        commentId,
+        code: "Proba",
+      });
+      reactionAdded.by = by;
+
+      handleFor(issue, reactionAdded);
+
+      const addReaction = () => handleFor(issue, reactionAdded);
+
+      expect(addReaction).toThrowError("Reaction cannot be added.");
+    });
+
+    it("should throw Reaction cannot be added because comment does not exist", () => {
+      const issueCreated = createEvent<IssueCreatedEvent>({
+        type: "IssueCreatedEvent",
+        title: "Issue Created",
+      });
+
+      const issue = {
+        ...emptyIssue,
+        events: [issueCreated],
+      };
+
+      const reactionAdded = createEvent<UserReactedEvent>({
+        type: "UserReactedEvent",
+        commentId: new ObjectId(),
+        code: "Proba",
+      });
+
+      reactionAdded.by = new ObjectId();
+
+      const addReaction = () => handleFor(issue, reactionAdded);
+
+      expect(addReaction).toThrowError("Reaction cannot be added because comment does not exist.");
+    });
+
+    it("should add user reaction to the comment", () => {
+      const [issue, commentCreated] = initializeIssueAndComment();
+      handleFor(issue, commentCreated);
+
+      const by = commentCreated.by;
+
+      const commentId = issue.csm.comments[0]._id;
+      const reactionAdded = createEvent<UserReactedEvent>({
+        type: "UserReactedEvent",
+        commentId,
+        code: "Proba",
+      });
+      reactionAdded.by = by;
+
+      handleFor(issue, reactionAdded);
+
+      expect(issue.csm.comments[0].reactions["Proba"]).toBe(1);
+    });
+
+    it("should throw Reaction cannot be removed error because reaction was not added before", () => {
+      const [issue, commentCreated] = initializeIssueAndComment();
+      handleFor(issue, commentCreated);
+
+      const by = commentCreated.by;
+      const commentId = issue.csm.comments[0]._id;
+
+      const reactionRemoved = createEvent<UserUnreactedEvent>({
+        type: "UserUnreactedEvent",
+        commentId,
+        code: "Proba",
+      });
+      reactionRemoved.by = by;
+
+      const removeReaction = () => handleFor(issue, reactionRemoved);
+
+      expect(removeReaction).toThrowError("Reaction cannot be removed.");
+    });
+
+    it("should throw Reaction cannot be added because comment does not exist", () => {
+      const [issue, commentCreated] = initializeIssueAndComment();
+      handleFor(issue, commentCreated);
+
+      const by = commentCreated.by;
+      const commentId = issue.csm.comments[0]._id;
+
+      const reactionAdded = createEvent<UserReactedEvent>({
+        type: "UserReactedEvent",
+        commentId,
+        code: "Proba",
+      });
+      reactionAdded.by = by;
+      handleFor(issue, reactionAdded);
+
+      const commentDeleted = createEvent<CommentDeletedEvent>({
+        type: "CommentDeletedEvent",
+        commentId,
+      });
+      handleFor(issue, commentDeleted);
+
+      const reactionRemoved = createEvent<UserUnreactedEvent>({
+        type: "UserUnreactedEvent",
+        commentId,
+        code: "Proba",
+      });
+      reactionRemoved.by = by;
+
+      const removeReaction = () => handleFor(issue, reactionRemoved);
+
+      expect(removeReaction).toThrowError("Reaction cannot be added because comment does not exist.");
+    });
+
+    it("should throw Reaction cannot be removed error because reaction is already removed for that user", () => {
+      const [issue, commentCreated] = initializeIssueAndComment();
+      handleFor(issue, commentCreated);
+
+      const by = commentCreated.by;
+      const commentId = issue.csm.comments[0]._id;
+
+      const reactionAdded = createEvent<UserReactedEvent>({
+        type: "UserReactedEvent",
+        commentId,
+        code: "Proba",
+      });
+      reactionAdded.by = by;
+      handleFor(issue, reactionAdded);
+
+      const reactionRemoved = createEvent<UserUnreactedEvent>({
+        type: "UserUnreactedEvent",
+        commentId,
+        code: "Proba",
+      });
+      reactionRemoved.by = by;
+      handleFor(issue, reactionRemoved);
+
+      const removeReaction = () => handleFor(issue, reactionRemoved);
+
+      expect(removeReaction).toThrowError("Reaction cannot be removed.");
+    });
+
+    it("should remove user reaction from the comment", () => {
+      const [issue, commentCreated] = initializeIssueAndComment();
+      handleFor(issue, commentCreated);
+
+      const by = commentCreated.by;
+      const commentId = issue.csm.comments[0]._id;
+
+      const reactionAdded = createEvent<UserReactedEvent>({
+        type: "UserReactedEvent",
+        commentId,
+        code: "Proba",
+      });
+      reactionAdded.by = by;
+      handleFor(issue, reactionAdded);
+
+      const reactionRemoved = createEvent<UserUnreactedEvent>({
+        type: "UserUnreactedEvent",
+        commentId,
+        code: "Proba",
+      });
+      reactionRemoved.by = by;
+      handleFor(issue, reactionRemoved);
+
+      expect(issue.csm.comments[0].reactions["Proba"]).toBeFalsy();
     });
 
     it("should throw error because type does not exist", () => {

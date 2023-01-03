@@ -197,6 +197,40 @@ function issueReducer(issue: Issue, action: ActionType) {
         },
       };
     }
+    case "ADD_REACTION": {
+      const code = action.payload.code;
+      const comments = [...(issue.csm?.comments ?? [])];
+      const commentToAddReactionTo = comments.find((c) => c._id === action.payload.commentId) as Comment;
+      
+      commentToAddReactionTo.reactions[code] = commentToAddReactionTo.reactions[code] + 1 || 1;
+      
+      return {
+        ...issue,
+        csm: {
+          ...issue.csm,
+          comments,
+        },
+      };
+    }
+    case "REMOVE_REACTION": {
+      const code = action.payload.code;
+      const comments = [...(issue.csm?.comments ?? [])];
+      const commentToAddReactionTo = comments.find((c) => c._id === action.payload.commentId) as Comment;
+
+      commentToAddReactionTo.reactions[code] = commentToAddReactionTo.reactions[code] - 1;
+
+      if (commentToAddReactionTo.reactions[code] === 0) {
+        delete commentToAddReactionTo.reactions[code];
+      };
+
+      return {
+        ...issue,
+        csm: {
+          ...issue.csm,
+          comments,
+        },
+      };
+    }
     default:
       return {
         ...issue,
@@ -485,9 +519,40 @@ export function instantHideComment(issue: Issue, by: User["_id"], commentId: str
       notifications.success("You have successfully hid a comment.");
       dispatch({ type: "HIDE_COMMENT", payload: commentId });
       dispatch({ type: "ADD_EVENT", payload: resp.data.events.pop() });
-    });
+    })
+    .catch((_) => {});
 }
 
+export function instantAddReaction(issue: Issue, by: User["_id"], commentId: Comment["_id"], code: string) {
+  const newIssue: UpdateIssue = {
+    _id: issue._id,
+    events: [{ by, type: "UserReactedEvent", commentId, code }],
+    repositoryId: issue.repositoryId,
+  };
+
+  return (dispatch: any) =>
+  updateIssue(newIssue).then((resp) => {
+    dispatch({ type: "ADD_REACTION", payload: { commentId, code }});
+    dispatch({ type: "ADD_EVENT", payload: resp.data.events.pop() });
+  })
+  .catch((_) => {});
+}
+
+export function instantRemoveReaction(issue: Issue, by: User["_id"], commentId: Comment["_id"], code: string) {
+  const newIssue: UpdateIssue = {
+    _id: issue._id,
+    events: [{ by, type: "UserUnreactedEvent", commentId, code }],
+    repositoryId: issue.repositoryId,
+  };
+
+  return (dispatch: any) =>
+  updateIssue(newIssue).then((resp) => {
+    dispatch({ type: "REMOVE_REACTION", payload: { commentId, code }});
+    dispatch({ type: "ADD_EVENT", payload: resp.data.events.pop() });
+  })
+  .catch((_) => {});
+
+}
 const IssueContext = createContext<IssueContextType>(initialIssueContextValues);
 
 export const useIssueContext = () => useContext(IssueContext);
