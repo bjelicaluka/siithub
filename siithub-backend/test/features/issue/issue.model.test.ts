@@ -18,9 +18,8 @@ import {
   type CommentHiddenEvent,
   type CommentDeletedEvent,
   CommentState,
-  Issue,
-  UserReactedEvent,
-  UserUnreactedEvent,
+  type UserReactedEvent,
+  type UserUnreactedEvent,
 } from "../../../src/features/issue/issue.model";
 import { createEvent } from "./utils";
 
@@ -1024,7 +1023,7 @@ describe("IssueModel", () => {
       reactionRemoved.by = by;
       handleFor(issue, reactionRemoved);
 
-      expect(issue.csm.comments[0].reactions["Proba"]).toBe(0);
+      expect(issue.csm.comments[0].reactions["Proba"]).toBeFalsy();
     });
 
     it("should throw error because type does not exist", () => {

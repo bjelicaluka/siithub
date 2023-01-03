@@ -1,6 +1,6 @@
 import { type FC, useState } from "react";
 import { CommentState, type Comment } from "./issueActions";
-import { EyeIcon } from "./Icons";
+import { EyeIcon } from "@heroicons/react/20/solid";
 import parse from "html-react-parser";
 import { useAuthContext } from "../../core/contexts/Auth";
 import { instantAddReaction, instantDeleteComment, instantHideComment, useIssueContext } from "./IssueContext";
@@ -60,9 +60,9 @@ export const CommentPreview: FC<CommentPreviewProps> = ({ comment }) => {
           <span className="mr-2">
             {parse(isHiddable ? (showHidden ? comment.text : getText(comment)) : getText(comment))}
           </span>
-
+          
           <span hidden={!isHiddable} onClick={toggleShowHidden}>
-            <EyeIcon />
+            <EyeIcon className="inline-block h-5 w-5 text-indigo-500 mr-2" />
           </span>
         </div>
       </div>

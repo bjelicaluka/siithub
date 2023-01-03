@@ -124,7 +124,7 @@ export function handleFor(issue: Issue, event: BaseEvent) {
       const labelAssigned = event as LabelAssignedEvent;
       const lastLabelEvent = findLastEvent<LabelAssignedEvent | LabelUnassignedEvent>(
         issue.events,
-        (e) => e?.labelId === labelAssigned?.labelId || e?.labelId?.toString() === labelAssigned?.labelId.toString()
+        (e) => compareIds(e?.labelId, labelAssigned?.labelId)
       );
       if (lastLabelEvent?.type === "LabelAssignedEvent") {
         throw new BadLogicException("Label is already assigned to the Issue.", event);
@@ -137,7 +137,7 @@ export function handleFor(issue: Issue, event: BaseEvent) {
       const labelUnassigned = event as LabelUnassignedEvent;
       const lastLabelEvent = findLastEvent<LabelAssignedEvent | LabelUnassignedEvent>(
         issue.events,
-        (e) => e?.labelId === labelUnassigned?.labelId || e?.labelId?.toString() === labelUnassigned?.labelId.toString()
+        (e) => compareIds(e?.labelId, labelUnassigned?.labelId)
       );
       if (!lastLabelEvent || lastLabelEvent?.type === "LabelUnassignedEvent") {
         throw new BadLogicException("Label cannot be unassigned from the Issue.", event);
@@ -152,13 +152,12 @@ export function handleFor(issue: Issue, event: BaseEvent) {
       const milestoneAssigned = event as MilestoneAssignedEvent;
       const lastMilestoneEvent = findLastEvent<MilestoneAssignedEvent | MilestoneUnassignedEvent>(
         issue.events,
-        (e) =>
-          e?.milestoneId === milestoneAssigned?.milestoneId ||
-          e?.milestoneId?.toString() === milestoneAssigned?.milestoneId.toString()
+        (e) => compareIds(e?.milestoneId, milestoneAssigned?.milestoneId)
       );
       if (lastMilestoneEvent?.type === "MilestoneAssignedEvent") {
         throw new BadLogicException("Milestone is already assigned to the Issue.", event);
       }
+
       issue.csm.milestones?.push(milestoneAssigned?.milestoneId);
       break;
     }
@@ -166,9 +165,7 @@ export function handleFor(issue: Issue, event: BaseEvent) {
       const milestoneUnassigned = event as MilestoneUnassignedEvent;
       const lastMilestoneEvent = findLastEvent<MilestoneAssignedEvent | MilestoneUnassignedEvent>(
         issue.events,
-        (e) =>
-          e?.milestoneId === milestoneUnassigned?.milestoneId ||
-          e?.milestoneId?.toString() === milestoneUnassigned?.milestoneId.toString()
+        (e) => compareIds(e?.milestoneId, milestoneUnassigned?.milestoneId)
       );
       if (!lastMilestoneEvent || lastMilestoneEvent?.type === "MilestoneUnassignedEvent") {
         throw new BadLogicException("Milestone cannot be unassigned from the Issue.", event);
@@ -183,7 +180,7 @@ export function handleFor(issue: Issue, event: BaseEvent) {
       const userAssigned = event as UserAssignedEvent;
       const lastUserEvent = findLastEvent<UserAssignedEvent | UserUnassignedEvent>(
         issue.events,
-        (e) => e?.userId === userAssigned?.userId || e?.userId?.toString() === userAssigned?.userId?.toString()
+        (e) => compareIds(e?.userId, userAssigned?.userId)
       );
       if (lastUserEvent?.type === "UserAssignedEvent") {
         throw new BadLogicException("User is already assigned to the Issue.", event);
@@ -196,7 +193,7 @@ export function handleFor(issue: Issue, event: BaseEvent) {
       const userUnassigned = event as UserUnassignedEvent;
       const lastUserEvent = findLastEvent<UserAssignedEvent | UserUnassignedEvent>(
         issue.events,
-        (e) => e?.userId === userUnassigned?.userId || e?.userId?.toString() === userUnassigned?.userId?.toString()
+        (e) => compareIds(e?.userId, userUnassigned?.userId)
       );
       if (!lastUserEvent || lastUserEvent?.type === "UserUnassignedEvent") {
         throw new BadLogicException("User cannot be unassigned from the Issue.", event);
@@ -280,19 +277,20 @@ export function handleFor(issue: Issue, event: BaseEvent) {
     }
     case "UserReactedEvent": {
       const userReacted = event as UserReactedEvent;
-      const lastReactionStateEvent = findLastEvent<UserReactedEvent | UserUnreactedEvent>(
+      const lastReactionEvent = findLastEvent<UserReactedEvent | UserUnreactedEvent>(
         issue.events,
         (e) =>
           compareIds(e?.commentId, userReacted?.commentId) &&
           compareIds(e?.by, userReacted?.by) &&
           e?.code === userReacted?.code
       );
-      if (lastReactionStateEvent?.type === "UserReactedEvent") {
+
+      if (lastReactionEvent?.type === "UserReactedEvent") {
         throw new BadLogicException("Reaction cannot be added.", event);
       }
 
       const comment = findComment(issue, userReacted.commentId);
-      if (!comment || comment.state != CommentState.Existing) {
+      if (!comment || comment.state !== CommentState.Existing) {
         throw new BadLogicException("Reaction cannot be added because comment does not exist.", event);
       }
 
@@ -301,7 +299,7 @@ export function handleFor(issue: Issue, event: BaseEvent) {
     }
     case "UserUnreactedEvent": {
       const userUnreacted = event as UserUnreactedEvent;
-      const lastReactionStateEvent = findLastEvent<UserReactedEvent | UserUnreactedEvent>(
+      const lastReactionEvent = findLastEvent<UserReactedEvent | UserUnreactedEvent>(
         issue.events,
         (e) =>
           compareIds(e?.commentId, userUnreacted?.commentId) &&
@@ -309,12 +307,12 @@ export function handleFor(issue: Issue, event: BaseEvent) {
           e?.code === userUnreacted?.code
       );
 
-      if (!lastReactionStateEvent || lastReactionStateEvent?.type === "UserUnreactedEvent") {
+      if (!lastReactionEvent || lastReactionEvent?.type === "UserUnreactedEvent") {
         throw new BadLogicException("Reaction cannot be removed.", event);
       }
 
       const comment = findComment(issue, userUnreacted.commentId);
-      if (comment.state != CommentState.Existing) {
+      if (comment.state !== CommentState.Existing) {
         throw new BadLogicException("Reaction cannot be added because comment does not exist.");
       }
 
@@ -344,7 +342,7 @@ function canCommentBeModified(issue: Issue, commentId: Comment["_id"]): boolean 
     issue.events,
     (e) =>
       ["CommentCreatedEvent", "CommentHiddenEvent", "CommentDeletedEvent"].includes(e.type) &&
-      (e.commentId === commentId || e.commentId?.toString() === commentId?.toString())
+      (compareIds(e.commentId, commentId))
   );
 
   return !(

@@ -3,7 +3,7 @@ import { Emoji, EmojiStyle } from "emoji-picker-react";
 
 type EmojiPreviewProps = {
   emoji: string;
-  counter: any;
+  counter: number;
   isSelected: boolean;
   onClick: () => any;
 }
