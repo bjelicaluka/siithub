@@ -1,5 +1,6 @@
 import axios from "axios";
 import { config } from "../../config";
+import { MissingEntityException } from "../../error-handling/errors";
 
 async function createUser(username: string): Promise<any> {
   return await axios.post(`${config.gitServer.url}/api/users`, { username });
@@ -38,14 +39,35 @@ async function removeSshKey(username: string, key: string): Promise<any> {
   });
 }
 
-async function getTree(username: string, repoName: string, branch: string, treePath: string): Promise<any> {
-  return (
-    await axios.get(
+async function getTree(username: string, repoName: string, branch: string, treePath: string) {
+  try {
+    const response = await axios.get(
       `${config.gitServer.url}/api/tree/${username}/${repoName}/${encodeURIComponent(branch)}/${encodeURIComponent(
         treePath
       )}`
-    )
-  ).data;
+    );
+    return response.data;
+  } catch (err) {
+    throw new MissingEntityException("Folder not found");
+  }
+}
+
+async function getBlob(username: string, repoName: string, branch: string, blobPath: string) {
+  try {
+    const response = await axios.get(
+      `${config.gitServer.url}/api/blob/${username}/${repoName}/${encodeURIComponent(branch)}/${encodeURIComponent(
+        blobPath
+      )}`,
+      { responseType: "arraybuffer" }
+    );
+    return {
+      size: response.headers["size"] + "",
+      bin: response.headers["bin"] + "",
+      data: response.data,
+    };
+  } catch (err) {
+    throw new MissingEntityException("File not found");
+  }
 }
 
 export type GitServerClient = {
@@ -56,6 +78,12 @@ export type GitServerClient = {
   updateSshKey(username: string, oldKey: string, key: string): Promise<any>;
   removeSshKey(username: string, key: string): Promise<any>;
   getTree(username: string, repoName: string, branch: string, treePath: string): Promise<any>;
+  getBlob(
+    username: string,
+    repoName: string,
+    branch: string,
+    blobPath: string
+  ): Promise<{ size: string; bin: string; data: any }>;
 };
 
 const gitServerClient: GitServerClient = {
@@ -66,6 +94,7 @@ const gitServerClient: GitServerClient = {
   updateSshKey,
   removeSshKey,
   getTree,
+  getBlob,
 };
 
 export { gitServerClient };
