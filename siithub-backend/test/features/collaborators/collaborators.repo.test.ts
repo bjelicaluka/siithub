@@ -13,9 +13,7 @@ describe("CollaboratorsRepo", () => {
   let userId: User["_id"];
 
   beforeEach(async () => {
-    const { collaboratorsRepo } = await import(
-      "../../../src/features/collaborators/collaborators.repo"
-    );
+    const { collaboratorsRepo } = await import("../../../src/features/collaborators/collaborators.repo");
 
     repository = collaboratorsRepo;
     repositoryId = new ObjectId();
@@ -49,6 +47,34 @@ describe("CollaboratorsRepo", () => {
       expect(found.length).not.toBeFalsy();
       expect(found[0]).toHaveProperty("repositoryId", repositoryId);
       expect(found[1]).toHaveProperty("repositoryId", repositoryId);
+    });
+  });
+
+  describe("findByUser", () => {
+    it("shouldn't find by userId", async () => {
+      const userId = new ObjectId();
+
+      const found = await repository.findByUser(userId);
+      expect(found.length).toBeFalsy();
+    });
+
+    it("shouldn't find by userId", async () => {
+      await repository.crud.add({ userId: new ObjectId() } as any);
+
+      const userId = new ObjectId();
+
+      const found = await repository.findByUser(userId);
+      expect(found.length).toBeFalsy();
+    });
+
+    it("should find by userId", async () => {
+      await repository.crud.add({ userId: new ObjectId() } as any);
+      await repository.crud.add({ userId } as any);
+
+      const found = await repository.findByUser(userId);
+
+      expect(found.length).not.toBeFalsy();
+      expect(found[0]).toHaveProperty("userId", userId);
     });
   });
 

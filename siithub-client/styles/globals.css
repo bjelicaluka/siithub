@@ -14,3 +14,15 @@ body {
   left: 0;
   right: 0;
 }
+
+@layer base {
+  h1 {
+    @apply text-2xl;
+  }
+  h2 {
+    @apply text-xl;
+  }
+  ul {
+    @apply list-disc list-inside;
+  }
+}
