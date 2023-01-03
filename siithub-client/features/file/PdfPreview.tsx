@@ -1,5 +1,5 @@
 import { type FC } from "react";
-import { FilePreviewProps } from "./FilePreview";
+import { type FilePreviewProps } from "./FilePreview";
 
 const PdfPreview: FC<FilePreviewProps> = ({ url }) => {
   return (

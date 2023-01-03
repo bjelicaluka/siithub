@@ -19,18 +19,16 @@ export const FilePreviewPage: FC<FilePreviewPageProps> = ({ username, repoName, 
   const { result, setResult } = useResult("files");
   const notification = useNotifications();
   const { content, size, isBinary, error, isLoading, url } = useFile(username, repoName, branch, blobPath, [result]);
-  let path = `/${username}/${repoName}/tree/${encodeURIComponent(branch)}`;
 
   useEffect(() => {
     if (!result) return;
     setResult(undefined);
   }, [result, setResult]);
 
-  if (error) return <NotFound />;
-
-  return (
-    <>
-      <div className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 p-4 text-lg dark:text-white items-center">
+  const FilePath: FC = () => {
+    let path = `/${username}/${repoName}/tree/${encodeURIComponent(branch)}`;
+    return (
+      <>
         <Link href={path} className="text-blue-500 hover:underline font-semibold m-1">
           {repoName}
         </Link>
@@ -49,6 +47,44 @@ export const FilePreviewPage: FC<FilePreviewPageProps> = ({ username, repoName, 
             </span>
           );
         })}
+      </>
+    );
+  };
+
+  const FileOptions: FC = () => {
+    const lines = typeof content === "string" ? (content.match(/\r\n|\r|\n/g)?.length ?? 0) + 1 : 0;
+    return (
+      <div className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 p-4 grid grid-cols-6">
+        <p className="text-base font-semibold dark:text-white col-span-5">
+          {lines ? `${lines} line${lines === 1 ? "" : "s"} |` : ""} {size} bytes
+        </p>
+        <div className="text-right">
+          {isBinary ? (
+            <button>
+              <a href={url} download={blobPath.substring(blobPath.lastIndexOf("/") + 1)}>
+                <ArrowDownTrayIcon className="w-5 h-5 dark:text-white" />
+              </a>
+            </button>
+          ) : (
+            <button
+              onClick={() =>
+                navigator.clipboard.writeText(content).then(() => notification.success("Copied to clipboard"))
+              }
+            >
+              <ClipboardDocumentIcon className="w-5 h-5 dark:text-white" />
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  if (error) return <NotFound />;
+
+  return (
+    <>
+      <div className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 p-4 text-lg dark:text-white items-center">
+        <FilePath />
       </div>
       {isLoading ? (
         <>
@@ -61,29 +97,7 @@ export const FilePreviewPage: FC<FilePreviewPageProps> = ({ username, repoName, 
         </>
       ) : (
         <>
-          <div className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 p-4 grid grid-cols-6">
-            <p className="text-base font-semibold dark:text-white col-span-5">
-              {typeof content === "string" ? (content?.match(/\r\n|\r|\n/g)?.length as number) + 1 : 1} lines | {size}{" "}
-              bytes
-            </p>
-            <div className="text-right">
-              {isBinary ? (
-                <button>
-                  <a href={url} download={blobPath.substring(blobPath.lastIndexOf("/") + 1)}>
-                    <ArrowDownTrayIcon className="w-5 h-5 dark:text-white" />
-                  </a>
-                </button>
-              ) : (
-                <button
-                  onClick={() =>
-                    navigator.clipboard.writeText(content).then(() => notification.success("Copied to clipboard"))
-                  }
-                >
-                  <ClipboardDocumentIcon className="w-5 h-5 dark:text-white" />
-                </button>
-              )}
-            </div>
-          </div>
+          <FileOptions />
           <div>
             <FilePreview
               url={url ?? ""}

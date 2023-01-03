@@ -1,5 +1,5 @@
 import { type FC } from "react";
-import { FilePreviewProps } from "./FilePreview";
+import { type FilePreviewProps } from "./FilePreview";
 
 const RawTextPreview: FC<FilePreviewProps> = ({ content }) => {
   return (

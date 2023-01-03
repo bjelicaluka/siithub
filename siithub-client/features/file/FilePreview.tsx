@@ -13,11 +13,10 @@ export const FilePreview: FC<FilePreviewProps> = ({ content, url, extension, siz
   const getComponent = () => {
     if (isBinary) {
       if (extension === "pdf") return dynamic(() => import("./PdfPreview"));
-      else return dynamic(() => import("./ImagePreview"));
-    } else {
-      if (size > 20000) return dynamic(() => import("./RawTextPreview"));
-      else return dynamic(() => import("./CodePreview"));
+      return dynamic(() => import("./ImagePreview"));
     }
+    if (size > 20000) return dynamic(() => import("./RawTextPreview"));
+    return dynamic(() => import("./CodePreview"));
   };
 
   const Component = getComponent();
