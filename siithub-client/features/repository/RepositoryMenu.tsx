@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { FC, ReactElement, useCallback } from "react";
+import { type FC, ReactElement, useCallback } from "react";
 
 export type RepositoryMenuItem = {
   title: string;
@@ -37,17 +37,17 @@ export const RepositoryMenu: FC<RepositoryMenuProps> = ({ links }) => {
         <div className="py-1 px-2 flex items-baseline space-x-4 ">
           {links?.map((link: RepositoryMenuItem) => {
             return (
-              <a
+              <p
                 key={link.title}
                 onClick={link.onClick}
                 className={
-                  "flex items-center bg-gray-900 text-white px-3 py-2 rounded-md text-sm font-medium hover:border-indigo-300 hover:border-b-4 " +
+                  "flex items-center bg-gray-900 text-white cursor-pointer px-3 py-2 rounded-md text-sm font-medium hover:border-indigo-300 hover:border-b-4 " +
                   (isActive(link) ? "border-blue-600 border-b-4" : "")
                 }
               >
                 {link.icon}
                 <span className="ml-3">{link.title}</span>
-              </a>
+              </p>
             );
           })}
         </div>

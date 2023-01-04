@@ -1,5 +1,5 @@
 import { NextRouter, useRouter } from "next/router";
-import { ReactNode, useMemo } from "react";
+import { type FC, type PropsWithChildren } from "react";
 import { useAuthContext } from "../../../core/contexts/Auth";
 import { RepositoryHeader } from "../../../features/repository/RepositoryHeader";
 import { CodeBracketIcon } from "@heroicons/react/24/outline";
@@ -69,7 +69,7 @@ function getLinks(router: NextRouter, username: string, repository: string) {
   ];
 }
 
-export const useRepositoryLayout = (page: ReactNode) => {
+export const RepositoryLayout: FC<PropsWithChildren> = ({ children }) => {
   const router = useRouter();
   const { username, repository } = router.query;
   const { user } = useAuthContext();
@@ -85,7 +85,7 @@ export const useRepositoryLayout = (page: ReactNode) => {
       <RepositoryMenu links={links} />
 
       <RepositoryContextProvider>
-        <div className="mt-20">{page}</div>
+        <div className="mt-10">{children}</div>
       </RepositoryContextProvider>
     </>
   );

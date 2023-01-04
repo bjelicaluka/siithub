@@ -1,41 +1,41 @@
-import { type FC, PropsWithChildren, ReactNode, ReactElement } from "react";
-import { useSettingsLayout } from "./settings/_settings.layout";
-import { useProfileLayout } from "./users/[username]/_profile.layout";
+import { type FC, type PropsWithChildren } from "react";
+import { SettingsLayout } from "./settings/_settings.layout";
+import { ProfileLayout } from "./users/[username]/_profile.layout";
 import { useRouter } from "next/router";
-import { useRepositoryLayout } from "./[username]/[repository]/_repository.layout";
-import { useRepositorySettingsLayout } from "./[username]/[repository]/settings/_repository-settings.layout";
+import { RepositoryLayout } from "./[username]/[repository]/_repository.layout";
+import { RepositorySettingsLayout } from "./[username]/[repository]/settings/_repository-settings.layout";
 
 type NestedLayout = {
   path: string;
   pathMatch: "startsWith" | "exact";
-  layoutFactory: (page: ReactNode) => ReactElement;
+  component: FC<PropsWithChildren>;
   children?: NestedLayoutChild[];
 };
 
 type NestedLayoutChild = {
   path: string;
-  layoutFactory: (page: ReactNode) => ReactElement;
+  component: FC<PropsWithChildren>;
 };
 
 const registeredLayouts: NestedLayout[] = [
   {
     path: "/settings",
     pathMatch: "startsWith",
-    layoutFactory: useSettingsLayout,
+    component: SettingsLayout,
   },
   {
     path: "/users/[username]",
     pathMatch: "startsWith",
-    layoutFactory: useProfileLayout,
+    component: ProfileLayout,
   },
   {
     path: "/[username]/[repository]",
     pathMatch: "startsWith",
-    layoutFactory: useRepositoryLayout,
+    component: RepositoryLayout,
     children: [
       {
         path: "/settings",
-        layoutFactory: useRepositorySettingsLayout,
+        component: RepositorySettingsLayout,
       },
     ],
   },
@@ -54,21 +54,38 @@ function match(path: string, routerPath: string, matchType: string) {
 export const NestedLayoutResolver: FC<PropsWithChildren> = ({ children }) => {
   const r = useRouter();
 
-  const findLayoutFactory = () => {
+  const findLayoutComponent = () => {
     for (const layout of registeredLayouts) {
       for (const childLayout of layout.children || []) {
         if (match(layout.path + childLayout.path, r.pathname, layout.pathMatch)) {
-          return (children: ReactNode) => layout.layoutFactory(childLayout.layoutFactory(children));
+          const NestedLayout: FC<PropsWithChildren> = ({ children }) => {
+            return (
+              <>
+                <layout.component>
+                  <childLayout.component>{children}</childLayout.component>
+                </layout.component>
+              </>
+            );
+          };
+          return NestedLayout;
         }
       }
 
       if (match(layout.path, r.pathname, layout.pathMatch)) {
-        return layout.layoutFactory;
+        return layout.component;
       }
     }
 
-    return (page: ReactNode) => page;
+    return undefined;
   };
 
-  return <>{findLayoutFactory()(children)}</>;
+  const LayoutComponent = findLayoutComponent();
+
+  if (!LayoutComponent) return <>{children}</>;
+
+  return (
+    <>
+      <LayoutComponent>{children}</LayoutComponent>
+    </>
+  );
 };

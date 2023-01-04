@@ -59,7 +59,7 @@ export const IssuesTable: FC<IssuesTableType> = ({ repositoryId, issues }) => {
             {issues?.map((issue: Issue) => (
               <tr key={issue._id} className="bg-white border-b">
                 <td className="py-4 px-6">
-                  <div onClick={() => navigateToIssueEdit(issue._id)}>
+                  <div className="cursor-pointer" onClick={() => navigateToIssueEdit(issue._id)}>
                     <div className="flex">
                       <span className="mr-2 mt-2">
                         {issue.csm.state === IssueState.Closed ? <ClosedIcon /> : <OpenedIcon />}

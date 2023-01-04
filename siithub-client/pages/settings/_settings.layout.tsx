@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ReactNode } from "react";
+import { type FC, type PropsWithChildren } from "react";
 import { ProfilePicture } from "../../core/components/ProfilePicture";
 import { Button } from "../../core/components/Button";
 import { useAuthContext } from "../../core/contexts/Auth";
@@ -24,7 +24,7 @@ const links: MenuItem[] = [
   },
 ];
 
-export const useSettingsLayout = (page: ReactNode) => {
+export const SettingsLayout: FC<PropsWithChildren> = ({ children }) => {
   const { user } = useAuthContext();
 
   if (!user) return <></>;
@@ -40,7 +40,7 @@ export const useSettingsLayout = (page: ReactNode) => {
 
       <HorizontalMenu links={links} />
 
-      <div className="mt-20">{page}</div>
+      <div className="mt-10">{children}</div>
     </>
   );
 };

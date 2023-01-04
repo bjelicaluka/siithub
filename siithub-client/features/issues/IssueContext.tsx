@@ -1,4 +1,4 @@
-import { type FC, PropsWithChildren, createContext, useContext } from "react";
+import { type FC, type PropsWithChildren, createContext, useContext } from "react";
 import {
   type CreateIssue,
   type Issue,

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, ReactNode, type FC } from "react";
+import { useEffect, type FC, type PropsWithChildren } from "react";
 import Link from "next/link";
 import { NextRouter, useRouter } from "next/router";
 import { StarIcon } from "@heroicons/react/24/solid";
@@ -51,7 +51,7 @@ const UserInformations: FC<UserInformationsProps> = ({ user }) => {
   );
 };
 
-export const useProfileLayout = (page: ReactNode) => {
+export const ProfileLayout: FC<PropsWithChildren> = ({ children }) => {
   const router = useRouter();
   const { result, setResult } = useResult("users");
   const username = router.query?.username?.toString() ?? "";
@@ -64,8 +64,8 @@ export const useProfileLayout = (page: ReactNode) => {
 
   const links = getLinks(router, user);
 
-  if (!username || !user) return <></>;
   if (error) return <NotFound />;
+  if (!username || !user) return <></>;
 
   return (
     <>
@@ -82,7 +82,7 @@ export const useProfileLayout = (page: ReactNode) => {
             </div>
           </aside>
         </div>
-        <div className="grow">{page}</div>
+        <div className="grow">{children}</div>
       </div>
     </>
   );

@@ -1,7 +1,6 @@
-import { ReactNode, useMemo } from "react";
+import { type FC, type PropsWithChildren } from "react";
 import { NextRouter, useRouter } from "next/router";
 import { Cog8ToothIcon, UsersIcon } from "@heroicons/react/24/solid";
-import { useRepositoryLayout } from "../_repository.layout";
 import { VerticalMenu } from "../../../../core/components/VerticalMenu";
 
 function getLinks(router: NextRouter, username: string, repository: string) {
@@ -25,7 +24,7 @@ function getLinks(router: NextRouter, username: string, repository: string) {
   ];
 }
 
-const useRepositorySettingsLayout = (page: ReactNode) => {
+export const RepositorySettingsLayout: FC<PropsWithChildren> = ({ children }) => {
   const router = useRouter();
   const { username, repository } = router.query;
 
@@ -43,12 +42,8 @@ const useRepositorySettingsLayout = (page: ReactNode) => {
             </div>
           </aside>
         </div>
-        <div className="grow ml-4">{page}</div>
+        <div className="grow ml-4">{children}</div>
       </div>
     </>
   );
 };
-
-useRepositorySettingsLayout.parentLayout = useRepositoryLayout;
-
-export { useRepositorySettingsLayout };

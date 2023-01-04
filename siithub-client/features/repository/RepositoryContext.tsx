@@ -1,4 +1,4 @@
-import { FC, PropsWithChildren, createContext, useContext, useEffect, useState } from "react";
+import { type FC, type PropsWithChildren, createContext, useContext, useEffect, useState } from "react";
 import { type Repository } from "./repository.service";
 import { useRouter } from "next/router";
 import { useRepository } from "./useRepositories";
