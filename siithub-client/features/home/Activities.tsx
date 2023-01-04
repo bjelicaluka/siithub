@@ -70,7 +70,7 @@ const NewIssueActivityComponent: FC<ActivityComponentProps> = ({ activity }) => 
           has created a new issue{" "}
           <Link
             className="text-blue-500 hover:underline"
-            href={`/repository/${activity.repoId}/issues/${newIssueActivity.issueId}`}
+            href={`/${activity.repoOwner}/${activity.repoName}/issues/${newIssueActivity.issueId}`}
           >
             {newIssueActivity.title}
           </Link>{" "}
@@ -97,7 +97,7 @@ const NewCommentActivityComponent: FC<ActivityComponentProps> = ({ activity }) =
           has posted a new comment on the{" "}
           <Link
             className="text-blue-500 hover:underline"
-            href={`/repository/${activity.repoId}/issues/${newCommentActivity.issueId}`}
+            href={`/${activity.repoOwner}/${activity.repoName}/issues/${newCommentActivity.issueId}`}
           >
             {newCommentActivity.title}
           </Link>{" "}

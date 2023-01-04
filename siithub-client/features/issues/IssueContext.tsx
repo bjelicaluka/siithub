@@ -1,4 +1,4 @@
-import { type FC, PropsWithChildren, createContext, useContext } from "react";
+import { type FC, type PropsWithChildren, createContext, useContext } from "react";
 import {
   type CreateIssue,
   type Issue,
@@ -201,9 +201,9 @@ function issueReducer(issue: Issue, action: ActionType) {
       const code = action.payload.code;
       const comments = [...(issue.csm?.comments ?? [])];
       const commentToAddReactionTo = comments.find((c) => c._id === action.payload.commentId) as Comment;
-      
+
       commentToAddReactionTo.reactions[code] = commentToAddReactionTo.reactions[code] + 1 || 1;
-      
+
       return {
         ...issue,
         csm: {
@@ -221,7 +221,7 @@ function issueReducer(issue: Issue, action: ActionType) {
 
       if (commentToAddReactionTo.reactions[code] === 0) {
         delete commentToAddReactionTo.reactions[code];
-      };
+      }
 
       return {
         ...issue,
@@ -250,7 +250,7 @@ export function createNewIssue(issue: Issue, by: User["_id"]) {
 
   createIssue(newIssue)
     .then((resp) => {
-      Router.push(`/repository/${issue.repositoryId}/issues/${resp.data._id}`);
+      Router.push(`${Router.asPath.replace("new", "")}${resp.data._id}`);
       notifications.success("You have successfully created a new issue.");
     })
     .catch((_) => {});
@@ -466,7 +466,7 @@ export function instantCreateComment(issue: Issue, by: User["_id"], text: string
         const commentCreated = resp.data.events.pop();
         dispatch({
           type: "CREATE_COMMENT",
-          payload: { _id: commentCreated.commentId, text, state: CommentState.Existing },
+          payload: { _id: commentCreated.commentId, text, state: CommentState.Existing, reactions: {} },
         });
         dispatch({ type: "ADD_EVENT", payload: commentCreated });
       })
@@ -515,12 +515,13 @@ export function instantHideComment(issue: Issue, by: User["_id"], commentId: str
   };
 
   return (dispatch: any) =>
-    updateIssue(newIssue).then((resp) => {
-      notifications.success("You have successfully hid a comment.");
-      dispatch({ type: "HIDE_COMMENT", payload: commentId });
-      dispatch({ type: "ADD_EVENT", payload: resp.data.events.pop() });
-    })
-    .catch((_) => {});
+    updateIssue(newIssue)
+      .then((resp) => {
+        notifications.success("You have successfully hid a comment.");
+        dispatch({ type: "HIDE_COMMENT", payload: commentId });
+        dispatch({ type: "ADD_EVENT", payload: resp.data.events.pop() });
+      })
+      .catch((_) => {});
 }
 
 export function instantAddReaction(issue: Issue, by: User["_id"], commentId: Comment["_id"], code: string) {
@@ -531,11 +532,12 @@ export function instantAddReaction(issue: Issue, by: User["_id"], commentId: Com
   };
 
   return (dispatch: any) =>
-  updateIssue(newIssue).then((resp) => {
-    dispatch({ type: "ADD_REACTION", payload: { commentId, code }});
-    dispatch({ type: "ADD_EVENT", payload: resp.data.events.pop() });
-  })
-  .catch((_) => {});
+    updateIssue(newIssue)
+      .then((resp) => {
+        dispatch({ type: "ADD_REACTION", payload: { commentId, code } });
+        dispatch({ type: "ADD_EVENT", payload: resp.data.events.pop() });
+      })
+      .catch((_) => {});
 }
 
 export function instantRemoveReaction(issue: Issue, by: User["_id"], commentId: Comment["_id"], code: string) {
@@ -546,12 +548,12 @@ export function instantRemoveReaction(issue: Issue, by: User["_id"], commentId: 
   };
 
   return (dispatch: any) =>
-  updateIssue(newIssue).then((resp) => {
-    dispatch({ type: "REMOVE_REACTION", payload: { commentId, code }});
-    dispatch({ type: "ADD_EVENT", payload: resp.data.events.pop() });
-  })
-  .catch((_) => {});
-
+    updateIssue(newIssue)
+      .then((resp) => {
+        dispatch({ type: "REMOVE_REACTION", payload: { commentId, code } });
+        dispatch({ type: "ADD_EVENT", payload: resp.data.events.pop() });
+      })
+      .catch((_) => {});
 }
 const IssueContext = createContext<IssueContextType>(initialIssueContextValues);
 
@@ -562,8 +564,6 @@ export const IssueContextProvider: FC<PropsWithChildren> = ({ children }) => {
   const isEdit = !!(issue as Issue)._id;
 
   return (
-    <IssueContext.Provider value={{ issue: issue as Issue, isEdit, issueDispatcher }}>
-      {children}
-    </IssueContext.Provider>
+    <IssueContext.Provider value={{ issue: issue as Issue, isEdit, issueDispatcher }}>{children}</IssueContext.Provider>
   );
 };
