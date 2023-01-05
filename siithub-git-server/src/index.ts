@@ -111,7 +111,7 @@ app.put("/api/branches/:username/:repository/:branchName", async (req: Request, 
 
   const renamedBranch = await renameBranch(username, repository, branchName, newBranchName);
   if (renamedBranch === null) {
-    res.status(404).send({ message: `Branch ${req.params.branchName} not found.` });
+    res.status(404).send({ message: `Branch ${branchName} not found.` });
     return;
   }
   res.send(renamedBranch);
@@ -122,7 +122,7 @@ app.delete("/api/branches/:username/:repository/:branchName", async (req: Reques
 
   const deletedBranch = await removeBranch(username, repository, branchName);
   if (deletedBranch === null) {
-    res.status(404).send({ message: `Branch ${req.params.branchName} not found.` });
+    res.status(404).send({ message: `Branch ${branchName} not found.` });
     return;
   }
   res.send(deletedBranch);

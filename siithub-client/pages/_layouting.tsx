@@ -42,6 +42,10 @@ const registeredLayouts: NestedLayout[] = [
         path: "/tree",
         component: RepositoryTreeLayout,
       },
+      {
+        path: "/blob",
+        component: RepositoryTreeLayout,
+      },
     ],
   },
 ];
