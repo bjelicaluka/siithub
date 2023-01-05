@@ -1,7 +1,7 @@
 import { SshKeyForm } from "../../features/ssh-key/ssh-key.form";
 
-const CreateSshKeyPage = () => {
+const SshKeyPage = () => {
   return <SshKeyForm />;
 };
 
-export default CreateSshKeyPage;
+export default SshKeyPage;

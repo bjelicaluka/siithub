@@ -43,70 +43,69 @@ export const DirectoryTable: FC<DirectoryTableProps> = ({ username, repoName, br
 
   return (
     <>
-      <table className="w-full">
-        <tbody>
-          {treePath ? (
-            <tr className="bg-white border-b dark:bg-gray-900 dark:border-gray-700 text-md dark:text-white">
-              <td colSpan={4}>
-                <Link href={pathToParent()} className="block p-3">
-                  ..
-                </Link>
-              </td>
-            </tr>
+      <div className="overflow-x-auto relative shadow-md sm:rounded-lg">
+        <div className="border-2 border-gray-200">
+          <table className="w-full">
+            <tbody>
+              {treePath ? (
+                <tr className="bg-white border-b text-md">
+                  <td colSpan={4}>
+                    <Link href={pathToParent()} className="block p-3">
+                      ..
+                    </Link>
+                  </td>
+                </tr>
+              ) : (
+                <></>
+              )}
+              {isLoading ? (
+                <tr className="bg-white border-b text-md">
+                  <td colSpan={4}>
+                    <div className="flex min-h-full items-center justify-center">
+                      <Spinner />
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                treeEntries?.map((e) => (
+                  <tr key={e.name} className="bg-white border-b text-md">
+                    <td className="p-3 w-3">
+                      {e.isFolder ? (
+                        <FolderIcon className="h-5 w-5 text-gray-300" />
+                      ) : (
+                        <DocumentIcon className="h-5 w-5 text-gray-300" />
+                      )}
+                    </td>
+                    <td className="p-3 hover:text-blue-400 hover:underline w-2/6">
+                      <Link
+                        href={`/${username}/${repoName}/${e.isFolder ? "tree" : "blob"}/${encodeURIComponent(branch)}/${
+                          e.path
+                        }`}
+                      >
+                        {e.name}
+                      </Link>
+                    </td>
+                    <td className="p-3 text-gray-400 w-3/6">
+                      <HashtagLink href={`/${username}/${repoName}/commits/${e.commit.sha}`}>
+                        {truncate(e.commit.message, 72)}
+                      </HashtagLink>
+                    </td>
+                    <td className="p-3 text-gray-400">{moment(e.commit.date).fromNow()}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+          {content ? (
+            <>
+              <div className="flex bg-white border-b p-4 text-lg font-semibold mt-2">{readme}</div>
+              <MarkdownPreview content={content} />
+            </>
           ) : (
             <></>
           )}
-          {isLoading ? (
-            <tr className="bg-white border-b dark:bg-gray-900 dark:border-gray-700 text-md dark:text-white">
-              <td colSpan={4}>
-                <div className="flex min-h-full items-center justify-center">
-                  <Spinner />
-                </div>
-              </td>
-            </tr>
-          ) : (
-            treeEntries?.map((e) => (
-              <tr
-                key={e.name}
-                className="bg-white border-b dark:bg-gray-900 dark:border-gray-700 text-md dark:text-white"
-              >
-                <td className="p-3 w-3">
-                  {e.isFolder ? (
-                    <FolderIcon className="h-5 w-5 text-gray-300" />
-                  ) : (
-                    <DocumentIcon className="h-5 w-5 text-gray-300" />
-                  )}
-                </td>
-                <td className="p-3 hover:text-blue-400 hover:underline dark:text-white w-2/6">
-                  <Link
-                    href={`/${username}/${repoName}/${e.isFolder ? "tree" : "blob"}/${encodeURIComponent(branch)}/${
-                      e.path
-                    }`}
-                  >
-                    {e.name}
-                  </Link>
-                </td>
-                <td className="p-3 text-gray-400 w-3/6">
-                  <HashtagLink href={`/${username}/${repoName}/commits/${e.commit.sha}`}>
-                    {truncate(e.commit.message, 72)}
-                  </HashtagLink>
-                </td>
-                <td className="p-3 text-gray-400">{moment(e.commit.date).fromNow()}</td>
-              </tr>
-            ))
-          )}
-        </tbody>
-      </table>
-      {content ? (
-        <>
-          <div className="flex bg-white border-b dark:bg-gray-800 dark:border-gray-700 p-4 dark:text-white text-lg font-semibold mt-2">
-            {readme}
-          </div>
-          <MarkdownPreview content={content} />
-        </>
-      ) : (
-        <></>
-      )}
+        </div>
+      </div>
     </>
   );
 };
