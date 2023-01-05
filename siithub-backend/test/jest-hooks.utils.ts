@@ -82,6 +82,8 @@ export function setupGitServer() {
         createBranch: jest.fn(() => () => {}),
         renameBranch: jest.fn(() => () => {}),
         removeBranch: jest.fn(() => () => {}),
+        addCollaborator: jest.fn(() => () => {}),
+        removeCollaborator: jest.fn(() => () => {}),
       },
     }));
   });

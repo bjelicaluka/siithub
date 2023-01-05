@@ -1,25 +1,21 @@
-import { describe, expect, it, beforeEach, beforeAll } from "@jest/globals";
-import { setupTestEnv } from "../../jest-hooks.utils";
+import { describe, expect, it, beforeEach } from "@jest/globals";
+import { setupGitServer, setupTestEnv } from "../../jest-hooks.utils";
 import { type CollaboratorService } from "../../../src/features/collaborators/collaborators.service";
 import { type Repository } from "../../../src/features/repository/repository.model";
 import { type User } from "../../../src/features/user/user.model";
-import {
-  type CollaboratorRemove,
-  type CollaboratorAdd,
-} from "../../../src/features/collaborators/collaborators.model";
+import { type CollaboratorRemove, type CollaboratorAdd } from "../../../src/features/collaborators/collaborators.model";
 import { ObjectId } from "mongodb";
 
 describe("CollaboratorsService", () => {
   setupTestEnv("CollaboratorsService");
+  setupGitServer();
 
   let service: CollaboratorService;
   let repositoryId: Repository["_id"];
   let userId: User["_id"];
 
   beforeEach(async () => {
-    const { collaboratorsService } = await import(
-      "../../../src/features/collaborators/collaborators.service"
-    );
+    const { collaboratorsService } = await import("../../../src/features/collaborators/collaborators.service");
     const { repositoryRepo } = await import("../../../src/features/repository/repository.repo");
     const { userRepo } = await import("../../../src/features/user/user.repo");
 
@@ -47,9 +43,7 @@ describe("CollaboratorsService", () => {
 
       const addCollaboratorAction = async () => service.add(addCollaborator);
 
-      await expect(addCollaboratorAction).rejects.toThrowError(
-        "Repository with given id does not exist."
-      );
+      await expect(addCollaboratorAction).rejects.toThrowError("Repository with given id does not exist.");
     });
 
     it("should throw MissingEntityException because user does not exist", async () => {
@@ -60,9 +54,7 @@ describe("CollaboratorsService", () => {
 
       const addCollaboratorAction = async () => service.add(addCollaborator);
 
-      await expect(addCollaboratorAction).rejects.toThrowError(
-        "User with given id does not exist."
-      );
+      await expect(addCollaboratorAction).rejects.toThrowError("User with given id does not exist.");
     });
 
     it("should throw BadLogicException because user is already collaborator on the repository", async () => {
@@ -75,9 +67,7 @@ describe("CollaboratorsService", () => {
 
       const addCollaboratorAction = async () => service.add(addCollaborator);
 
-      await expect(addCollaboratorAction).rejects.toThrowError(
-        "User is already collaborator on the given repository."
-      );
+      await expect(addCollaboratorAction).rejects.toThrowError("User is already collaborator on the given repository.");
     });
 
     it("should add user as the collaborator on the repository", async () => {
@@ -102,9 +92,7 @@ describe("CollaboratorsService", () => {
 
       const removeCollaboratorAction = async () => service.remove(removeCollaborator);
 
-      await expect(removeCollaboratorAction).rejects.toThrowError(
-        "User is not collaborating on the given repository."
-      );
+      await expect(removeCollaboratorAction).rejects.toThrowError("User is not collaborating on the given repository.");
     });
 
     it("should throw MissingEntityException because user does not exist", async () => {

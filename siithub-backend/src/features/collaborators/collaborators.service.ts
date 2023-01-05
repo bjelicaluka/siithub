@@ -5,6 +5,7 @@ import { type User } from "../user/user.model";
 import { repositoryService } from "../repository/repository.service";
 import { userService } from "../user/user.service";
 import { collaboratorsRepo } from "./collaborators.repo";
+import { gitServerClient } from "../gitserver/gitserver.client";
 
 async function findByRepository(repositoryId: Repository["_id"]): Promise<Collaborator[]> {
   return await collaboratorsRepo.findByRepository(repositoryId);
@@ -24,13 +25,15 @@ async function findByRepositoryAndUser(
 async function addCollaborator(collaborator: CollaboratorAdd): Promise<Collaborator | null> {
   const { repositoryId, userId } = collaborator;
 
-  await repositoryService.findOneOrThrow(repositoryId);
-  await userService.findOneOrThrow(userId);
+  const repository = await repositoryService.findOneOrThrow(repositoryId);
+  const user = await userService.findOneOrThrow(userId);
 
   const alreadyIsCollaborator = !!(await findByRepositoryAndUser(repositoryId, userId));
   if (alreadyIsCollaborator) {
     throw new BadLogicException("User is already collaborator on the given repository.");
   }
+
+  await gitServerClient.addCollaborator(user.username, repository.name);
 
   return await collaboratorsRepo.crud.add(collaborator);
 }
@@ -42,6 +45,11 @@ async function removeCollaborator(collaborator: CollaboratorRemove): Promise<Col
   if (!existingCollaborator) {
     throw new BadLogicException("User is not collaborating on the given repository.");
   }
+
+  const repository = await repositoryService.findOneOrThrow(repositoryId);
+  const user = await userService.findOneOrThrow(userId);
+
+  await gitServerClient.removeCollaborator(user.username, repository.name);
 
   return await collaboratorsRepo.crud.delete(existingCollaborator._id);
 }
