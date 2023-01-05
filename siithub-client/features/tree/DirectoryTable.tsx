@@ -87,7 +87,7 @@ export const DirectoryTable: FC<DirectoryTableProps> = ({ username, repoName, br
                     </td>
                     <td className="p-3 text-gray-400 w-3/6">
                       <HashtagLink href={`/${username}/${repoName}/commits/${e.commit.sha}`}>
-                        {truncate(e.commit.message, 72)}
+                        {truncate(e?.commit?.message ?? "", 72)}
                       </HashtagLink>
                     </td>
                     <td className="p-3 text-gray-400">{moment(e.commit.date).fromNow()}</td>
