@@ -1,15 +1,17 @@
 import { useRouter } from "next/router";
 import { useEffect } from "react";
+import { useDefaultBranch } from "../../../features/branches/useBranches";
 import { RepositoryView } from "../../../features/repository/repository-view";
 
 const Repository = () => {
   const router = useRouter();
   const { repository, username } = router.query;
+  const { defaultBranch } = useDefaultBranch(username?.toString() ?? "", repository?.toString() ?? "");
 
   useEffect(() => {
-    if (!repository || !username) return;
-    router.push(`/${username}/${repository}/tree/master`);
-  }, [router, username, repository]);
+    if (!repository || !username || !defaultBranch) return;
+    router.push(`/${username}/${repository}/tree/${encodeURIComponent(defaultBranch.branch)}`);
+  }, [router, username, repository, defaultBranch]);
 
   return (
     <>

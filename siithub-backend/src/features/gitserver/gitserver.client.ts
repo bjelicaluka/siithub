@@ -1,5 +1,6 @@
 import axios from "axios";
 import { config } from "../../config";
+import { type GitServerBranchesClient, gitServerBranchesClient } from "./gitserver.branches.client";
 import { MissingEntityException } from "../../error-handling/errors";
 import { gitServerCollaboratorsClient, GitServerCollaboratorsClient } from "./gitserver-collaborators.client";
 
@@ -71,7 +72,7 @@ async function getBlob(username: string, repoName: string, branch: string, blobP
   }
 }
 
-export type GitServerClient = {
+export type GitServerClient = GitServerBranchesClient & {
   createUser(username: string): Promise<any>;
   createRepository(username: string, repositoryName: string): Promise<any>;
   deleteRepository(username: string, repositoryName: string): Promise<any>;
@@ -97,6 +98,7 @@ const gitServerClient: GitServerCollaboratorsClient & GitServerClient = {
   getTree,
   getBlob,
   ...gitServerCollaboratorsClient,
+  ...gitServerBranchesClient,
 };
 
 export { gitServerClient };

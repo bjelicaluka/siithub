@@ -67,6 +67,7 @@ export function setupGitServer() {
   let addSshKeyHandler: () => void = () => {};
   let updateSshKeyHandler: () => void = () => {};
   let removeSshKeyHandler: () => void = () => {};
+  let getBranches: () => void = () => {};
 
   beforeEach(async () => {
     jest.mock("../src/features/gitserver/gitserver.client.ts", () => ({
@@ -77,6 +78,10 @@ export function setupGitServer() {
         addSshKey: jest.fn(() => addSshKeyHandler()),
         updateSshKey: jest.fn(() => updateSshKeyHandler()),
         removeSshKey: jest.fn(() => removeSshKeyHandler()),
+        getBranches: jest.fn(() => getBranches()),
+        createBranch: jest.fn(() => () => {}),
+        renameBranch: jest.fn(() => () => {}),
+        removeBranch: jest.fn(() => () => {}),
         addCollaborator: jest.fn(() => () => {}),
         removeCollaborator: jest.fn(() => () => {}),
       },
@@ -90,6 +95,7 @@ export function setupGitServer() {
     addSshKeyHandler = () => {};
     updateSshKeyHandler = () => {};
     removeSshKeyHandler = () => {};
+    getBranches = () => {};
   });
 
   return {
@@ -110,6 +116,9 @@ export function setupGitServer() {
     },
     setRemoveSshKeyHandler: (cb: () => void) => {
       removeSshKeyHandler = cb;
+    },
+    setGetBranchesHandler: (cb: () => void) => {
+      getBranches = cb;
     },
   };
 }

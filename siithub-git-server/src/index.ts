@@ -7,6 +7,7 @@ import { getTree } from "./git/tree.utils";
 import { getBlob } from "./git/blob.utils";
 import { addKey, removeKey } from "./key.utils";
 import { addUserToGroup, deleteUserFromGroup } from "./git/group.utils";
+import { createBranch, getBranches, removeBranch, renameBranch } from "./git/branches.utils";
 
 const app: Express = express();
 
@@ -97,6 +98,52 @@ app.delete("/api/repositories/:repository/collaborators/:collaborator", async (r
   await deleteUserFromGroup(repository, collaborator);
 
   res.send({ status: "ok" });
+});
+
+app.get("/api/branches/:username/:repository", async (req: Request, res: Response) => {
+  const { username, repository } = req.params;
+
+  const branches = await getBranches(username, repository);
+  if (!branches) {
+    res.status(400).send({ message: "Error while trying to fetch branches." });
+    return;
+  }
+  res.send(branches);
+});
+
+app.post("/api/branches/:username/:repository", async (req: Request, res: Response) => {
+  const { username, repository } = req.params;
+  const { source, branchName } = req.body;
+
+  const createdBranch = await createBranch(username, repository, source, branchName);
+  if (!createdBranch) {
+    res.status(400).send({ message: "Branch already exists." });
+    return;
+  }
+  res.send(createdBranch);
+});
+
+app.put("/api/branches/:username/:repository/:branchName", async (req: Request, res: Response) => {
+  const { username, repository, branchName } = req.params;
+  const { newBranchName } = req.body;
+
+  const renamedBranch = await renameBranch(username, repository, branchName, newBranchName);
+  if (renamedBranch === null) {
+    res.status(404).send({ message: `Branch ${branchName} not found.` });
+    return;
+  }
+  res.send(renamedBranch);
+});
+
+app.delete("/api/branches/:username/:repository/:branchName", async (req: Request, res: Response) => {
+  const { username, repository, branchName } = req.params;
+
+  const deletedBranch = await removeBranch(username, repository, branchName);
+  if (deletedBranch === null) {
+    res.status(404).send({ message: `Branch ${branchName} not found.` });
+    return;
+  }
+  res.send(deletedBranch);
 });
 
 app.listen(config.port, () => {
