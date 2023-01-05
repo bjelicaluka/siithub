@@ -6,6 +6,7 @@ import { createRepo, removeRepo } from "./git/repository.utils";
 import { getTree } from "./git/tree.utils";
 import { getBlob } from "./git/blob.utils";
 import { addKey, removeKey } from "./key.utils";
+import { addUserToGroup, deleteUserFromGroup } from "./git/group.utils";
 
 const app: Express = express();
 
@@ -79,6 +80,23 @@ app.get("/api/blob/:username/:repository/:branch/:blobPath", async (req: Request
   }
   res.setHeader("bin", blob.isBinary()).setHeader("size", blob.rawsize());
   res.type("blob").send(blob.content());
+});
+
+app.post("/api/repositories/:repository/collaborators", async (req: Request, res: Response) => {
+  const { repository } = req.params;
+  const { collaborator } = req.body;
+
+  await addUserToGroup(repository, collaborator);
+
+  res.send({ status: "ok" });
+});
+
+app.delete("/api/repositories/:repository/collaborators/:collaborator", async (req: Request, res: Response) => {
+  const { repository, collaborator } = req.params;
+
+  await deleteUserFromGroup(repository, collaborator);
+
+  res.send({ status: "ok" });
 });
 
 app.listen(config.port, () => {

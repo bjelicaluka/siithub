@@ -1,6 +1,7 @@
 import axios from "axios";
 import { config } from "../../config";
 import { MissingEntityException } from "../../error-handling/errors";
+import { gitServerCollaboratorsClient, GitServerCollaboratorsClient } from "./gitserver-collaborators.client";
 
 async function createUser(username: string): Promise<any> {
   return await axios.post(`${config.gitServer.url}/api/users`, { username });
@@ -86,7 +87,7 @@ export type GitServerClient = {
   ): Promise<{ size: string; bin: string; data: any }>;
 };
 
-const gitServerClient: GitServerClient = {
+const gitServerClient: GitServerCollaboratorsClient & GitServerClient = {
   createUser,
   createRepository,
   deleteRepository,
@@ -95,6 +96,7 @@ const gitServerClient: GitServerClient = {
   removeSshKey,
   getTree,
   getBlob,
+  ...gitServerCollaboratorsClient,
 };
 
 export { gitServerClient };

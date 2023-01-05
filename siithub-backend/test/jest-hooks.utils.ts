@@ -77,6 +77,8 @@ export function setupGitServer() {
         addSshKey: jest.fn(() => addSshKeyHandler()),
         updateSshKey: jest.fn(() => updateSshKeyHandler()),
         removeSshKey: jest.fn(() => removeSshKeyHandler()),
+        addCollaborator: jest.fn(() => () => {}),
+        removeCollaborator: jest.fn(() => () => {}),
       },
     }));
   });

@@ -2,6 +2,7 @@ import { Repository } from "nodegit";
 import fs from "fs";
 import { execCmd } from "../cmd.utils";
 import { createUser } from "../user.utils";
+import { addGroup, addUserToGroup, deleteGroup, deleteUserFromGroup } from "./group.utils";
 
 const homePath = "/home";
 
@@ -10,12 +11,12 @@ export async function createRepo(username: string, repoName: string) {
     await createUser(username);
   }
 
-  await execCmd(`addgroup -S ${repoName}`);
-  await execCmd(`addgroup ${username} ${repoName}`);
+  await addGroup(repoName);
+  await addUserToGroup(repoName, username);
 
   const repoPath = `${homePath}/${username}/${repoName}`;
   if (!fs.existsSync(`${repoPath}/.git`)) {
-    await Repository.init(`${repoPath}`, 0);
+    await Repository.init(`${repoPath}/.git`, 1);
 
     await execCmd(`chown -R ${username}:${repoName} ${repoPath}`);
     // owner full access | group full access (collabs) | others no access
@@ -30,6 +31,6 @@ export async function removeRepo(username: string, repoName: string) {
   if (fs.existsSync(`${homePath}/${username}/${repoName}`)) {
     await execCmd(`cp -r ${homePath}/${username}/${repoName} /home/_deleted`);
     await execCmd(`rm -r ${homePath}/${username}/${repoName}`);
-    await execCmd(`delgroup ${repoName}`);
+    await deleteGroup(repoName);
   }
 }
