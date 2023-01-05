@@ -11,6 +11,7 @@ import { starRoutes } from "./features/star/star.routes";
 import { activitiesRoutes } from "./features/activities/activities.routes";
 import { blobRoutes } from "./features/blob/blob.routes";
 import { treeRoutes } from "./features/tree/tree.routes";
+import { branchesRoutes } from "./features/branches/branches.routes";
 
 const router = Router();
 
@@ -26,6 +27,7 @@ router
   .use("/", starRoutes)
   .use("/", activitiesRoutes)
   .use("/", treeRoutes)
-  .use("/", blobRoutes);
+  .use("/", blobRoutes)
+  .use("/", branchesRoutes);
 
 export { router as apiRoutes };
