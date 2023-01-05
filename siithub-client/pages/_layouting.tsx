@@ -4,6 +4,7 @@ import { ProfileLayout } from "./users/[username]/_profile.layout";
 import { useRouter } from "next/router";
 import { RepositoryLayout } from "./[username]/[repository]/_repository.layout";
 import { RepositorySettingsLayout } from "./[username]/[repository]/settings/_repository-settings.layout";
+import { RepositoryTreeLayout } from "./[username]/[repository]/tree/_repository-tree.layout";
 
 type NestedLayout = {
   path: string;
@@ -36,6 +37,10 @@ const registeredLayouts: NestedLayout[] = [
       {
         path: "/settings",
         component: RepositorySettingsLayout,
+      },
+      {
+        path: "/tree",
+        component: RepositoryTreeLayout,
       },
     ],
   },
