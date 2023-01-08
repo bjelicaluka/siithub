@@ -2,9 +2,8 @@ import { Repository } from "nodegit";
 import fs from "fs";
 import { execCmd } from "../cmd.utils";
 import { createUser } from "../user.utils";
-import { addGroup, addUserToGroup, deleteGroup, deleteUserFromGroup } from "./group.utils";
-
-const homePath = "/home";
+import { addGroup, addUserToGroup, deleteGroup } from "./group.utils";
+import { homePath } from "../config";
 
 export async function createRepo(username: string, repoName: string) {
   if (!fs.existsSync(`${homePath}/${username}`)) {

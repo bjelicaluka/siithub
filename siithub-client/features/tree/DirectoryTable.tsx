@@ -86,7 +86,7 @@ export const DirectoryTable: FC<DirectoryTableProps> = ({ username, repoName, br
                       </Link>
                     </td>
                     <td className="p-3 text-gray-400 w-3/6">
-                      <HashtagLink href={`/${username}/${repoName}/commits/${e.commit.sha}`}>
+                      <HashtagLink href={`/${username}/${repoName}/commits/${branch}/${e.commit.sha}`}>
                         {truncate(e?.commit?.message ?? "", 72)}
                       </HashtagLink>
                     </td>

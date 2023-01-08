@@ -8,11 +8,7 @@ module.exports = {
     "./components/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {
-      minWidth: {
-        "1/5": "20%",
-      },
-    },
+    extend: {},
   },
   plugins: [require("@tailwindcss/forms")],
 };

@@ -54,6 +54,28 @@ async function getTree(username: string, repoName: string, branch: string, treeP
   }
 }
 
+async function getCommits(username: string, repoName: string, branch: string) {
+  try {
+    const response = await axios.get(
+      `${config.gitServer.url}/api/commits/${username}/${repoName}/${encodeURIComponent(branch)}`
+    );
+    return response.data;
+  } catch (err) {
+    throw new MissingEntityException("Commits not found");
+  }
+}
+
+async function getCommit(username: string, repoName: string, sha: string) {
+  try {
+    const response = await axios.get(
+      `${config.gitServer.url}/api/commit/${username}/${repoName}/${encodeURIComponent(sha)}`
+    );
+    return response.data;
+  } catch (err) {
+    throw new MissingEntityException("Commit not found");
+  }
+}
+
 async function getBlob(username: string, repoName: string, branch: string, blobPath: string) {
   try {
     const response = await axios.get(
@@ -80,6 +102,8 @@ export type GitServerClient = GitServerBranchesClient & {
   updateSshKey(username: string, oldKey: string, key: string): Promise<any>;
   removeSshKey(username: string, key: string): Promise<any>;
   getTree(username: string, repoName: string, branch: string, treePath: string): Promise<any>;
+  getCommits(username: string, repoName: string, branch: string): Promise<any>;
+  getCommit(username: string, repoName: string, sha: string): Promise<any>;
   getBlob(
     username: string,
     repoName: string,
@@ -97,6 +121,8 @@ const gitServerClient: GitServerCollaboratorsClient & GitServerClient = {
   removeSshKey,
   getTree,
   getBlob,
+  getCommits,
+  getCommit,
   ...gitServerCollaboratorsClient,
   ...gitServerBranchesClient,
 };
