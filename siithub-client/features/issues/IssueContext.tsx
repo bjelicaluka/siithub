@@ -244,7 +244,7 @@ export function setIssue(issue: Issue) {
 
 export function createNewIssue(issue: Issue, by: User["_id"]) {
   const newIssue: CreateIssue = {
-    events: [{ by, type: "IssueCreatedEvent", ...issue.csm }, ...issue.events],
+    events: [{ by, type: "IssueCreatedEvent", title: issue.csm.title, description: issue.csm.description }, ...issue.events],
     repositoryId: issue.repositoryId,
   };
 
