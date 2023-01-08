@@ -74,6 +74,7 @@ async function handleEvent(issue: Issue, event: BaseEvent): Promise<void> {
   event._id = new ObjectId();
   event.streamId = issue._id;
   event.timeStamp = new Date();
+  event.by = new ObjectId(event.by?.toString());
 
   handleFor(issue, event);
 }
