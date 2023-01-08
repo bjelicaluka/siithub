@@ -1,0 +1,94 @@
+services:
+  mongo:
+    image: mongo
+    container_name: mongo_db
+    restart: always
+    volumes:
+      - ./mongo-volume:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGODB_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_PASSWORD}
+    ports:
+      - 27017:27017
+
+  mongo-express:
+    image: mongo-express
+    container_name: mongo_ui
+    restart: always
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGODB_USERNAME}
+      ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGODB_PASSWORD}
+      ME_CONFIG_MONGODB_URL: mongodb://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@mongo:${MONGODB_PORT}/
+    depends_on:
+      - mongo
+
+  redis:
+    image: redis
+    container_name: redis
+    restart: always
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: redis-commander
+    restart: always
+    ports:
+      - 8082:8081
+    environment:
+      REDIS_HOSTS: local:redis:6379
+    depends_on:
+      - redis
+
+  siithub-backend:
+    image: siithub-backend
+    container_name: siithub-backend
+    restart: always
+    environment:
+      PORT: 80
+
+      TOKEN_SECRET: ${TOKEN_SECRET}
+
+      GITSERVER_URL: ${GITSERVER_URL}
+
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID}
+      GITHUB_SECRET: ${GITHUB_SECRET}
+
+      MONGODB_URL: mongodb://mongo:${MONGODB_PORT}/
+      MONGODB_USERNAME: ${MONGODB_USERNAME}
+      MONGODB_PASSWORD: ${MONGODB_PASSWORD}
+      MONGODB_DATABASE: ${MONGODB_DATABASE}
+    depends_on:
+      - mongo
+      - siithub-git-server
+
+  siithub-git-server:
+    image: siithub-git-server
+    container_name: siithub-git-server
+    restart: always
+    volumes:
+      - ./github-server-data:/home
+    ports:
+      - 3002:80
+    environment:
+      PORT: 80
+
+  siithub-client:
+    image: siithub-client
+    container_name: siithub-client
+    restart: always
+    ports:
+      - 3000
+    environment:
+      PORT: 3000
+
+  http-proxy:
+    image: nginx:stable-alpine
+    volumes:
+      - ./config/proxy/nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - 3000:80
+    depends_on:
+      - siithub-client
+      - siithub-backend
+      - siithub-git-server

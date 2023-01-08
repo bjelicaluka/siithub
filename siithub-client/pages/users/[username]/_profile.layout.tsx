@@ -87,3 +87,5 @@ export const ProfileLayout: FC<PropsWithChildren> = ({ children }) => {
     </>
   );
 };
+
+export default ProfileLayout;

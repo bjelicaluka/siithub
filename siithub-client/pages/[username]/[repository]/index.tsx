@@ -9,7 +9,7 @@ const Repository = () => {
   const { defaultBranch } = useDefaultBranch(username?.toString() ?? "", repository?.toString() ?? "");
 
   useEffect(() => {
-    if (!repository || !username || !defaultBranch) return;
+    if (!repository || !username || !defaultBranch || !defaultBranch.branch) return;
     router.push(`/${username}/${repository}/tree/${encodeURIComponent(defaultBranch.branch)}`);
   }, [router, username, repository, defaultBranch]);
 

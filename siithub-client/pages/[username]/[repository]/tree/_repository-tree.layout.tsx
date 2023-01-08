@@ -12,3 +12,5 @@ export const RepositoryTreeLayout: FC<PropsWithChildren> = ({ children }) => {
     </>
   );
 };
+
+export default RepositoryTreeLayout;

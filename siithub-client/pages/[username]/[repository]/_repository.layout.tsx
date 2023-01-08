@@ -90,3 +90,5 @@ export const RepositoryLayout: FC<PropsWithChildren> = ({ children }) => {
     </>
   );
 };
+
+export default RepositoryLayout;
