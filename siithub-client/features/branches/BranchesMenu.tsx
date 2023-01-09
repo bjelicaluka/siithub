@@ -49,8 +49,8 @@ export const BranchesMenu: FC = () => {
 
   return (
     <>
-      <div className="flex space-x-2 items-center min-w-full">
-        <div className="min-w-[20%]">
+      <div className="flex space-x-2 items-center">
+        <div className="min-w-[256px]">
           <SelectBranchField
             username={owner}
             repo={name}

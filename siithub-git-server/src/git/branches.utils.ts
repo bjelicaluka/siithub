@@ -1,6 +1,5 @@
 import { Repository } from "nodegit";
-
-const homePath = "/home";
+import { homePath } from "../config";
 
 export async function getBranches(username: string, repoName: string) {
   try {

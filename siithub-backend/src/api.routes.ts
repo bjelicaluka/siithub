@@ -12,6 +12,7 @@ import { activitiesRoutes } from "./features/activities/activities.routes";
 import { blobRoutes } from "./features/blob/blob.routes";
 import { treeRoutes } from "./features/tree/tree.routes";
 import { branchesRoutes } from "./features/branches/branches.routes";
+import { commitRoutes } from "./features/commits/commit.routes";
 
 const router = Router();
 
@@ -28,6 +29,7 @@ router
   .use("/", activitiesRoutes)
   .use("/", treeRoutes)
   .use("/", blobRoutes)
+  .use("/", commitRoutes)
   .use("/", branchesRoutes);
 
 export { router as apiRoutes };
