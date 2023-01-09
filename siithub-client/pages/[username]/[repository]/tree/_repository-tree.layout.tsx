@@ -33,12 +33,14 @@ export const RepositoryTreeLayout: FC<PropsWithChildren> = ({ children }) => {
       <div className="mb-5 flex items-center justify-between">
         <BranchesMenu />
 
-        <div className="flex items-center justify-end">
-          <Link className="flex hover:text-blue-800 w-full" href={`/${username}/${repository}/commits/${branch}`}>
-            <CommitsIcon className="mt-1 mr-1" />
-            {count} commits
-          </Link>
-        </div>
+        {!router.pathname.includes("/commits") && (
+          <div className="flex items-center justify-end">
+            <Link className="flex hover:text-blue-800 w-full" href={`/${username}/${repository}/commits/${branch}`}>
+              <CommitsIcon className="mt-1 mr-1" />
+              {count} commits
+            </Link>
+          </div>
+        )}
       </div>
 
       {children}

@@ -8,7 +8,7 @@ export async function getCommits(username: string, repoName: string, branch: str
     const repo = await Repository.open(repoPath + "/.git");
     const headCommit = await repo.getBranchCommit(branch);
     return listAllCommits(repo, headCommit);
-  } catch (e) {
+  } catch {
     return null;
   }
 }
@@ -23,18 +23,31 @@ export async function getCommit(username: string, repoName: string, sha: string)
     sha: commit.sha(),
     date: commit.date(),
     author: commit.author().name(),
-    diff: [] as { old: string | undefined; new: string | undefined }[],
+    diff: [] as {
+      old: { path: string; content: string | undefined };
+      new: { path: string; content: string | undefined };
+    }[],
   };
 
   const diffList = await commit.getDiff();
   for (const diff of diffList) {
     const patches = await diff.patches();
     for (const patch of patches) {
+      const oldPath = patch.oldFile().path();
+      const newPath = patch.newFile().path();
+      const oldContent =
+        (await getBlobFromCommit(username, repoName, commit.parentId(0)?.tostrS(), oldPath))?.toString()?.split("\n") ??
+        [];
+      const newContent = (await getBlobFromCommit(username, repoName, sha, newPath))?.toString()?.split("\n") ?? [];
       result.diff.push({
-        old: (
-          await getBlobFromCommit(username, repoName, commit.parentId(0)?.tostrS(), patch.oldFile().path())
-        )?.toString(),
-        new: (await getBlobFromCommit(username, repoName, sha, patch.newFile().path()))?.toString(),
+        old: {
+          path: oldPath,
+          content: oldContent.slice(0, oldContent.length > 1000 ? 1000 : oldContent.length - 1).join("\n"),
+        },
+        new: {
+          path: newPath,
+          content: newContent.slice(0, oldContent.length > 1000 ? 1000 : oldContent.length - 1).join("\n"),
+        },
       });
     }
   }
@@ -47,14 +60,12 @@ async function listAllCommits(repo: Repository, headCommit: Commit) {
   walker.push(headCommit.id());
   walker.sorting(Revwalk.SORT.TIME);
   const commits = await walker.getCommits(999999);
-  return Promise.all(
-    commits.map(async (commit) => {
-      return {
-        message: commit.message(),
-        sha: commit.sha(),
-        date: commit.date(),
-        author: commit.author().name(),
-      };
-    })
-  );
+  return commits.map((commit) => {
+    return {
+      message: commit.message(),
+      sha: commit.sha(),
+      date: commit.date(),
+      author: commit.author().name(),
+    };
+  });
 }

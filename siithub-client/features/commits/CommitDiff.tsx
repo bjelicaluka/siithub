@@ -3,6 +3,9 @@ import NotFound from "../../core/components/NotFound";
 import { useResult } from "../../core/contexts/Result";
 import { useCommit } from "./useCommits";
 import ReactDiffViewer from "react-diff-viewer";
+import { truncate } from "../../core/utils/string";
+import { useDefaultBranch } from "../branches/useBranches";
+import Link from "next/link";
 
 type CommitDiffProps = {
   username: string;
@@ -11,34 +14,47 @@ type CommitDiffProps = {
 };
 
 export const CommitDiff: FC<CommitDiffProps> = ({ username, repoName, sha }) => {
-  const { result, setResult } = useResult("trees");
+  const { defaultBranch } = useDefaultBranch(username, repoName);
+
   const { commit, error, isLoading } = useCommit(username, repoName, sha);
-
-  useEffect(() => {
-    if (!result) return;
-    setResult(undefined);
-  }, [result, setResult]);
-
-  const truncate = (str: string, len: number) => (str.length > len ? str.substring(0, len - 3) + "..." : str);
 
   if (error) return <NotFound />;
 
   return (
     <>
-      <div className="overflow-x-auto relative shadow-md sm:rounded-lg">
-        <div className="border-2 border-gray-200">
-          {commit.diff.map((diff, i) => {
-            return (
-              <ReactDiffViewer
-                key={i + truncate(diff?.old ?? "", 5) + truncate(diff?.new ?? "", 5)}
-                oldValue={diff.old}
-                newValue={diff.new}
-                splitView={true}
-              />
-            );
-          })}
-        </div>
-      </div>
+      {commit.diff.map((diff, i) => {
+        return (
+          <div
+            key={i + truncate(diff.old?.content ?? "", 5) + truncate(diff.new?.content ?? "", 5)}
+            className="w-full overflow-x-scroll"
+          >
+            <ReactDiffViewer
+              styles={{
+                diffContainer: {},
+              }}
+              leftTitle={
+                <Link
+                  href={`/${username}/blob/${repoName}/${defaultBranch.branch}/${diff.old.path}`}
+                  className="hover:text-blue-400 hover:underline text-sm"
+                >
+                  {diff.old.path}
+                </Link>
+              }
+              rightTitle={
+                <Link
+                  href={`/${username}/blob/${repoName}/${defaultBranch.branch}/${diff.new.path}`}
+                  className="hover:text-blue-400 hover:underline text-sm"
+                >
+                  {diff.new.path}
+                </Link>
+              }
+              oldValue={diff.old?.content}
+              newValue={diff.new?.content}
+              splitView={true}
+            />
+          </div>
+        );
+      })}
     </>
   );
 };

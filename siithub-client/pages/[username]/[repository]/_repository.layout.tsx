@@ -18,7 +18,7 @@ function getLinks(router: NextRouter, username: string, repository: string) {
       icon: <CodeBracketIcon className="h-4 w-4 mr-2" />,
       path: "/[username]/[repository]",
       isMultimenu: true,
-      menus: ["/tree", "/blob", "/branches"],
+      menus: ["/tree", "/blob", "/branches", "/commits", "/commit"],
       onClick: async () => {
         await router.push(`/${username}/${repository}`);
       },
@@ -85,7 +85,7 @@ export const RepositoryLayout: FC<PropsWithChildren> = ({ children }) => {
       <RepositoryMenu links={links} />
 
       <RepositoryContextProvider>
-        <div className="mt-10">{children}</div>
+        <div className="mt-10 w-full">{children}</div>
       </RepositoryContextProvider>
     </>
   );

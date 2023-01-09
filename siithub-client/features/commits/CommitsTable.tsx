@@ -7,6 +7,7 @@ import { HashtagLink } from "../../core/components/HashtagLink";
 import { Spinner } from "../../core/components/Spinner";
 import { useCommits } from "./useCommits";
 import { ProfilePicture } from "../../core/components/ProfilePicture";
+import { truncate } from "../../core/utils/string";
 
 type DirectoryTableProps = {
   username: string;
@@ -15,15 +16,7 @@ type DirectoryTableProps = {
 };
 
 export const CommitsTable: FC<DirectoryTableProps> = ({ username, repoName, branch }) => {
-  const { result, setResult } = useResult("trees");
   const { commits, error, isLoading } = useCommits(username, repoName, branch);
-
-  useEffect(() => {
-    if (!result) return;
-    setResult(undefined);
-  }, [result, setResult]);
-
-  const truncate = (str: string, len: number) => (str.length > len ? str.substring(0, len - 3) + "..." : str);
 
   if (error) return <NotFound />;
 
@@ -37,7 +30,7 @@ export const CommitsTable: FC<DirectoryTableProps> = ({ username, repoName, bran
                 <tr className="bg-white border-b text-md">
                   <td colSpan={4}>
                     <div className="flex min-h-full items-center justify-center">
-                      <Spinner />
+                      <Spinner size={20} />
                     </div>
                   </td>
                 </tr>
@@ -48,16 +41,12 @@ export const CommitsTable: FC<DirectoryTableProps> = ({ username, repoName, bran
                       <ProfilePicture username={commit.author} size={20} />
                     </td>
                     <td className="p-3 hover:text-blue-400 hover:underline w-2/6">
-                      <HashtagLink
-                        href={`/${username}/${repoName}/commits/${encodeURIComponent(branch)}/${commit.sha}`}
-                      >
+                      <HashtagLink href={`/${username}/${repoName}/commit/${commit.sha}`}>
                         {truncate(commit.message, 100)}
                       </HashtagLink>
                     </td>
                     <td className="p-3 text-gray-400 w-3/6">
-                      <Link href={`/${username}/${repoName}/commits/${encodeURIComponent(branch)}/${commit.sha}`}>
-                        {commit.sha}
-                      </Link>
+                      <Link href={`/${username}/${repoName}/commit/${commit.sha}`}>{commit.sha}</Link>
                     </td>
                     <td className="p-3 text-gray-400">{moment(commit.date).fromNow()}</td>
                   </tr>

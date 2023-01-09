@@ -151,7 +151,7 @@ app.delete("/api/branches/:username/:repository/:branchName", async (req: Reques
 app.get("/api/commits/:username/:repository/:branch/", async (req: Request, res: Response) => {
   const commits = await getCommits(req.params.username, req.params.repository, req.params.branch);
   if (!commits) {
-    res.status(404).send({ m: "root not found" });
+    res.status(404).send({ m: "commits not found" });
     return;
   }
   res.send(commits);
@@ -160,7 +160,7 @@ app.get("/api/commits/:username/:repository/:branch/", async (req: Request, res:
 app.get("/api/commit/:username/:repository/:sha/", async (req: Request, res: Response) => {
   const commit = await getCommit(req.params.username, req.params.repository, req.params.sha);
   if (!commit) {
-    res.status(404).send({ m: "root not found" });
+    res.status(404).send({ m: "commit not found" });
     return;
   }
   res.send(commit);

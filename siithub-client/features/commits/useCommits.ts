@@ -39,13 +39,13 @@ export function useCommitCount(username: string, repoName: string, branch: strin
 }
 
 type CommitWithDiff = Commit & {
-  diff: { old: string; new: string }[];
+  diff: { old: { path: string; content: string | undefined }; new: { path: string; content: string | undefined } }[];
 };
 
 export function useCommit(username: string, repoName: string, sha: string, dependencies: any[] = []) {
   const { data, error, isLoading } = useQuery(
     [`commit_${username}/${repoName}/${sha}`, ...dependencies],
-    () => axios.get(`/api/${username}/${repoName}/commit/${encodeURIComponent(sha)}`),
+    () => axios.get(`/api/${username}/${repoName}/commit/${sha}`),
     {
       enabled: dependencies.reduce((acc, d) => acc && !d, true),
     }

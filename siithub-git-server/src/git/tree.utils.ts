@@ -1,5 +1,6 @@
 import { Commit, Repository, Revwalk } from "nodegit";
 import { homePath } from "../config";
+import path from "path";
 
 export async function getTree(username: string, repoName: string, branch: string, treePath: string) {
   try {

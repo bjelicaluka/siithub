@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
-import { Spinner } from "../../../../../core/components/Spinner";
-import { CommitDiff } from "../../../../../features/commits/CommitDiff";
-import { useCommit } from "../../../../../features/commits/useCommits";
+import { Spinner } from "../../../../core/components/Spinner";
+import { CommitDiff } from "../../../../features/commits/CommitDiff";
+import { useCommit } from "../../../../features/commits/useCommits";
 
 const Commit = () => {
   const router = useRouter();
@@ -9,7 +9,7 @@ const Commit = () => {
 
   const { commit, isLoading, error } = useCommit(username as string, repository as string, sha as string);
 
-  if (isLoading) return <Spinner />;
+  if (isLoading) return <Spinner size={20} />;
 
   if (error) return <>Not found</>;
 
