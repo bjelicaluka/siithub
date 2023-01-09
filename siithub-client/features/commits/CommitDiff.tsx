@@ -34,7 +34,7 @@ export const CommitDiff: FC<CommitDiffProps> = ({ username, repoName, sha }) => 
               }}
               leftTitle={
                 <Link
-                  href={`/${username}/blob/${repoName}/${defaultBranch.branch}/${diff.old.path}`}
+                  href={`/${username}/${repoName}/blob/${defaultBranch.branch}/${diff.old.path}`}
                   className="hover:text-blue-400 hover:underline text-sm"
                 >
                   {diff.old.path}
@@ -42,7 +42,7 @@ export const CommitDiff: FC<CommitDiffProps> = ({ username, repoName, sha }) => 
               }
               rightTitle={
                 <Link
-                  href={`/${username}/blob/${repoName}/${defaultBranch.branch}/${diff.new.path}`}
+                  href={`/${username}/${repoName}/blob/${defaultBranch.branch}/${diff.new.path}`}
                   className="hover:text-blue-400 hover:underline text-sm"
                 >
                   {diff.new.path}
