@@ -39,4 +39,6 @@ RUN npm i --only=production
 
 COPY --from=build app/dist ./
 
+EXPOSE 22
+
 CMD ["node", "src/index.js"]

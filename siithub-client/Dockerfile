@@ -22,7 +22,7 @@ COPY . .
 
 ENV BACKEND_URL=http://http-proxy:80/backend
 
-RUN yarn build
+RUN npm run build
 
 # If using npm comment out above and use below instead
 # RUN npm run build
