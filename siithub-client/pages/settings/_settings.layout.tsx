@@ -44,3 +44,5 @@ export const SettingsLayout: FC<PropsWithChildren> = ({ children }) => {
     </>
   );
 };
+
+export default SettingsLayout;

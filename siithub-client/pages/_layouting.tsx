@@ -102,3 +102,5 @@ export const NestedLayoutResolver: FC<PropsWithChildren> = ({ children }) => {
     </>
   );
 };
+
+export default NestedLayoutResolver;

@@ -11,6 +11,6 @@ export const config = {
     database: process.env.MONGODB_DATABASE,
   },
   gitServer: {
-    url: process.env.GITSERVER_HOST + ":" + process.env.GITSERVER_PORT,
+    url: process.env.GITSERVER_URL,
   },
 };

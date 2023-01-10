@@ -32,3 +32,5 @@ export const AuthComponentWrapper: FC<AuthComponentWrapperProps> = ({ requireAut
 
   return children;
 };
+
+export default AuthComponentWrapper;
