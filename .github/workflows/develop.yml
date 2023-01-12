@@ -1,0 +1,17 @@
+name: test when changes are applied to develop
+
+on:
+  push:
+    branches: [develop]
+
+  pull_request:
+    branches: [develop]
+
+jobs:
+  test-backend:
+    uses: ./.github/workflows/test-backend-app.yml
+
+  test-git-server:
+    uses: ./.github/workflows/test-project-in-docker.yml
+    with:
+      context: siithub-git-server

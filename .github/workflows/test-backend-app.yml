@@ -1,0 +1,41 @@
+name: test backend app
+
+on:
+  workflow_call:
+
+jobs:
+  test-backend:
+    runs-on: ubuntu-latest
+
+    env:
+      MONGODB_USERNAME: root
+      MONGODB_PASSWORD: password
+      MONGODB_DATABASE: siithub_test
+
+    strategy:
+      matrix:
+        mongodb-version: [4.2.23]
+        node-version: [16.x]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Start MongoDB
+        uses: supercharge/mongodb-github-action@1.8.0
+        with:
+          mongodb-version: ${{ matrix.mongodb-version }}
+          mongodb-username: ${{ env.MONGODB_USERNAME }}
+          mongodb-password: ${{ env.MONGODB_PASSWORD }}
+          mongodb-db: ${{ env.MONGODB_DATABASE }}
+
+      - name: Test siithub-backend
+        working-directory: siithub-backend
+        run: |
+          npm ci
+          npm run build --if-present
+          npm test

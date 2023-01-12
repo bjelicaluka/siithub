@@ -2,7 +2,7 @@ import { type FC, useEffect } from "react";
 import NotFound from "../../core/components/NotFound";
 import { useResult } from "../../core/contexts/Result";
 import { useCommit } from "./useCommits";
-import ReactDiffViewer from "react-diff-viewer";
+import ReactDiffViewer from "react-diff-viewer-continued";
 import { truncate } from "../../core/utils/string";
 import { useDefaultBranch } from "../branches/useBranches";
 import Link from "next/link";

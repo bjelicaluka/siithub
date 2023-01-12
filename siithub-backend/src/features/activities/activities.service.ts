@@ -146,7 +146,7 @@ async function getNewCommentActivities(
       projection: {
         _id: 1,
         repositoryId: 1,
-        csm: { title: 1 },
+        "csm.title": 1,
         events: { $elemMatch: { type: "CommentCreatedEvent", by: { $ne: userId } } },
       },
     }
