@@ -1,0 +1,22 @@
+name: build and run any image
+
+inputs:
+  context:
+    required: true
+  dockerfile:
+    required: true
+
+runs:
+  using: "composite"
+
+  steps:
+    - name: Build test docker image
+      working-directory: ${{ inputs.context }}
+      shell: bash
+      run: |
+        docker build -t ${{ inputs.context }}-test -f ${{ inputs.dockerfile }} .
+
+    - name: Run tests
+      shell: bash
+      run: |
+        docker run ${{ inputs.context }}-test

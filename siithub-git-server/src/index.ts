@@ -9,6 +9,7 @@ import { addKey, removeKey } from "./key.utils";
 import { addUserToGroup, deleteUserFromGroup } from "./git/group.utils";
 import { createBranch, getBranches, removeBranch, renameBranch } from "./git/branches.utils";
 import { getCommit, getCommits } from "./git/commits";
+import { execCmd } from "./cmd.utils";
 
 const app: Express = express();
 
@@ -168,4 +169,8 @@ app.get("/api/commit/:username/:repository/:sha/", async (req: Request, res: Res
 
 app.listen(config.port, () => {
   console.log(`⚡️[server]: Server is running at https://localhost:${config.port}`);
+
+  execCmd("sh -c rc-status; rc-service sshd start")
+    .then(() => console.log("SSH started"))
+    .catch(console.log);
 });

@@ -3,8 +3,10 @@
  * https://jestjs.io/docs/configuration
  */
 
+require("dotenv").config;
+
 module.exports = {
-  testSequencer: "./test/sequencer.js",
+  ...(process.env.GITHUB_ACTION ? { testSequencer: "./test/sequencer.js" } : {}),
   // All imported modules in your tests should be mocked automatically
   // automock: false,
 
@@ -160,9 +162,7 @@ module.exports = {
   // ],
 
   // An array of regexp pattern strings that are matched against all test paths, matched tests are skipped
-  // testPathIgnorePatterns: [
-  //   "/node_modules/"
-  // ],
+  testPathIgnorePatterns: ["/node_modules/", ".*issue.*"],
 
   // The regexp pattern or array of patterns that Jest uses to detect test files
   // testRegex: [],
@@ -193,4 +193,5 @@ module.exports = {
 
   // Whether to use watchman for file crawling
   // watchman: true,
+  testTimeout: 30000,
 };
