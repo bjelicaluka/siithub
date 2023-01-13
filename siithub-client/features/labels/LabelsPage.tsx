@@ -1,7 +1,7 @@
-import { type FC, useEffect, useState } from "react"
+import { type FC, useEffect, useState } from "react";
 import { Button } from "../../core/components/Button";
 import { ResultStatus, useResult } from "../../core/contexts/Result";
-import { LabelForm } from "./LabelForm"
+import { LabelForm } from "./LabelForm";
 import { LabelsTable } from "./LabelsTable";
 import { useSearchLabels } from "./useLabels";
 import { LabelsSearchForm } from "./LabelsSearchForm";
@@ -9,15 +9,14 @@ import { useRefresh } from "../../core/hooks/useRefresh";
 import { type Repository } from "../repository/repository.service";
 
 type LabelsPageProps = {
-  repositoryId: Repository["_id"]
-}
+  repositoryId: Repository["_id"];
+};
 
 export const LabelsPage: FC<LabelsPageProps> = ({ repositoryId }) => {
+  const { key, refresh } = useRefresh("labelSearchForm");
+  const [name, setName] = useState("");
 
-  const { key, refresh } = useRefresh('labelSearchForm')
-  const [name, setName] = useState('');
-
-  const { result, setResult } = useResult('labels');
+  const { result, setResult } = useResult("labels");
   const { labels } = useSearchLabels(repositoryId, name, [result]);
   const [visibility, setVisibility] = useState(false);
 
@@ -31,8 +30,11 @@ export const LabelsPage: FC<LabelsPageProps> = ({ repositoryId }) => {
     setResult(undefined);
   }, [result, setResult]);
 
-  const toggleVisibility = () => setVisibility(visibility => !visibility);
-  const clearName = () => { setName(''); refresh(); };
+  const toggleVisibility = () => setVisibility((visibility) => !visibility);
+  const clearName = () => {
+    setName("");
+    refresh();
+  };
 
   return (
     <>
@@ -48,17 +50,22 @@ export const LabelsPage: FC<LabelsPageProps> = ({ repositoryId }) => {
         </div>
 
         <div className="col-span-3 mt-6">
-          <span className="mr-2"><Button onClick={clearName}>Clear</Button></span>
-          <span><Button onClick={toggleVisibility}>New Label</Button></span>       
+          <span className="mr-2">
+            <Button onClick={clearName}>Clear</Button>
+          </span>
+          <span>
+            <Button onClick={toggleVisibility}>New Label</Button>
+          </span>
         </div>
       </div>
 
-      <div key={visibility+''} hidden={visibility} className="mt-5 md:col-span-2 md:mt-0">
+      <div key={visibility + ""} hidden={visibility} className="mt-5 md:col-span-2 md:mt-0">
         <LabelForm repositoryId={repositoryId} />
       </div>
-      <div className="overflow-hidden shadow sm:rounded-md px-4 py-3">
+
+      <div className="py-3">
         <LabelsTable repositoryId={repositoryId} labels={labels} />
       </div>
     </>
-  )
-}
+  );
+};

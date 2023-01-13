@@ -7,34 +7,41 @@ import { useNotifications } from "../../core/hooks/useNotifications";
 import { extractErrorMessage } from "../../core/utils/errors";
 import { type GithubAuth, type AuthenticatedUser, authenticateGithub } from "./authenticate";
 
-export const AuthGithubCallbackPage: FC = () => {
+let sent = false;
 
+export const AuthGithubCallbackPage: FC = () => {
   const router = useRouter();
   const notifications = useNotifications();
-  const { setResult } = useResult('auth');
+  const { setResult } = useResult("auth");
   const { authDispatcher } = useAuthContext();
 
   const authenticateAction = useAction<GithubAuth, AuthenticatedUser>(authenticateGithub, {
     onSuccess: (authUser: AuthenticatedUser) => {
-      console.log(authUser);
       authDispatcher(onLogin(authUser));
-      setResult({ status: ResultStatus.Ok, type: 'AUTHENTICATE' });
+      setResult({ status: ResultStatus.Ok, type: "AUTHENTICATE" });
+      router.push("/");
     },
     onError: (error: any) => {
       if (error.statusCode !== 404) {
         notifications.error(extractErrorMessage(error));
-        setResult({ status: ResultStatus.Error, type: 'AUTHENTICATE' });
-        router.push('/auth')
+        setResult({ status: ResultStatus.Error, type: "AUTHENTICATE" });
+        router.push("/auth");
       } else {
-        router.push({ pathname :'/users/registration', query: { githubUsername: error?.payload?.login } })
+        router.push({
+          pathname: "/registration",
+          query: { githubUsername: error?.payload?.login },
+        });
       }
-    }
+    },
   });
-  
-  useEffect(() => {
+
+  if (!sent) {
     const { code, state } = router.query;
-    code && state && authenticateAction({ code: code as string, state: state as string });
-  }, [router]);
+    if (!code || !state) return <></>;
+
+    authenticateAction({ code: code as string, state: state as string });
+    sent = true;
+  }
 
   return (
     <>
@@ -43,4 +50,4 @@ export const AuthGithubCallbackPage: FC = () => {
       </div>
     </>
   );
-}
+};

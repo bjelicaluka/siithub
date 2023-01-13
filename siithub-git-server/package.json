@@ -4,6 +4,7 @@
   "description": "",
   "scripts": {
     "start": "tsc && node dist/src",
+    "build": "tsc",
     "test": "jest"
   },
   "keywords": [],

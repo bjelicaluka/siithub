@@ -4,6 +4,19 @@ import { type User } from "../users/user.model";
 import { type Repository } from "../repository/repository.service";
 import { type Milestone } from "../milestones/milestoneActions";
 
+export enum CommentState {
+  Existing,
+  Hidden,
+  Deleted
+};
+
+export type Comment = {
+  _id: string,
+  text: string,
+  state: CommentState,
+  reactions: any
+};
+
 export enum IssueState {
   Open,
   Closed,
@@ -19,6 +32,7 @@ export type IssueCSM = {
   labels?: Label['_id'][],
   milestones?: Milestone['_id'][],
   assignees?: User['_id'][],
+  comments?: Comment[]
 };
 
 type Issue = {

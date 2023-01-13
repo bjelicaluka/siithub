@@ -1,6 +1,7 @@
+import { HomeView } from "../features/home/home-view";
 
 export default function Home() {
-  return (
-    <div>LALAL</div>
-  );
+  return <HomeView />;
 }
+
+Home.requireAuth = true;
