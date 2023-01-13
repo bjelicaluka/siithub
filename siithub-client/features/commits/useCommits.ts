@@ -39,7 +39,15 @@ export function useCommitCount(username: string, repoName: string, branch: strin
 }
 
 type CommitWithDiff = Commit & {
-  diff: { old: { path: string; content: string | undefined }; new: { path: string; content: string | undefined } }[];
+  diff: {
+    old: { path: string; content: string | undefined };
+    new: { path: string; content: string | undefined };
+    stats: {
+      total_additions: number;
+      total_deletions: number;
+    };
+    large: boolean;
+  }[];
 };
 
 export function useCommit(username: string, repoName: string, sha: string, dependencies: any[] = []) {

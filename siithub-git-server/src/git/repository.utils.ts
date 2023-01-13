@@ -5,7 +5,7 @@ import { createUser } from "../user.utils";
 import { addGroup, addUserToGroup, deleteGroup } from "./group.utils";
 import { homePath } from "../config";
 
-export async function createRepo(username: string, repoName: string) {
+export async function createRepo(username: string, repoName: string, publicRepo = false) {
   if (!fs.existsSync(`${homePath}/${username}`)) {
     await createUser(username);
   }
@@ -19,7 +19,7 @@ export async function createRepo(username: string, repoName: string) {
 
     await execCmd(`chown -R ${username}:${repoName} ${repoPath}`);
     // owner full access | group full access (collabs) | others no access
-    await execCmd(`chmod 770 ${repoPath}`);
+    await execCmd(`chmod -R 77${publicRepo ? 5 : 0} ${repoPath}`);
   }
 }
 
