@@ -8,10 +8,11 @@ async function createUser(username: string): Promise<any> {
   return await axios.post(`${config.gitServer.url}/api/users`, { username });
 }
 
-async function createRepository(username: string, repositoryName: string): Promise<any> {
+async function createRepository(username: string, repositoryName: string, type: "public" | "private"): Promise<any> {
   return await axios.post(`${config.gitServer.url}/api/repositories`, {
     username,
     repositoryName,
+    type,
   });
 }
 
@@ -96,7 +97,7 @@ async function getBlob(username: string, repoName: string, branch: string, blobP
 
 export type GitServerClient = GitServerBranchesClient & {
   createUser(username: string): Promise<any>;
-  createRepository(username: string, repositoryName: string): Promise<any>;
+  createRepository(username: string, repositoryName: string, type: "public" | "private"): Promise<any>;
   deleteRepository(username: string, repositoryName: string): Promise<any>;
   addSshKey(username: string, key: string): Promise<any>;
   updateSshKey(username: string, oldKey: string, key: string): Promise<any>;

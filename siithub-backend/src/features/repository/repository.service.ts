@@ -24,7 +24,7 @@ async function createRepository(repository: RepositoryCreate): Promise<Repositor
   }
 
   try {
-    await gitServerClient.createRepository(existingUser.username, repository.name);
+    await gitServerClient.createRepository(existingUser.username, repository.name, repository.type);
   } catch (error) {
     throw new BadLogicException("Failed to create repository in the file system.");
   }

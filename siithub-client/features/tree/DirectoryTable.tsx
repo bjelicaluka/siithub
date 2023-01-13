@@ -90,7 +90,9 @@ export const DirectoryTable: FC<DirectoryTableProps> = ({ username, repoName, br
                         {truncate(e?.commit?.message ?? "", 72)}
                       </HashtagLink>
                     </td>
-                    <td className="p-3 text-gray-400">{moment(e.commit.date).fromNow()}</td>
+                    <td className="p-3 text-gray-400">
+                      {e.commit.date ? moment(e.commit.date).fromNow() : "Many commits ago"}
+                    </td>
                   </tr>
                 ))
               )}

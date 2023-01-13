@@ -23,8 +23,8 @@ app.post("/api/users", async (req: Request, res: Response) => {
 });
 
 app.post("/api/repositories", async (req: Request, res: Response) => {
-  const { username, repositoryName } = req.body;
-  await createRepo(username, repositoryName);
+  const { username, repositoryName, type } = req.body;
+  await createRepo(username, repositoryName, type === "public");
 
   res.send({ status: "ok" });
 });
