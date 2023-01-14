@@ -9,7 +9,7 @@ export function useBranches(username: string, repoName: string, name?: string, d
   );
 
   return {
-    branches: data?.data ?? [],
+    branches: (data?.data ?? []) as string[],
   };
 }
 
@@ -32,5 +32,5 @@ export function useBranchesCount(username: string, repoName: string, dependencie
     { enabled: dependencies.reduce((acc, d) => acc && !d, true) }
   );
 
-  return data?.data ?? { count: 0 };
+  return (data?.data ?? { count: 0 }) as { count: number };
 }

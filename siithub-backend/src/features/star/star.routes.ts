@@ -16,7 +16,7 @@ router.get(
   async (req: Request, res: Response) => {
     const repositoryId = await getRepoIdFromPath(req);
     const stars = await starService.findByRepoId(repositoryId);
-    res.send(await userService.findByIds(stars.map((s) => s.userId)));
+    res.send(await userService.findManyByIds(stars.map((s) => s.userId)));
   }
 );
 

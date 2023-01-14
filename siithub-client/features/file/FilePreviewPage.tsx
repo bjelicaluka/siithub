@@ -4,9 +4,13 @@ import { useResult } from "../../core/contexts/Result";
 import { useFile } from "./useFile";
 import { Spinner } from "../../core/components/Spinner";
 import Link from "next/link";
-import { ArrowDownTrayIcon, ClipboardDocumentIcon } from "@heroicons/react/24/outline";
+import { ArrowDownTrayIcon, ClipboardDocumentIcon, UsersIcon } from "@heroicons/react/24/outline";
 import { useNotifications } from "../../core/hooks/useNotifications";
 import { FilePreview } from "./FilePreview";
+import { useFileInfo } from "../commits/useCommits";
+import moment from "moment";
+import { HashtagLink } from "../../core/components/HashtagLink";
+import { truncate } from "../../core/utils/string";
 
 type FilePreviewPageProps = {
   username: string;
@@ -19,37 +23,12 @@ export const FilePreviewPage: FC<FilePreviewPageProps> = ({ username, repoName, 
   const { result, setResult } = useResult("files");
   const notification = useNotifications();
   const { content, size, isBinary, error, isLoading, url } = useFile(username, repoName, branch, blobPath, [result]);
+  const { info } = useFileInfo(username, repoName, branch, blobPath, [result]);
 
   useEffect(() => {
     if (!result) return;
     setResult(undefined);
   }, [result, setResult]);
-
-  const FilePath: FC = () => {
-    let path = `/${username}/${repoName}/tree/${encodeURIComponent(branch)}`;
-    return (
-      <>
-        <Link href={path} className="text-blue-500 hover:underline font-semibold m-1">
-          {repoName}
-        </Link>
-        {blobPath.split("/").map((subpath, index, arr) => {
-          path += `/${subpath}`;
-          return index !== arr.length - 1 ? (
-            <span key={index}>
-              /
-              <Link href={path} className="text-blue-500 hover:underline m-1">
-                {subpath}
-              </Link>
-            </span>
-          ) : (
-            <span key={index}>
-              /<span className="font-semibold m-1">{subpath}</span>
-            </span>
-          );
-        })}
-      </>
-    );
-  };
 
   const FileOptions: FC = () => {
     const lines = typeof content === "string" ? (content.match(/\r\n|\r|\n/g)?.length ?? 0) + 1 : 0;
@@ -79,15 +58,51 @@ export const FilePreviewPage: FC<FilePreviewPageProps> = ({ username, repoName, 
     );
   };
 
+  const FileContribInfo: FC = () => {
+    return (
+      <div className="rounded-lg mb-3 border-2">
+        <div className="bg-white border-b p-4 grid grid-cols-12">
+          <div className="col-span-8">
+            <span className="font-semibold mr-2">
+              {info.author.username ? <>{info.author.username}</> : <>{info.author.name}</>}
+            </span>
+            <HashtagLink href={`/${username}/${repoName}/commit/${info.sha}`}>
+              {truncate(info.message, 100)}
+            </HashtagLink>
+          </div>
+          <div className="text-right col-span-3">
+            Latest commit {info.sha.substring(0, 6)} {moment(info.date).fromNow()}
+          </div>
+          <div className="text-right col-span-1">
+            <Link
+              href={`/${username}/${repoName}/commits/${encodeURIComponent(branch)}/${blobPath}`}
+              className="hover:text-blue-400 font-bold"
+            >
+              History
+            </Link>
+          </div>
+        </div>
+        <div className="bg-white p-4 grid grid-cols-6">
+          <p className="text-base font-semibold col-span-1 flex items-center">
+            <UsersIcon className="w-5 h-5 mr-2" />
+            {info.contributors.length} contributors
+          </p>
+          <div className="col-span-5">
+            {info.contributors.map((contrib) => (contrib.username ? <>{contrib.username}, </> : <>{contrib.name}, </>))}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   if (error) return <NotFound />;
 
   return (
     <>
       <div className="overflow-x-auto relative shadow-md sm:rounded-lg">
+        {info && <FileContribInfo />}
+
         <div className="w-full border-2 border-gray-200">
-          <div className="bg-white border-b p-4 text-lg items-center">
-            <FilePath />
-          </div>
           {isLoading ? (
             <>
               <div className="flex bg-white border-b p-4">

@@ -1,17 +1,33 @@
 import axios from "axios";
 import { useQuery } from "react-query";
 
-type Commit = {
+type AuthorInfo = {
+  name: string;
+  email: string;
+  username: string;
+  bio: string;
+};
+
+export type Commit = {
   message: string;
   sha: string;
   date: string;
-  author: string;
+  author: AuthorInfo;
 };
 
-export function useCommits(username: string, repoName: string, branch: string, dependencies: any[] = []) {
+export type LastCommitAndContrib = Commit & { contributors: AuthorInfo[] };
+
+export function useCommits(
+  username: string,
+  repoName: string,
+  branch: string,
+  filePath: string,
+  dependencies: any[] = []
+) {
   const { data, error, isLoading } = useQuery(
-    [`commits_${username}/${repoName}/${branch}`, ...dependencies],
-    () => axios.get(`/api/${username}/${repoName}/commits/${encodeURIComponent(branch)}`),
+    [`commits_${username}/${repoName}/${branch}/${filePath}`, ...dependencies],
+    () =>
+      axios.get(`/api/${username}/${repoName}/commits/${encodeURIComponent(branch)}/${encodeURIComponent(filePath)}`),
     {
       enabled: dependencies.reduce((acc, d) => acc && !d, true),
     }
@@ -60,6 +76,28 @@ export function useCommit(username: string, repoName: string, sha: string, depen
   );
   return {
     commit: data?.data as CommitWithDiff,
+    error: (error as any)?.response?.data,
+    isLoading: isLoading,
+  };
+}
+
+export function useFileInfo(
+  username: string,
+  repoName: string,
+  branch: string,
+  filePath: string,
+  dependencies: any[] = []
+) {
+  const { data, error, isLoading } = useQuery(
+    [`file-info_${username}/${repoName}/${branch}`, ...dependencies],
+    () =>
+      axios.get(`/api/${username}/${repoName}/blob-info/${encodeURIComponent(branch)}/${encodeURIComponent(filePath)}`),
+    {
+      enabled: dependencies.reduce((acc, d) => acc && !d, true),
+    }
+  );
+  return {
+    info: data?.data as LastCommitAndContrib,
     error: (error as any)?.response?.data,
     isLoading: isLoading,
   };

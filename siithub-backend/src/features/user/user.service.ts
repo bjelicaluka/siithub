@@ -27,8 +27,11 @@ async function findManyByIds(ids: User["_id"][], filters: Filter<User> = {}): Pr
   ).toArray();
 }
 
-async function findByIds(ids: User["_id"][]): Promise<User[]> {
-  return await userRepo.crud.findMany({ _id: { $in: ids } }, { projection: { username: 1, name: 1 } });
+async function findManyByEmails(emails: string[]): Promise<User[]> {
+  return await userRepo.crud.findMany(
+    { email: { $in: emails } },
+    { projection: { username: 1, name: 1, email: 1, bio: 1 } }
+  );
 }
 
 async function findByUsername(username: string): Promise<User | null> {
@@ -109,7 +112,7 @@ export type UserService = {
   findByUsernameOrThrow(username: string): Promise<User>;
   findByGithubUsername(username: string): Promise<User | null>;
   findMany(filters?: Filter<User>): Promise<User[]>;
-  findByIds(ids: User["_id"][]): Promise<User[]>;
+  findManyByEmails(emails: string[]): Promise<User[]>;
   findManyByIds(ids: User["_id"][], filters?: Filter<User>): Promise<User[]>;
   create(user: UserCreate): Promise<User | null>;
   updateProfile(id: User["_id"], profileUpdate: UserUpdate): Promise<User | null>;
@@ -119,7 +122,7 @@ export type UserService = {
 const userService: UserService = {
   findMany,
   findManyByIds,
-  findByIds,
+  findManyByEmails,
   findOneOrThrow: removePassword(findOneOrThrow),
   findByUsername,
   findByUsernameOrThrow: removePassword(findByUsernameOrThrow),
