@@ -7,10 +7,10 @@ import { useUsers } from "../users/registration/useUsers";
 import { LabelPreview } from "../labels/LabelPreview";
 import { type User } from "../users/user.model";
 import { type Milestone } from "../milestones/milestoneActions";
-import { useMilestonesByRepoId } from "./useMillestones";
 import { CommentPreview } from "./CommentPreview";
 import { type Comment } from "./issueActions";
 import { ProfilePicture } from "../../core/components/ProfilePicture";
+import { useMilestonesByRepoId } from "../milestones/useMilestones";
 
 const eventTypesToExclude = ["UserReactedEvent", "UserUnreactedEvent"];
 
@@ -64,12 +64,12 @@ export const IssueHistory: FC = () => {
         }
 
         case "MilestoneAssignedEvent": {
-          const milestone = milestones?.find((m: Milestone) => m._id === event.milestoneId) ?? {};
-          return <>added the {milestone.title} milestone</>;
+          const milestone = milestones.find((m: Milestone) => m._id === event.milestoneId);
+          return <>added the {milestone?.title} milestone</>;
         }
         case "MilestoneUnassignedEvent": {
-          const milestone = milestones?.find((m: Milestone) => m._id === event.milestoneId) ?? {};
-          return <>removed the {milestone.title} milestone</>;
+          const milestone = milestones.find((m: Milestone) => m._id === event.milestoneId);
+          return <>removed the {milestone?.title} milestone</>;
         }
 
         case "UserAssignedEvent":

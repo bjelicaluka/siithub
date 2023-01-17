@@ -13,8 +13,8 @@ export enum CommentState {
 }
 
 type Reactions = {
-  [code: string]: number
-}
+  [code: string]: number;
+};
 
 export type Comment = BaseEntity & {
   text: string;
@@ -42,10 +42,11 @@ export type IssueCSM = {
 
 export type Issue = AggregateRoot & {
   csm: IssueCSM;
+  localId: number;
   repositoryId: Repository["_id"];
 };
 
-export type IssueCreate = Omit<Issue, "_id" | "cms">;
+export type IssueCreate = Omit<Issue, "_id" | "cms" | "localId">;
 export type IssueUpdate = Omit<Issue, "cms">;
 
 export type IssueCreatedEvent = BaseEvent & {
@@ -122,9 +123,8 @@ export function handleFor(issue: Issue, event: BaseEvent) {
     }
     case "LabelAssignedEvent": {
       const labelAssigned = event as LabelAssignedEvent;
-      const lastLabelEvent = findLastEvent<LabelAssignedEvent | LabelUnassignedEvent>(
-        issue.events,
-        (e) => compareIds(e?.labelId, labelAssigned?.labelId)
+      const lastLabelEvent = findLastEvent<LabelAssignedEvent | LabelUnassignedEvent>(issue.events, (e) =>
+        compareIds(e?.labelId, labelAssigned?.labelId)
       );
       if (lastLabelEvent?.type === "LabelAssignedEvent") {
         throw new BadLogicException("Label is already assigned to the Issue.", event);
@@ -135,9 +135,8 @@ export function handleFor(issue: Issue, event: BaseEvent) {
     }
     case "LabelUnassignedEvent": {
       const labelUnassigned = event as LabelUnassignedEvent;
-      const lastLabelEvent = findLastEvent<LabelAssignedEvent | LabelUnassignedEvent>(
-        issue.events,
-        (e) => compareIds(e?.labelId, labelUnassigned?.labelId)
+      const lastLabelEvent = findLastEvent<LabelAssignedEvent | LabelUnassignedEvent>(issue.events, (e) =>
+        compareIds(e?.labelId, labelUnassigned?.labelId)
       );
       if (!lastLabelEvent || lastLabelEvent?.type === "LabelUnassignedEvent") {
         throw new BadLogicException("Label cannot be unassigned from the Issue.", event);
@@ -150,9 +149,8 @@ export function handleFor(issue: Issue, event: BaseEvent) {
     }
     case "MilestoneAssignedEvent": {
       const milestoneAssigned = event as MilestoneAssignedEvent;
-      const lastMilestoneEvent = findLastEvent<MilestoneAssignedEvent | MilestoneUnassignedEvent>(
-        issue.events,
-        (e) => compareIds(e?.milestoneId, milestoneAssigned?.milestoneId)
+      const lastMilestoneEvent = findLastEvent<MilestoneAssignedEvent | MilestoneUnassignedEvent>(issue.events, (e) =>
+        compareIds(e?.milestoneId, milestoneAssigned?.milestoneId)
       );
       if (lastMilestoneEvent?.type === "MilestoneAssignedEvent") {
         throw new BadLogicException("Milestone is already assigned to the Issue.", event);
@@ -163,9 +161,8 @@ export function handleFor(issue: Issue, event: BaseEvent) {
     }
     case "MilestoneUnassignedEvent": {
       const milestoneUnassigned = event as MilestoneUnassignedEvent;
-      const lastMilestoneEvent = findLastEvent<MilestoneAssignedEvent | MilestoneUnassignedEvent>(
-        issue.events,
-        (e) => compareIds(e?.milestoneId, milestoneUnassigned?.milestoneId)
+      const lastMilestoneEvent = findLastEvent<MilestoneAssignedEvent | MilestoneUnassignedEvent>(issue.events, (e) =>
+        compareIds(e?.milestoneId, milestoneUnassigned?.milestoneId)
       );
       if (!lastMilestoneEvent || lastMilestoneEvent?.type === "MilestoneUnassignedEvent") {
         throw new BadLogicException("Milestone cannot be unassigned from the Issue.", event);
@@ -178,9 +175,8 @@ export function handleFor(issue: Issue, event: BaseEvent) {
     }
     case "UserAssignedEvent": {
       const userAssigned = event as UserAssignedEvent;
-      const lastUserEvent = findLastEvent<UserAssignedEvent | UserUnassignedEvent>(
-        issue.events,
-        (e) => compareIds(e?.userId, userAssigned?.userId)
+      const lastUserEvent = findLastEvent<UserAssignedEvent | UserUnassignedEvent>(issue.events, (e) =>
+        compareIds(e?.userId, userAssigned?.userId)
       );
       if (lastUserEvent?.type === "UserAssignedEvent") {
         throw new BadLogicException("User is already assigned to the Issue.", event);
@@ -191,9 +187,8 @@ export function handleFor(issue: Issue, event: BaseEvent) {
     }
     case "UserUnassignedEvent": {
       const userUnassigned = event as UserUnassignedEvent;
-      const lastUserEvent = findLastEvent<UserAssignedEvent | UserUnassignedEvent>(
-        issue.events,
-        (e) => compareIds(e?.userId, userUnassigned?.userId)
+      const lastUserEvent = findLastEvent<UserAssignedEvent | UserUnassignedEvent>(issue.events, (e) =>
+        compareIds(e?.userId, userUnassigned?.userId)
       );
       if (!lastUserEvent || lastUserEvent?.type === "UserUnassignedEvent") {
         throw new BadLogicException("User cannot be unassigned from the Issue.", event);
@@ -342,7 +337,7 @@ function canCommentBeModified(issue: Issue, commentId: Comment["_id"]): boolean 
     issue.events,
     (e) =>
       ["CommentCreatedEvent", "CommentHiddenEvent", "CommentDeletedEvent"].includes(e.type) &&
-      (compareIds(e.commentId, commentId))
+      compareIds(e.commentId, commentId)
   );
 
   return !(

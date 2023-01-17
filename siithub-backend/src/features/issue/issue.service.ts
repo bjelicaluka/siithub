@@ -26,11 +26,20 @@ async function findByRepositoryId(repositoryId: Repository["_id"]): Promise<Issu
   return await issueRepo.findByRepositoryId(repositoryId);
 }
 
+async function findByRepositoryIdAndLocalId(repositoryId: Repository["_id"], localId: number): Promise<Issue> {
+  const issue = await issueRepo.findByRepositoryIdAndLocalId(repositoryId, localId);
+  if (!issue) {
+    throw new MissingEntityException("Issue with given id does not exist.");
+  }
+  return issue;
+}
+
 async function findMany(filters: Filter<Issue> = {}, options: FindOptions<Issue> = {}): Promise<Issue[]> {
   return await issueRepo.crud.findMany(filters, options);
 }
 
 async function searchByQuery(query: IssuesQuery, repositoryId: Repository["_id"]): Promise<Issue[]> {
+  query.state = query.state?.map((s) => +s);
   return await issueRepo.searchByQuery(query, repositoryId);
 }
 
@@ -43,19 +52,19 @@ async function findOneOrThrow(id: Issue["_id"]): Promise<Issue> {
 }
 
 async function createIssue({ events, repositoryId }: IssueCreate): Promise<Issue | null> {
-  await repositoryService.findOneOrThrow(repositoryId);
-
+  const localId = await repositoryService.increaseCounterValue(repositoryId, "issue");
   const createdIssue = (await issueRepo.crud.add({
     events: [],
     csm: {},
     repositoryId,
+    localId,
   })) as Issue;
 
   return await updateEventsFor(createdIssue, events);
 }
 
-async function updateIssue({ _id, events }: IssueUpdate): Promise<Issue | null> {
-  const existingIssue = await findOneOrThrow(_id);
+async function updateIssue({ repositoryId, localId, events }: IssueUpdate): Promise<Issue | null> {
+  const existingIssue = await findByRepositoryIdAndLocalId(repositoryId, localId);
 
   return await updateEventsFor(existingIssue, events);
 }
@@ -110,6 +119,7 @@ export type IssueService = {
   create(issue: IssueCreate): Promise<Issue | null>;
   update(issue: IssueUpdate): Promise<Issue | null>;
   validateEventFor(event: BaseEvent): Promise<void>;
+  findByRepositoryIdAndLocalId(repositoryId: Repository["_id"], localId: number): Promise<Issue>;
 };
 
 const issueService: IssueService = {
@@ -121,6 +131,7 @@ const issueService: IssueService = {
   create: createIssue,
   update: updateIssue,
   validateEventFor,
+  findByRepositoryIdAndLocalId,
 };
 
 export { issueService, validateEventFor };

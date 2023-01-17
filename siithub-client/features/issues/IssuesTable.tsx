@@ -23,8 +23,8 @@ export const IssuesTable: FC<IssuesTableType> = ({ repositoryId, issues }) => {
   const { labels } = useLabels(repositoryId);
   const { users } = useUsers();
 
-  const navigateToIssueEdit = (issueId: Issue["_id"]) =>
-    router.push(`/${repository?.owner ?? ""}/${repository?.name ?? ""}/issues/${issueId}`);
+  const navigateToIssueEdit = (localId: number) =>
+    router.push(`/${repository?.owner ?? ""}/${repository?.name ?? ""}/issues/${localId}`);
 
   const AdditionalText = ({ issue }: { issue: Issue }) => {
     const issueCreated = findLastEvent(issue.events, (e: any) => e.type === "IssueCreatedEvent");
@@ -59,7 +59,7 @@ export const IssuesTable: FC<IssuesTableType> = ({ repositoryId, issues }) => {
             {issues?.map((issue: Issue) => (
               <tr key={issue._id} className="bg-white border-b">
                 <td className="py-4 px-6">
-                  <div className="cursor-pointer" onClick={() => navigateToIssueEdit(issue._id)}>
+                  <div className="cursor-pointer" onClick={() => navigateToIssueEdit(issue.localId)}>
                     <div className="flex">
                       <span className="mr-2 mt-2">
                         {issue.csm.state === IssueState.Closed ? <ClosedIcon /> : <OpenedIcon />}

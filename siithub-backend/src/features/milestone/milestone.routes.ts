@@ -29,7 +29,7 @@ router.get(
   async (req: Request, res: Response) => {
     const repositoryId = new ObjectId(req.params.repositoryId);
 
-    res.send(await milestoneService.findByRepositoryId(repositoryId));
+    res.send(await milestoneService.searchByTitle("", repositoryId));
   }
 );
 
