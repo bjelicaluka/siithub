@@ -37,7 +37,7 @@ export const IssuesSearchForm: FC<IssuesSearchFormProps> = ({ repositoryId, exis
   const { milestones } = useMilestonesByRepoId(repositoryId);
   const milestoneOptions = milestones?.map((m: Milestone) => ({ value: m._id, label: m.title }));
 
-  const { users } = useUsers();
+  const { users } = useUsers(); // TODO: use collaborators
   const userOptions = [
     { value: "", label: "Any" },
     ...(users?.map((u: any) => ({ value: u._id, label: u.name })) ?? []),

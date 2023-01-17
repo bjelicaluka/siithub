@@ -46,6 +46,10 @@ export type Issue = AggregateRoot & {
   repositoryId: Repository["_id"];
 };
 
+export type IssueWithParticipants = Issue & {
+  participants?: any;
+};
+
 export type IssueCreate = Omit<Issue, "_id" | "cms" | "localId">;
 export type IssueUpdate = Omit<Issue, "cms">;
 

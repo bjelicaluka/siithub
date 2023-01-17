@@ -16,7 +16,7 @@ const localIdSchema = z.number().min(0);
 
 router.get("/:repositoryId/issues/", authorize(), isAllowedToAccessRepo(true), async (req: Request, res: Response) => {
   const repositoryId = idSchema.parse(req.params.repositoryId);
-  res.send(await issueService.findByRepositoryId(repositoryId));
+  res.send(await issueService.resolveParticipants(await issueService.findByRepositoryId(repositoryId)));
 });
 
 router.get(
@@ -27,7 +27,7 @@ router.get(
     const repositoryId = idSchema.parse(req.params.repositoryId);
     const query = req.query as IssuesQuery;
 
-    res.send(await issueService.searchByQuery(query, repositoryId));
+    res.send(await issueService.resolveParticipants(await issueService.searchByQuery(query, repositoryId)));
   }
 );
 
@@ -38,7 +38,11 @@ router.get(
   async (req: Request, res: Response) => {
     const repositoryId = idSchema.parse(req.params.repositoryId);
     const localId = localIdSchema.parse(+req.params.localId);
-    res.send(await issueService.findByRepositoryIdAndLocalId(repositoryId, localId));
+    res.send(
+      (
+        await issueService.resolveParticipants([await issueService.findByRepositoryIdAndLocalId(repositoryId, localId)])
+      )[0]
+    );
   }
 );
 

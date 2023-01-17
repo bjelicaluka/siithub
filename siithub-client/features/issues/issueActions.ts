@@ -41,6 +41,7 @@ type Issue = {
   localId: number;
   events: any[];
   csm: IssueCSM;
+  participants?: { [uid: string]: User };
 };
 
 type IssuesQuery = {

@@ -11,12 +11,14 @@ import {
   type LabelAssignedEvent,
   type UserAssignedEvent,
   type MilestoneAssignedEvent,
+  IssueWithParticipants,
 } from "./issue.model";
 import { issueRepo } from "./issue.repo";
 import { type Repository } from "../repository/repository.model";
 import { repositoryService } from "../repository/repository.service";
 import { IssuesQuery } from "./issue.query";
 import { milestoneService } from "../milestone/milestone.service";
+import { User } from "../user/user.model";
 
 async function findOne(id: Issue["_id"]): Promise<Issue | null> {
   return await issueRepo.crud.findOne(id);
@@ -48,7 +50,7 @@ async function findOneOrThrow(id: Issue["_id"]): Promise<Issue> {
   if (!issue) {
     throw new MissingEntityException("Issue with given id does not exist.");
   }
-  return issue as Issue;
+  return issue;
 }
 
 async function createIssue({ events, repositoryId }: IssueCreate): Promise<Issue | null> {
@@ -110,6 +112,31 @@ async function validateEventFor(event: BaseEvent): Promise<void> {
   }
 }
 
+async function resolveParticipants(issues: Issue[]): Promise<IssueWithParticipants[]> {
+  let participantsIds: User["_id"][] = [];
+  for (const issue of issues) {
+    for (const event of issue.events) {
+      participantsIds.push(event.by);
+      if (event.type === "UserAssignedEvent") participantsIds.push((event as UserAssignedEvent).userId);
+    }
+  }
+  const users = (
+    await userService.findManyByIds(participantsIds.filter((value, index, array) => array.indexOf(value) === index))
+  ).map((u) => ({ ...u, _id: u._id + "" }));
+  return issues.map((issue) => {
+    let participants: { [uid: string]: any } = {};
+    for (const event of issue.events) {
+      let userId = event.by + "";
+      participants[event.by + ""] = users.find((u) => u._id === userId);
+      if (event.type === "UserAssignedEvent") {
+        userId = (event as UserAssignedEvent).userId + "";
+        participants[userId + ""] = users.find((u) => u._id === userId);
+      }
+    }
+    return { ...issue, participants };
+  });
+}
+
 export type IssueService = {
   findOne(id: Issue["_id"]): Promise<Issue | null>;
   findOneOrThrow(id: Issue["_id"]): Promise<Issue>;
@@ -120,6 +147,7 @@ export type IssueService = {
   update(issue: IssueUpdate): Promise<Issue | null>;
   validateEventFor(event: BaseEvent): Promise<void>;
   findByRepositoryIdAndLocalId(repositoryId: Repository["_id"], localId: number): Promise<Issue>;
+  resolveParticipants(issues: Issue[]): Promise<IssueWithParticipants[]>;
 };
 
 const issueService: IssueService = {
@@ -132,6 +160,7 @@ const issueService: IssueService = {
   update: updateIssue,
   validateEventFor,
   findByRepositoryIdAndLocalId,
+  resolveParticipants,
 };
 
 export { issueService, validateEventFor };
