@@ -55,11 +55,11 @@ export const IssueHistory: FC = () => {
       }
 
       case "MilestoneAssignedEvent": {
-        const milestone = milestones.find((m: Milestone) => m._id === event.milestoneId);
+        const milestone = milestones?.find((m: Milestone) => m._id === event.milestoneId);
         return <>added the {milestone?.title} milestone</>;
       }
       case "MilestoneUnassignedEvent": {
-        const milestone = milestones.find((m: Milestone) => m._id === event.milestoneId);
+        const milestone = milestones?.find((m: Milestone) => m._id === event.milestoneId);
         return <>removed the {milestone?.title} milestone</>;
       }
 

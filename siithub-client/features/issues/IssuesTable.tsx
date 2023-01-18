@@ -45,11 +45,6 @@ export const IssuesTable: FC<IssuesTableType> = ({ repositoryId, issues }) => {
     <>
       <div className="overflow-x-auto relative shadow-md sm:rounded-lg">
         <table className="w-full text-sm text-left text-gray-500">
-          <thead className="text-xs text-gray-700 uppercase bg-gray-50">
-            <tr>
-              <th scope="col" className="py-3 px-6" />
-            </tr>
-          </thead>
           <tbody>
             {issues?.map((issue: Issue) => (
               <tr key={issue._id} className="bg-white border-b">
