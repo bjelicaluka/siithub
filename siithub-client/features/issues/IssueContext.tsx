@@ -24,6 +24,7 @@ type IssueContextType = {
 
 export const initialIssue = {
   _id: "",
+  localId: 0,
   repositoryId: "",
   events: [],
   csm: {
@@ -244,13 +245,16 @@ export function setIssue(issue: Issue) {
 
 export function createNewIssue(issue: Issue, by: User["_id"]) {
   const newIssue: CreateIssue = {
-    events: [{ by, type: "IssueCreatedEvent", title: issue.csm.title, description: issue.csm.description }, ...issue.events],
+    events: [
+      { by, type: "IssueCreatedEvent", title: issue.csm.title, description: issue.csm.description },
+      ...issue.events,
+    ],
     repositoryId: issue.repositoryId,
   };
 
   createIssue(newIssue)
     .then((resp) => {
-      Router.push(`${Router.asPath.replace("new", "")}${resp.data._id}`);
+      Router.push(`${Router.asPath.replace("new", "")}${resp.data.localId}`);
       notifications.success("You have successfully created a new issue.");
     })
     .catch((_) => {});
@@ -260,7 +264,7 @@ export function createNewIssue(issue: Issue, by: User["_id"]) {
 
 export function updateExistingIssue(issue: Issue, by: User["_id"]) {
   const newIssue: UpdateIssue = {
-    _id: issue._id,
+    localId: issue.localId,
     events: [{ by, type: "IssueUpdatedEvent", ...issue.csm }],
     repositoryId: issue.repositoryId,
   };
@@ -296,7 +300,7 @@ export function unassignLabel(labelId: Label["_id"], by: User["_id"]) {
 
 export function instantAssignLabelTo(issue: Issue, labelId: Label["_id"], by: User["_id"]) {
   const newIssue: UpdateIssue = {
-    _id: issue._id,
+    localId: issue.localId,
     events: [{ by, type: "LabelAssignedEvent", labelId }],
     repositoryId: issue.repositoryId,
   };
@@ -312,7 +316,7 @@ export function instantAssignLabelTo(issue: Issue, labelId: Label["_id"], by: Us
 
 export function instantUnassignLabelFrom(issue: Issue, labelId: Label["_id"], by: User["_id"]) {
   const newIssue: UpdateIssue = {
-    _id: issue._id,
+    localId: issue.localId,
     events: [{ by, type: "LabelUnassignedEvent", labelId }],
     repositoryId: issue.repositoryId,
   };
@@ -342,7 +346,7 @@ export function unassignMilestone(milestoneId: Milestone["_id"], by: User["_id"]
 
 export function instantAssignMilestoneTo(issue: Issue, milestoneId: Milestone["_id"], by: User["_id"]) {
   const newIssue: UpdateIssue = {
-    _id: issue._id,
+    localId: issue.localId,
     events: [{ by, type: "MilestoneAssignedEvent", milestoneId }],
     repositoryId: issue.repositoryId,
   };
@@ -358,7 +362,7 @@ export function instantAssignMilestoneTo(issue: Issue, milestoneId: Milestone["_
 
 export function instantUnassignMilestoneFrom(issue: Issue, milestoneId: Milestone["_id"], by: User["_id"]) {
   const newIssue: UpdateIssue = {
-    _id: issue._id,
+    localId: issue.localId,
     events: [{ by, type: "MilestoneUnassignedEvent", milestoneId }],
     repositoryId: issue.repositoryId,
   };
@@ -388,7 +392,7 @@ export function unassignUser(userId: User["_id"], by: User["_id"]) {
 
 export function instantAssignUserTo(issue: Issue, userId: User["_id"], by: User["_id"]) {
   const newIssue: UpdateIssue = {
-    _id: issue._id,
+    localId: issue.localId,
     events: [{ by, type: "UserAssignedEvent", userId }],
     repositoryId: issue.repositoryId,
   };
@@ -404,7 +408,7 @@ export function instantAssignUserTo(issue: Issue, userId: User["_id"], by: User[
 
 export function instantUnassignUserFrom(issue: Issue, userId: User["_id"], by: User["_id"]) {
   const newIssue: UpdateIssue = {
-    _id: issue._id,
+    localId: issue.localId,
     events: [{ by, type: "UserUnassignedEvent", userId }],
     repositoryId: issue.repositoryId,
   };
@@ -420,7 +424,7 @@ export function instantUnassignUserFrom(issue: Issue, userId: User["_id"], by: U
 
 export function instantReopenIssue(issue: Issue, by: User["_id"]) {
   const newIssue: UpdateIssue = {
-    _id: issue._id,
+    localId: issue.localId,
     events: [{ by, type: "IssueReopenedEvent" }],
     repositoryId: issue.repositoryId,
   };
@@ -437,7 +441,7 @@ export function instantReopenIssue(issue: Issue, by: User["_id"]) {
 
 export function instantCloseIssue(issue: Issue, by: User["_id"]) {
   const newIssue: UpdateIssue = {
-    _id: issue._id,
+    localId: issue.localId,
     events: [{ by, type: "IssueClosedEvent" }],
     repositoryId: issue.repositoryId,
   };
@@ -454,7 +458,7 @@ export function instantCloseIssue(issue: Issue, by: User["_id"]) {
 
 export function instantCreateComment(issue: Issue, by: User["_id"], text: string) {
   const newIssue: UpdateIssue = {
-    _id: issue._id,
+    localId: issue.localId,
     events: [{ by, type: "CommentCreatedEvent", text }],
     repositoryId: issue.repositoryId,
   };
@@ -475,7 +479,7 @@ export function instantCreateComment(issue: Issue, by: User["_id"], text: string
 
 export function instantUpdateComment(issue: Issue, by: User["_id"], commentId: string, text: string) {
   const newIssue: UpdateIssue = {
-    _id: issue._id,
+    localId: issue.localId,
     events: [{ by, type: "CommentUpdatedEvent", commentId, text }],
     repositoryId: issue.repositoryId,
   };
@@ -492,7 +496,7 @@ export function instantUpdateComment(issue: Issue, by: User["_id"], commentId: s
 }
 export function instantDeleteComment(issue: Issue, by: User["_id"], commentId: string) {
   const newIssue: UpdateIssue = {
-    _id: issue._id,
+    localId: issue.localId,
     events: [{ by, type: "CommentDeletedEvent", commentId }],
     repositoryId: issue.repositoryId,
   };
@@ -509,7 +513,7 @@ export function instantDeleteComment(issue: Issue, by: User["_id"], commentId: s
 
 export function instantHideComment(issue: Issue, by: User["_id"], commentId: string) {
   const newIssue: UpdateIssue = {
-    _id: issue._id,
+    localId: issue.localId,
     events: [{ by, type: "CommentHiddenEvent", commentId }],
     repositoryId: issue.repositoryId,
   };
@@ -526,7 +530,7 @@ export function instantHideComment(issue: Issue, by: User["_id"], commentId: str
 
 export function instantAddReaction(issue: Issue, by: User["_id"], commentId: Comment["_id"], code: string) {
   const newIssue: UpdateIssue = {
-    _id: issue._id,
+    localId: issue.localId,
     events: [{ by, type: "UserReactedEvent", commentId, code }],
     repositoryId: issue.repositoryId,
   };
@@ -542,7 +546,7 @@ export function instantAddReaction(issue: Issue, by: User["_id"], commentId: Com
 
 export function instantRemoveReaction(issue: Issue, by: User["_id"], commentId: Comment["_id"], code: string) {
   const newIssue: UpdateIssue = {
-    _id: issue._id,
+    localId: issue.localId,
     events: [{ by, type: "UserUnreactedEvent", commentId, code }],
     repositoryId: issue.repositoryId,
   };

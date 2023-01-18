@@ -2,7 +2,7 @@ import { Router } from "express";
 import { labelRoutes } from "./features/label/label.routes";
 import { authRoutes } from "./features/auth/auth.routes";
 import { userRoutes } from "./features/user/user.routes";
-import { issueRoutes } from "./features/issue/issue.router";
+import { issueRoutes } from "./features/issue/issue.routes";
 import { repositoryRoutes } from "./features/repository/repository.routes";
 import { sshKeyRoutes } from "./features/ssh-key/ssh-key.routes";
 import { milestoneRoutes } from "./features/milestone/milestone.routes";

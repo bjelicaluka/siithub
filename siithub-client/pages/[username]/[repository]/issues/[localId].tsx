@@ -8,14 +8,12 @@ const Labels = () => {
   const repositoryId = repository?._id ?? "";
 
   const router = useRouter();
-  const issueId = router?.query?.id?.toString() ?? "";
-
-  if (!issueId) return <></>;
+  const { localId } = router.query;
 
   return (
     <>
       <IssueContextProvider>
-        <IssuePage repositoryId={repositoryId} existingIssueId={issueId} />
+        <IssuePage repositoryId={repositoryId} existingIssueId={+(localId?.toString() ?? "0")} />
       </IssueContextProvider>
     </>
   );
