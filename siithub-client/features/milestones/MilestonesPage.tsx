@@ -77,45 +77,61 @@ export const MilestonesPage: FC<MilestonesPageProps> = ({ repo, username }) => {
             Closed
           </p>
         </div>
-        {milestones?.map((milestone) => (
-          <div key={milestone._id} className="grid grid-cols-6 gap-6 bg-white border-b p-4">
-            <div className="col-span-2 m-3">
-              <Link
-                href={`/${username}/${repo}/milestones/${milestone.localId}`}
-                className="text-2xl font-semibold cursor-pointer hover:text-blue-500"
-              >
-                {milestone.title}
-              </Link>
-              <p className="text-base font-semibold">
-                {milestone?.dueDate ? `Due by ${new Date(milestone.dueDate).toDateString()}` : "No due date"}
-              </p>
-              {milestone?.description ? <p className="text-base font-semibold pt-2">{milestone.description}</p> : <></>}
-            </div>
-            <div className="col-span-4 m-3">
-              <p className="text-base font-semibold">0% complete 0 open 0 closed</p>
-              <div className="flex">
+        {milestones?.map((milestone) => {
+          const completed =
+            ((milestone.issuesInfo?.closed || 0) / (milestone.issuesInfo?.open + milestone.issuesInfo?.closed || 1)) *
+            100;
+          return (
+            <div key={milestone._id} className="grid grid-cols-6 gap-6 bg-white border-b p-4">
+              <div className="col-span-2 m-3">
                 <Link
-                  href={`/${username}/${repo}/milestones/${milestone.localId}/edit`}
-                  className="text-base font-semibold text-blue-400 mr-2"
+                  href={`/${username}/${repo}/milestones/${milestone.localId}`}
+                  className="text-2xl font-semibold cursor-pointer hover:text-blue-500"
                 >
-                  Edit
+                  {milestone.title}
                 </Link>
-                <p
-                  className="text-base font-semibold text-blue-400 mr-2 cursor-pointer"
-                  onClick={() => (milestone.isOpen ? closeMilestoneAction : openMilestoneAction)(milestone)}
-                >
-                  {milestone.isOpen ? "Close" : "Reopen"}
+                <p className="text-base font-semibold">
+                  {milestone.dueDate ? `Due by ${new Date(milestone.dueDate).toDateString()}` : "No due date"}
                 </p>
-                <p
-                  className="text-base font-semibold text-red-400 mr-2 cursor-pointer"
-                  onClick={() => onDeleteClicked(milestone)}
-                >
-                  Delete
+                {milestone.description ? (
+                  <p className="text-base font-semibold pt-2">{milestone.description}</p>
+                ) : (
+                  <></>
+                )}
+              </div>
+              <div className="col-span-4 m-3">
+                <div className="w-full bg-gray-300 rounded-full h-2.5 mb-2">
+                  <div className="bg-green-500 h-2.5 rounded-full" style={{ width: `${completed}%` }} />
+                </div>
+                <p className="">
+                  <span className="font-semibold">{completed.toFixed()}</span>% complete
+                  <span className="font-semibold ml-3">{milestone.issuesInfo?.open || 0}</span> open
+                  <span className="font-semibold ml-3">{milestone.issuesInfo?.closed || 0}</span> closed
                 </p>
+                <div className="flex">
+                  <Link
+                    href={`/${username}/${repo}/milestones/${milestone.localId}/edit`}
+                    className="text-base font-semibold text-blue-400 mr-2"
+                  >
+                    Edit
+                  </Link>
+                  <p
+                    className="text-base font-semibold text-blue-400 mr-2 cursor-pointer"
+                    onClick={() => (milestone.isOpen ? closeMilestoneAction : openMilestoneAction)(milestone)}
+                  >
+                    {milestone.isOpen ? "Close" : "Reopen"}
+                  </p>
+                  <p
+                    className="text-base font-semibold text-red-400 mr-2 cursor-pointer"
+                    onClick={() => onDeleteClicked(milestone)}
+                  >
+                    Delete
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </>
   );

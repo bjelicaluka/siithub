@@ -1,8 +1,17 @@
+import { BaseEvent } from "../../db/base.repo.utils";
 import { DuplicateException, MissingEntityException } from "../../error-handling/errors";
+import { MilestoneAssignedEvent, MilestoneUnassignedEvent } from "../issue/issue.model";
 import { type Repository } from "../repository/repository.model";
 import { repositoryService } from "../repository/repository.service";
 import type { Milestone, MilestoneCreate, MilestoneUpdate } from "./milestone.model";
 import { milestoneRepo } from "./milestone.repo";
+
+const eventTypes = [
+  "IssueReopenedEvent",
+  "IssueClosedEvent",
+  "MilestoneUnassignedEvent",
+  "MilestoneAssignedEvent",
+] as const;
 
 async function findOne(id: Milestone["_id"]): Promise<Milestone | null> {
   return await milestoneRepo.crud.findOne(id);
@@ -43,6 +52,7 @@ async function createMilestone(milestone: MilestoneCreate): Promise<Milestone | 
   }
   milestone.isOpen = true;
   milestone.localId = await repositoryService.increaseCounterValue(milestone.repositoryId, "milestone");
+  milestone.issuesInfo = { open: 0, closed: 0, lastUpdated: new Date() };
   return await milestoneRepo.crud.add(milestone);
 }
 
@@ -75,6 +85,38 @@ async function changeStatus(
   return await milestoneRepo.crud.update(existingMilestone._id, { isOpen: open } as MilestoneUpdate);
 }
 
+async function handleIssueEvent(id: Milestone["_id"], event: BaseEvent, isOpen: boolean) {
+  if (!(eventTypes as ReadonlyArray<string>).includes(event.type)) return;
+  if (event.type === eventTypes[2] && (event as MilestoneUnassignedEvent).milestoneId + "" !== id + "") return;
+  if (event.type === eventTypes[3] && (event as MilestoneAssignedEvent).milestoneId + "" !== id + "") return;
+
+  const milestone = await findOne(id);
+  if (!milestone) return;
+  const issuesInfo = milestone.issuesInfo ?? { open: 0, closed: 0, lastUpdated: new Date() };
+
+  switch (event.type) {
+    case eventTypes[0]:
+      issuesInfo.closed--;
+      issuesInfo.open++;
+      break;
+    case eventTypes[1]:
+      issuesInfo.closed++;
+      issuesInfo.open--;
+      break;
+    case eventTypes[2]:
+      if (isOpen) issuesInfo.open--;
+      else issuesInfo.closed--;
+      break;
+    case eventTypes[3]:
+      if (isOpen) issuesInfo.open++;
+      else issuesInfo.closed++;
+      break;
+  }
+  issuesInfo.lastUpdated = new Date();
+
+  await milestoneRepo.crud.update(id, { issuesInfo } as MilestoneUpdate);
+}
+
 export type MilestoneService = {
   create(Milestone: MilestoneCreate): Promise<Milestone | null>;
   update(Milestone: MilestoneUpdate): Promise<Milestone | null>;
@@ -86,6 +128,7 @@ export type MilestoneService = {
   searchByTitle(title: string, repositoryId: Repository["_id"]): Promise<Milestone[] | null>;
   changeStatus(repositoryId: Repository["_id"], localId: number, open: boolean): Promise<Milestone | null>;
   findByRepositoryIdAndLocalId(repositoryId: Repository["_id"], localId: number): Promise<Milestone>;
+  handleIssueEvent(id: Milestone["_id"], event: BaseEvent, isOpen: boolean): Promise<void>;
 };
 
 const milestoneService: MilestoneService = {
@@ -99,6 +142,7 @@ const milestoneService: MilestoneService = {
   update: updateMilestone,
   delete: deleteMilestone,
   findByRepositoryIdAndLocalId,
+  handleIssueEvent,
 };
 
 export { milestoneService };

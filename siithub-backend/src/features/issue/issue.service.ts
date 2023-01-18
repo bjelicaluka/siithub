@@ -12,6 +12,7 @@ import {
   type UserAssignedEvent,
   type MilestoneAssignedEvent,
   IssueWithParticipants,
+  IssueState,
 } from "./issue.model";
 import { issueRepo } from "./issue.repo";
 import { type Repository } from "../repository/repository.model";
@@ -88,6 +89,8 @@ async function handleEvent(issue: Issue, event: BaseEvent): Promise<void> {
   event.by = new ObjectId(event.by?.toString());
 
   handleFor(issue, event);
+  for (const m of issue.csm.milestones ?? [])
+    await milestoneService.handleIssueEvent(new ObjectId(m + ""), event, issue.csm.state !== IssueState.Closed);
 }
 
 async function validateEventFor(event: BaseEvent): Promise<void> {

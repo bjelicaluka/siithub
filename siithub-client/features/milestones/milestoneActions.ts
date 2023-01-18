@@ -14,6 +14,11 @@ type Milestone = CreateMilestone & {
   _id: string;
   localId: number;
   isOpen: boolean;
+  issuesInfo: {
+    open: number;
+    closed: number;
+    lastUpdated: Date;
+  };
 };
 
 function searchRepositoryMilestones(username: string, repo: string, title: string = "") {
