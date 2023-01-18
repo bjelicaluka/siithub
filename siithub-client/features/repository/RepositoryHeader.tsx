@@ -9,10 +9,9 @@ import { useRepository } from "./useRepositories";
 type RepositoryHeaderProps = {
   repo: string;
   username: string;
-  activeTab: string;
 };
 
-export const RepositoryHeader: FC<RepositoryHeaderProps> = ({ username, repo, activeTab }) => {
+export const RepositoryHeader: FC<RepositoryHeaderProps> = ({ username, repo }) => {
   const { result, setResult } = useResult("repositories");
   const { result: starResult, setResult: setStarResult } = useResult("stars");
   const { repository, error } = useRepository(username, repo, [result, starResult]);

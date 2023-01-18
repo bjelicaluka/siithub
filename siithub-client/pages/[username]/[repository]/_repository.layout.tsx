@@ -2,7 +2,7 @@ import { NextRouter, useRouter } from "next/router";
 import { type FC, type PropsWithChildren } from "react";
 import { useAuthContext } from "../../../core/contexts/Auth";
 import { RepositoryHeader } from "../../../features/repository/RepositoryHeader";
-import { CodeBracketIcon } from "@heroicons/react/24/outline";
+import { CodeBracketIcon, PresentationChartLineIcon } from "@heroicons/react/24/outline";
 import { CalendarIcon } from "@heroicons/react/24/outline";
 import { StarIcon } from "@heroicons/react/24/outline";
 import { TagIcon } from "@heroicons/react/24/outline";
@@ -58,6 +58,14 @@ function getLinks(router: NextRouter, username: string, repository: string) {
       },
     },
     {
+      title: "Insights",
+      icon: <PresentationChartLineIcon className="h-4 w-4 mr-2" />,
+      path: "/[username]/[repository]/graphs/[graph]",
+      onClick: async () => {
+        await router.push(`/${username}/${repository}/graphs/pulse`);
+      },
+    },
+    {
       title: "Settings",
       icon: <Cog8ToothIcon className="h-4 w-4 mr-2" />,
       path: "/[username]/[repository]/settings",
@@ -81,7 +89,7 @@ export const RepositoryLayout: FC<PropsWithChildren> = ({ children }) => {
 
   return (
     <>
-      <RepositoryHeader repo={repository?.toString()} username={username?.toString()} activeTab={"code"} />
+      <RepositoryHeader repo={repository?.toString()} username={username?.toString()} />
       <RepositoryMenu links={links} />
 
       <RepositoryContextProvider>
