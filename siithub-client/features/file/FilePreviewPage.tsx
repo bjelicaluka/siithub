@@ -7,16 +7,65 @@ import Link from "next/link";
 import { ArrowDownTrayIcon, ClipboardDocumentIcon, UsersIcon } from "@heroicons/react/24/outline";
 import { useNotifications } from "../../core/hooks/useNotifications";
 import { FilePreview } from "./FilePreview";
-import { useFileInfo } from "../commits/useCommits";
+import { type LastCommitAndContrib, useFileInfo } from "../commits/useCommits";
 import moment from "moment";
 import { HashtagLink } from "../../core/components/HashtagLink";
 import { truncate } from "../../core/utils/string";
+import { CommitsIcon } from "../commits/CommitsIcon";
 
 type FilePreviewPageProps = {
   username: string;
   repoName: string;
   branch: string;
   blobPath: string;
+};
+
+const FileContribInfo: FC<FilePreviewPageProps & { info: LastCommitAndContrib }> = ({
+  username,
+  repoName,
+  branch,
+  blobPath,
+  info,
+}) => {
+  if (!info) return <></>;
+  return (
+    <div className="rounded-lg mb-3 border-2">
+      <div className="bg-white border-b p-4 grid grid-cols-12">
+        <div className="col-span-8">
+          <span className="font-semibold mr-2">
+            {info.author.username ? <>{info.author.username}</> : <>{info.author.name}</>}
+          </span>
+          <HashtagLink href={`/${username}/${repoName}/commit/${info.sha}`}>{truncate(info.message, 100)}</HashtagLink>
+        </div>
+        <div className="text-right col-span-3">
+          Latest commit {info.sha.substring(0, 6)} {moment(info.date).fromNow()}
+        </div>
+        <div className="text-right col-span-1">
+          <Link
+            href={`/${username}/${repoName}/commits/${encodeURIComponent(branch)}/${blobPath}`}
+            className="hover:text-blue-400 font-bold flex ml-4"
+          >
+            <CommitsIcon className="mt-1 mr-1" />
+            History
+          </Link>
+        </div>
+      </div>
+      <div className="bg-white p-4 grid grid-cols-6">
+        <p className="text-base font-semibold col-span-1 flex items-center">
+          <UsersIcon className="w-5 h-5 mr-2" />
+          {info.contributors.length} contributors
+        </p>
+        <div className="col-span-5">
+          {info.contributors.map((contrib, i) => (
+            <span key={i}>
+              {contrib.username || contrib.name}
+              {i !== info.contributors.length - 1 && ", "}
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export const FilePreviewPage: FC<FilePreviewPageProps> = ({ username, repoName, branch, blobPath }) => {
@@ -58,49 +107,12 @@ export const FilePreviewPage: FC<FilePreviewPageProps> = ({ username, repoName, 
     );
   };
 
-  const FileContribInfo: FC = () => {
-    return (
-      <div className="rounded-lg mb-3 border-2">
-        <div className="bg-white border-b p-4 grid grid-cols-12">
-          <div className="col-span-8">
-            <span className="font-semibold mr-2">
-              {info.author.username ? <>{info.author.username}</> : <>{info.author.name}</>}
-            </span>
-            <HashtagLink href={`/${username}/${repoName}/commit/${info.sha}`}>
-              {truncate(info.message, 100)}
-            </HashtagLink>
-          </div>
-          <div className="text-right col-span-3">
-            Latest commit {info.sha.substring(0, 6)} {moment(info.date).fromNow()}
-          </div>
-          <div className="text-right col-span-1">
-            <Link
-              href={`/${username}/${repoName}/commits/${encodeURIComponent(branch)}/${blobPath}`}
-              className="hover:text-blue-400 font-bold"
-            >
-              History
-            </Link>
-          </div>
-        </div>
-        <div className="bg-white p-4 grid grid-cols-6">
-          <p className="text-base font-semibold col-span-1 flex items-center">
-            <UsersIcon className="w-5 h-5 mr-2" />
-            {info.contributors.length} contributors
-          </p>
-          <div className="col-span-5">
-            {info.contributors.map((contrib) => (contrib.username ? <>{contrib.username}, </> : <>{contrib.name}, </>))}
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   if (error) return <NotFound />;
 
   return (
     <>
       <div className="overflow-x-auto relative shadow-md sm:rounded-lg">
-        {info && <FileContribInfo />}
+        <FileContribInfo repoName={repoName} username={username} branch={branch} blobPath={blobPath} info={info} />
 
         <div className="w-full border-2 border-gray-200">
           {isLoading ? (

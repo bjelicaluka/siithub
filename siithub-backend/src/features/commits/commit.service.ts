@@ -1,6 +1,7 @@
 import { gitServerClient } from "../gitserver/gitserver.client";
+import type { User } from "../user/user.model";
 import { userService } from "../user/user.service";
-import { Commit, LastCommitAndContrib } from "./commit.model";
+import type { Commit, LastCommitAndContrib } from "./commit.model";
 
 async function getCommits(username: string, repoName: string, branch: string) {
   const commits: Commit[] = await gitServerClient.getCommits(username, repoName, branch);
@@ -32,10 +33,14 @@ async function resolveAuthors(commits: Commit[]): Promise<Commit[]> {
   const contributorsEmails = commits
     .map((c) => c.author.email)
     .filter((value, index, array) => array.indexOf(value) === index);
-  const users = await userService.findManyByEmails(contributorsEmails);
-  commits.forEach(
-    (commit) => (commit.author = users.find((user) => user.email === commit.author.email) ?? commit.author)
+  const users: { [email: string]: User } = (await userService.findManyByEmails(contributorsEmails)).reduce(
+    (acc: any, user: User) => {
+      acc[user.email] = user;
+      return acc;
+    },
+    {}
   );
+  commits.forEach((commit) => (commit.author = users[commit.author.email] ?? commit.author));
   return commits;
 }
 
