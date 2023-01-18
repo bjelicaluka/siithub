@@ -2,10 +2,10 @@ import { type FC, Fragment, type PropsWithChildren } from "react";
 import { Disclosure, Menu, Transition } from "@headlessui/react";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 import { AuthUser, useAuthContext } from "../contexts/Auth";
-import Avatar from "boring-avatars";
 import Link from "next/link";
 import { type NextRouter, useRouter } from "next/router";
 import Image from "next/image";
+import { ProfilePicture } from "../components/ProfilePicture";
 
 let loggedUser: AuthUser | undefined;
 
@@ -56,12 +56,7 @@ export const AuthenticatedLayout: FC<PropsWithChildren> = ({ children }) => {
                         <div>
                           <Menu.Button className="flex max-w-xs items-center rounded-full bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
                             <span className="sr-only">Open user menu</span>
-                            <Avatar
-                              size={30}
-                              name={user?.username}
-                              variant="pixel"
-                              colors={["#92A1C6", "#146A7C", "#F0AB3D", "#C271B4", "#C20D90"]}
-                            />
+                            <ProfilePicture size={30} username={user?.username ?? ""} />
                           </Menu.Button>
                         </div>
                         <Transition
@@ -112,12 +107,7 @@ export const AuthenticatedLayout: FC<PropsWithChildren> = ({ children }) => {
                 <div className="border-t border-gray-700 pt-4 pb-3">
                   <div className="flex items-center px-5">
                     <div className="rounded-full">
-                      <Avatar
-                        size={30}
-                        name={user?.username}
-                        variant="pixel"
-                        colors={["#92A1C6", "#146A7C", "#F0AB3D", "#C271B4", "#C20D90"]}
-                      />
+                      <ProfilePicture size={30} username={user?.username ?? ""} />
                     </div>
                     <div className="ml-3">
                       <div className="text-base font-medium leading-none text-white">{user?.name}</div>

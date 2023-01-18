@@ -12,6 +12,7 @@ import moment from "moment";
 import { HashtagLink } from "../../core/components/HashtagLink";
 import { truncate } from "../../core/utils/string";
 import { CommitsIcon } from "../commits/CommitsIcon";
+import { ProfilePicture } from "../../core/components/ProfilePicture";
 
 type FilePreviewPageProps = {
   username: string;
@@ -32,8 +33,17 @@ const FileContribInfo: FC<FilePreviewPageProps & { info: LastCommitAndContrib }>
     <div className="rounded-lg mb-3 border-2">
       <div className="bg-white border-b p-4 grid grid-cols-12">
         <div className="col-span-8">
-          <span className="font-semibold mr-2">
-            {info.author.username ? <>{info.author.username}</> : <>{info.author.name}</>}
+          <span className="flex font-semibold ">
+            {info.author.username ? (
+              <>
+                <ProfilePicture username={info.author.username} size={20} />{" "}
+                <Link href={`/users/${info.author.username}`} className="mr-2 ml-2">
+                  {info.author.username}
+                </Link>
+              </>
+            ) : (
+              <span className="mr-2 ml-2">{info.author.name}</span>
+            )}
           </span>
           <HashtagLink href={`/${username}/${repoName}/commit/${info.sha}`}>{truncate(info.message, 100)}</HashtagLink>
         </div>
@@ -53,16 +63,18 @@ const FileContribInfo: FC<FilePreviewPageProps & { info: LastCommitAndContrib }>
       <div className="bg-white p-4 grid grid-cols-6">
         <p className="text-base font-semibold col-span-1 flex items-center">
           <UsersIcon className="w-5 h-5 mr-2" />
-          {info.contributors.length} contributors
+          {info.contributors.length} contributor{info.contributors.length > 1 && "s"}
         </p>
-        <div className="col-span-5">
-          {info.contributors.map((contrib, i) => (
-            <span key={i}>
-              {contrib.username || contrib.name}
-              {i !== info.contributors.length - 1 && ", "}
-            </span>
-          ))}
-        </div>
+        {info.contributors.length > 1 && (
+          <div className="col-span-5">
+            {info.contributors.map((contrib, i) => (
+              <span key={i}>
+                {contrib.username || contrib.name}
+                {i !== info.contributors.length - 1 && ", "}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -88,8 +88,10 @@ async function handleEvent(issue: Issue, event: BaseEvent): Promise<void> {
   event.timeStamp = new Date();
   event.by = new ObjectId(event.by?.toString());
 
+  const currentMilestones = [...(issue.csm.milestones ?? [])];
   handleFor(issue, event);
-  for (const m of issue.csm.milestones ?? [])
+
+  for (const m of new Set([...currentMilestones, ...(issue.csm.milestones ?? [])]))
     await milestoneService.handleIssueEvent(new ObjectId(m + ""), event, issue.csm.state !== IssueState.Closed);
 }
 
