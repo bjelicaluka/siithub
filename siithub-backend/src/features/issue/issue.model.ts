@@ -47,7 +47,7 @@ export type Issue = AggregateRoot & {
 };
 
 export type IssueWithParticipants = Issue & {
-  participants?: any;
+  participants: { [uid: string]: any };
 };
 
 export type IssueCreate = Omit<Issue, "_id" | "cms" | "localId">;

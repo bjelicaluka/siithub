@@ -1,6 +1,6 @@
-import { BaseEvent } from "../../db/base.repo.utils";
+import { type BaseEvent } from "../../db/base.repo.utils";
 import { DuplicateException, MissingEntityException } from "../../error-handling/errors";
-import { MilestoneAssignedEvent, MilestoneUnassignedEvent } from "../issue/issue.model";
+import type { MilestoneAssignedEvent, MilestoneUnassignedEvent } from "../issue/issue.model";
 import { type Repository } from "../repository/repository.model";
 import { repositoryService } from "../repository/repository.service";
 import type { Milestone, MilestoneCreate, MilestoneUpdate } from "./milestone.model";

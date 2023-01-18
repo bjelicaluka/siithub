@@ -11,7 +11,7 @@ import {
   type LabelAssignedEvent,
   type UserAssignedEvent,
   type MilestoneAssignedEvent,
-  IssueWithParticipants,
+  type IssueWithParticipants,
   IssueState,
 } from "./issue.model";
 import { issueRepo } from "./issue.repo";
@@ -19,7 +19,7 @@ import { type Repository } from "../repository/repository.model";
 import { repositoryService } from "../repository/repository.service";
 import { IssuesQuery } from "./issue.query";
 import { milestoneService } from "../milestone/milestone.service";
-import { User } from "../user/user.model";
+import { type User } from "../user/user.model";
 
 async function findOne(id: Issue["_id"]): Promise<Issue | null> {
   return await issueRepo.crud.findOne(id);
@@ -116,7 +116,7 @@ async function validateEventFor(event: BaseEvent): Promise<void> {
 }
 
 async function resolveParticipants(issues: Issue[]): Promise<IssueWithParticipants[]> {
-  let participantsIds: User["_id"][] = [];
+  const participantsIds: User["_id"][] = [];
   for (const issue of issues) {
     for (const event of issue.events) {
       participantsIds.push(event.by);
@@ -127,7 +127,7 @@ async function resolveParticipants(issues: Issue[]): Promise<IssueWithParticipan
     await userService.findManyByIds(participantsIds.filter((value, index, array) => array.indexOf(value) === index))
   ).map((u) => ({ ...u, _id: u._id + "" }));
   return issues.map((issue) => {
-    let participants: { [uid: string]: any } = {};
+    const participants: { [uid: string]: any } = {};
     for (const event of issue.events) {
       let userId = event.by + "";
       participants[event.by + ""] = users.find((u) => u._id === userId);
