@@ -44,6 +44,7 @@ export const AuthenticatedLayout: FC<PropsWithChildren> = ({ children }) => {
                           }}
                           src="/siithub.png"
                           alt=""
+                          priority={true}
                         />
                       </Link>
                     </div>

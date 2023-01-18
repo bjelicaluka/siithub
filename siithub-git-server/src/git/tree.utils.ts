@@ -1,12 +1,12 @@
 import { Commit, Repository, Revwalk } from "nodegit";
 import { homePath } from "../config";
-import path from "path";
+import { isCommitSha } from "../string.utils";
 
 export async function getTree(username: string, repoName: string, branch: string, treePath: string) {
   try {
     const repoPath = `${homePath}/${username}/${repoName}`;
     const repo = await Repository.open(repoPath + "/.git");
-    const commit = await repo.getBranchCommit(branch);
+    const commit = await (isCommitSha(branch) ? repo.getCommit(branch) : repo.getBranchCommit(branch));
     let tree = await commit.getTree();
     if (treePath) {
       const treeEntry = await tree.getEntry(treePath);
@@ -37,6 +37,6 @@ async function getLatestCommit(repo: Repository, headCommit: Commit, treePath: s
     message: commit.message(),
     sha: commit.sha(),
     date: commit.date(),
-    author: commit.author().name(),
+    author: { name: commit.author().name(), email: commit.author().email() },
   };
 }

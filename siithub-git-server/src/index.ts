@@ -8,7 +8,7 @@ import { getBlob } from "./git/blob.utils";
 import { addKey, removeKey } from "./key.utils";
 import { addUserToGroup, deleteUserFromGroup } from "./git/group.utils";
 import { createBranch, getBranches, removeBranch, renameBranch } from "./git/branches.utils";
-import { getCommit, getCommits } from "./git/commits";
+import { getCommit, getCommitCount, getCommits, getFileHistoryCommits, getLatestCommit } from "./git/commits";
 import { execCmd } from "./cmd.utils";
 
 const app: Express = express();
@@ -86,6 +86,20 @@ app.get("/api/blob/:username/:repository/:branch/:blobPath", async (req: Request
   res.type("blob").send(blob.content());
 });
 
+app.get("/api/blob-info/:username/:repository/:branch/:blobPath", async (req: Request, res: Response) => {
+  const info = await getLatestCommit(
+    req.params.username,
+    req.params.repository,
+    req.params.branch,
+    req.params.blobPath
+  );
+  if (!info) {
+    res.status(404).send({ m: "file not found" });
+    return;
+  }
+  res.send(info);
+});
+
 app.post("/api/repositories/:repository/collaborators", async (req: Request, res: Response) => {
   const { repository } = req.params;
   const { collaborator } = req.body;
@@ -156,6 +170,25 @@ app.get("/api/commits/:username/:repository/:branch/", async (req: Request, res:
     return;
   }
   res.send(commits);
+});
+
+app.get("/api/commits/:username/:repository/:branch/:filePath", async (req: Request, res: Response) => {
+  const { username, repository, branch, filePath } = req.params;
+  const commits = await getFileHistoryCommits(username, repository, branch, filePath);
+  if (!commits) {
+    res.status(404).send({ m: "commits not found" });
+    return;
+  }
+  res.send(commits);
+});
+
+app.get("/api/commit-count/:username/:repository/:branch/", async (req: Request, res: Response) => {
+  const count = await getCommitCount(req.params.username, req.params.repository, req.params.branch);
+  if (!count) {
+    res.status(404).send({ m: "commits not found" });
+    return;
+  }
+  res.send({ count });
 });
 
 app.get("/api/commit/:username/:repository/:sha/", async (req: Request, res: Response) => {

@@ -1,11 +1,12 @@
 import { Commit, ConvenientPatch, Repository, Revwalk } from "nodegit";
 import { homePath } from "../config";
+import { isCommitSha } from "../string.utils";
 
 export async function getCommits(username: string, repoName: string, branch: string) {
   try {
     const repoPath = `${homePath}/${username}/${repoName}`;
     const repo = await Repository.open(repoPath + "/.git");
-    const headCommit = await repo.getBranchCommit(branch);
+    const headCommit = await (isCommitSha(branch) ? repo.getCommit(branch) : repo.getBranchCommit(branch));
     const walker = repo.createRevWalk();
     walker.push(headCommit.id());
     walker.sorting(Revwalk.SORT.TIME);
@@ -14,29 +15,46 @@ export async function getCommits(username: string, repoName: string, branch: str
       message: commit.message(),
       sha: commit.sha(),
       date: commit.date(),
-      author: commit.author().name(),
+      author: { name: commit.author().name(), email: commit.author().email() },
     }));
   } catch {
     return null;
   }
 }
 
-export async function getCommit(username: string, repoName: string, sha: string) {
-  const repoPath = `${homePath}/${username}/${repoName}`;
-  const repo = await Repository.open(repoPath + "/.git");
-  const commit = await repo.getCommit(sha);
-  const parentCommits = await commit.getParents(1);
-  const diffList = await commit.getDiff();
-  const diff = diffList[0];
-  const patches = await diff.patches();
+export async function getCommitCount(username: string, repoName: string, branch: string) {
+  try {
+    const repoPath = `${homePath}/${username}/${repoName}`;
+    const repo = await Repository.open(repoPath + "/.git");
+    const headCommit = await (isCommitSha(branch) ? repo.getCommit(branch) : repo.getBranchCommit(branch));
+    const walker = repo.createRevWalk();
+    walker.push(headCommit.id());
+    walker.sorting(Revwalk.SORT.TIME);
+    return (await walker.fastWalk(999999)).length;
+  } catch {
+    return null;
+  }
+}
 
-  return {
-    message: commit.message(),
-    sha: commit.sha(),
-    date: commit.date(),
-    author: commit.author().name(),
-    diff: await Promise.all(patches.map(async (patch) => await getPatchData(patch, commit, parentCommits[0]))),
-  };
+export async function getCommit(username: string, repoName: string, sha: string) {
+  try {
+    const repoPath = `${homePath}/${username}/${repoName}`;
+    const repo = await Repository.open(repoPath + "/.git");
+    const commit = await repo.getCommit(sha);
+    const parentCommits = await commit.getParents(1);
+    const diffList = await commit.getDiff();
+    const diff = diffList[0];
+    const patches = await diff.patches();
+    return {
+      message: commit.message(),
+      sha: commit.sha(),
+      date: commit.date(),
+      author: { name: commit.author().name(), email: commit.author().email() },
+      diff: await Promise.all(patches.map(async (patch) => await getPatchData(patch, commit, parentCommits[0]))),
+    };
+  } catch {
+    return null;
+  }
 }
 
 async function getPatchData(patch: ConvenientPatch, commit: Commit, parentCommit: Commit) {
@@ -62,4 +80,50 @@ async function getPatchData(patch: ConvenientPatch, commit: Commit, parentCommit
     };
   }
   return result;
+}
+
+export async function getFileHistoryCommits(username: string, repoName: string, branch: string, filePath: string) {
+  try {
+    const repoPath = `${homePath}/${username}/${repoName}`;
+    const repo = await Repository.open(repoPath + "/.git");
+    const headCommit = await (isCommitSha(branch) ? repo.getCommit(branch) : repo.getBranchCommit(branch));
+    const walker = repo.createRevWalk();
+    walker.push(headCommit.id());
+    walker.sorting(Revwalk.SORT.TIME);
+    const history = await walker.fileHistoryWalk(filePath, 999999);
+    return history.map((he) => ({
+      message: he.commit.message(),
+      sha: he.commit.sha(),
+      date: he.commit.date(),
+      author: { name: he.commit.author().name(), email: he.commit.author().email() },
+    }));
+  } catch {
+    return null;
+  }
+}
+
+export async function getLatestCommit(username: string, repoName: string, branch: string, blobPath: string) {
+  try {
+    const repoPath = `${homePath}/${username}/${repoName}`;
+    const repo = await Repository.open(repoPath + "/.git");
+    const headCommit = await (isCommitSha(branch) ? repo.getCommit(branch) : repo.getBranchCommit(branch));
+    const walker = repo.createRevWalk();
+    walker.push(headCommit.id());
+    walker.sorting(Revwalk.SORT.TIME);
+    let history = await walker.fileHistoryWalk(blobPath, 999999);
+    if (!history.length) return {};
+    const commit = history[0].commit;
+    const contributors = history
+      .map((h) => ({ name: h.commit.author().name(), email: h.commit.author().email() }))
+      .filter((value, index, array) => array.findIndex((v) => v.email === value.email) === index);
+    return {
+      message: commit.message(),
+      sha: commit.sha(),
+      date: commit.date(),
+      author: { name: commit.author().name(), email: commit.author().email() },
+      contributors,
+    };
+  } catch {
+    return null;
+  }
 }
