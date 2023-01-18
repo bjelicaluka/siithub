@@ -26,6 +26,7 @@ async function getFileInfo(username: string, repoName: string, branch: string, f
   const info: LastCommitAndContrib = await gitServerClient.getBlobInfo(username, repoName, branch, filePath);
   const users = await userService.findManyByEmails(info.contributors.map((c) => c.email));
   info.contributors = info.contributors.map((c) => users.find((user) => user.email === c.email) ?? c);
+  info.author = users.find((user) => user.email === info.author.email) ?? info.author;
   return info;
 }
 
