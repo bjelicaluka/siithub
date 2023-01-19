@@ -8,7 +8,15 @@ import { getBlob } from "./git/blob.utils";
 import { addKey, removeKey } from "./key.utils";
 import { addUserToGroup, deleteUserFromGroup } from "./git/group.utils";
 import { createBranch, getBranches, removeBranch, renameBranch } from "./git/branches.utils";
-import { getCommit, getCommitCount, getCommits, getFileHistoryCommits, getLatestCommit } from "./git/commits";
+import {
+  getCommit,
+  getCommitCount,
+  getCommits,
+  getCommitsBetweenBranches,
+  getCommitsDiffBetweenBranches,
+  getFileHistoryCommits,
+  getLatestCommit,
+} from "./git/commits";
 import { execCmd } from "./cmd.utils";
 
 const app: Express = express();
@@ -161,6 +169,40 @@ app.delete("/api/branches/:username/:repository/:branchName", async (req: Reques
     return;
   }
   res.send(deletedBranch);
+});
+
+app.get("/api/commits/:username/:repository/between", async (req: Request, res: Response) => {
+  const { username, repository } = req.params;
+  const { base, compare } = req.query;
+
+  const commits = await getCommitsBetweenBranches(
+    username,
+    repository,
+    base?.toString() ?? "",
+    compare?.toString() ?? ""
+  );
+  if (!commits) {
+    res.status(404).send({ m: "commits not found" });
+    return;
+  }
+  res.send(commits);
+});
+
+app.get("/api/commits/:username/:repository/diff/between", async (req: Request, res: Response) => {
+  const { username, repository } = req.params;
+  const { base, compare } = req.query;
+
+  const commits = await getCommitsDiffBetweenBranches(
+    username,
+    repository,
+    base?.toString() ?? "",
+    compare?.toString() ?? ""
+  );
+  if (!commits) {
+    res.status(404).send({ m: "commits not found" });
+    return;
+  }
+  res.send(commits);
 });
 
 app.get("/api/commits/:username/:repository/:branch/", async (req: Request, res: Response) => {

@@ -7,12 +7,6 @@ import {
   type IssueReopenedEvent,
   IssueState,
   type IssueUpdatedEvent,
-  type LabelAssignedEvent,
-  type LabelUnassignedEvent,
-  type UserAssignedEvent,
-  type UserUnassignedEvent,
-  type MilestoneAssignedEvent,
-  type MilestoneUnassignedEvent,
   type CommentCreatedEvent,
   type CommentUpdatedEvent,
   type CommentHiddenEvent,
@@ -21,6 +15,14 @@ import {
   type UserReactedEvent,
   type UserUnreactedEvent,
 } from "../../../src/features/issue/issue.model";
+import {
+  type LabelAssignedEvent,
+  type LabelUnassignedEvent,
+  type UserAssignedEvent,
+  type UserUnassignedEvent,
+  type MilestoneAssignedEvent,
+  type MilestoneUnassignedEvent,
+} from "../../../src/features/common/events/events.model";
 import { createEvent } from "./utils";
 
 describe("IssueModel", () => {

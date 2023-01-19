@@ -20,7 +20,7 @@ async function searchByQuery(query: IssuesQuery, repositoryId: Repository["_id"]
     repositoryId,
     ...(title ? { "csm.title": { $regex: title, $options: "i" } } : {}),
     ...(state ? { "csm.state": { $in: state } } : {}),
-    // ...(author ? { "csm.author": author } : {}),
+    ...(author ? { "csm.author": author } : {}),
     ...(assignees && assignees.length ? { "csm.assignees": { $all: assignees } } : {}),
     ...(labels && labels.length ? { "csm.labels": { $all: labels } } : {}),
     ...(milestones && milestones.length ? { "csm.milestones": { $all: milestones } } : {}),

@@ -1,26 +1,18 @@
-import { type FC } from "react";
+import { useMemo, type FC } from "react";
 import NotFound from "../../core/components/NotFound";
-import { useCommit } from "./useCommits";
+import { type CommitWithDiff, useCommit } from "./useCommits";
 import ReactDiffViewer from "react-diff-viewer-continued";
 import { truncate } from "../../core/utils/string";
 import Link from "next/link";
 import { Spinner } from "../../core/components/Spinner";
 
-type CommitDiffProps = {
-  username: string;
-  repoName: string;
-  sha: string;
+type CommitDiffViewerProps = {
+  commit: CommitWithDiff;
 };
 
-export const CommitDiff: FC<CommitDiffProps> = ({ username, repoName, sha }) => {
-  const { commit, error, isLoading } = useCommit(username, repoName, sha);
-
-  if (error) return <NotFound />;
-
-  if (isLoading) return <Spinner size={20} />;
-
-  const additions = commit.diff.reduce((acc, val) => acc + val.stats.total_additions, 0);
-  const deletions = commit.diff.reduce((acc, val) => acc + val.stats.total_deletions, 0);
+export const CommitDiffViewer: FC<CommitDiffViewerProps> = ({ commit }) => {
+  const additions = useMemo(() => commit.diff.reduce((acc, val) => acc + val.stats.total_additions, 0), [commit]);
+  const deletions = useMemo(() => commit.diff.reduce((acc, val) => acc + val.stats.total_deletions, 0), [commit]);
 
   return (
     <>
@@ -58,6 +50,26 @@ export const CommitDiff: FC<CommitDiffProps> = ({ username, repoName, sha }) => 
           </div>
         );
       })}
+    </>
+  );
+};
+
+type CommitDiffProps = {
+  username: string;
+  repoName: string;
+  sha: string;
+};
+
+export const CommitDiff: FC<CommitDiffProps> = ({ username, repoName, sha }) => {
+  const { commit, error, isLoading } = useCommit(username, repoName, sha);
+
+  if (error) return <NotFound />;
+
+  if (isLoading) return <Spinner size={20} />;
+
+  return (
+    <>
+      <CommitDiffViewer commit={commit} />
     </>
   );
 };

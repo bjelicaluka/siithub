@@ -64,9 +64,9 @@ export const IssueHistory: FC = () => {
       }
 
       case "UserAssignedEvent":
-        return <>assigned {issue.participants?.[event.userId].name}</>;
+        return <>assigned {issue.participants?.[event.userId]?.name}</>;
       case "UserUnassignedEvent":
-        return <>removed {issue.participants?.[event.userId].name}</>;
+        return <>removed {issue.participants?.[event.userId]?.name}</>;
 
       case "IssueReopenedEvent":
         return <>reopened this issue</>;

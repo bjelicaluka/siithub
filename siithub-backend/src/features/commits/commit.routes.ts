@@ -5,6 +5,22 @@ import { commitService } from "./commit.service";
 
 const router = Router();
 
+router.get("/:username/:repository/commits/between", async (req: Request, res: Response) => {
+  await getRepoIdFromPath(req);
+  const { username, repository } = req.params as any;
+  const { base, compare } = req.query as any;
+
+  res.send(await commitService.getCommitsBetweenBranches(username, repository, base, compare));
+});
+
+router.get("/:username/:repository/commits/between/diff", async (req: Request, res: Response) => {
+  await getRepoIdFromPath(req);
+  const { username, repository } = req.params as any;
+  const { base, compare } = req.query as any;
+
+  res.send(await commitService.getCommitsDiffBetweenBranches(username, repository, base, compare));
+});
+
 router.get("/:username/:repository/commits/:branch", async (req: Request, res: Response) => {
   const repoId = await getRepoIdFromPath(req);
   res.send(await commitService.getCommits(req.params.username, req.params.repository, req.params.branch));

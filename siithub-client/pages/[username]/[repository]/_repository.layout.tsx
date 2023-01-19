@@ -33,6 +33,15 @@ function getLinks(router: NextRouter, username: string, repository: string) {
       },
     },
     {
+      title: "Pull Requests",
+      icon: <TicketIcon className="h-4 w-4 mr-2" />,
+      path: "/[username]/[repository]/pull-requests",
+      hasChildrens: true,
+      onClick: async () => {
+        await router.push(`/${username}/${repository}/pull-requests`);
+      },
+    },
+    {
       title: "Milestones",
       icon: <CalendarIcon className="h-4 w-4 mr-2" />,
       path: "/[username]/[repository]/milestones",

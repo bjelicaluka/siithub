@@ -5,6 +5,15 @@ import { type Label } from "../label/label.model";
 import { type Milestone } from "../milestone/milestone.model";
 import { type Repository } from "../repository/repository.model";
 import { type User } from "../user/user.model";
+import {
+  labelAssignedEventHandler,
+  labelUnassignedEventHandler,
+  milestoneAssignedEventHandler,
+  milestoneUnassignedEventHandler,
+  userAssignedEventHandler,
+  userUnassignedEventHandler,
+} from "../common/events/events.handlers";
+import { compareIds, findLastEvent } from "../common/events/utils";
 
 export enum CommentState {
   Existing,
@@ -31,6 +40,7 @@ export enum IssueState {
 export type IssueCSM = {
   timeStamp?: Date;
   lastModified?: Date;
+  author?: User["_id"];
   state?: IssueState;
   title?: string;
   description?: string;
@@ -40,8 +50,7 @@ export type IssueCSM = {
   comments?: Comment[];
 };
 
-export type Issue = AggregateRoot & {
-  csm: IssueCSM;
+export type Issue = AggregateRoot<IssueCSM> & {
   localId: number;
   repositoryId: Repository["_id"];
 };
@@ -61,19 +70,6 @@ export type IssueUpdatedEvent = BaseEvent & {
   title: string;
   description: string;
 };
-
-export type LabelAssignedEvent = BaseEvent & { labelId: Label["_id"] };
-export type LabelUnassignedEvent = BaseEvent & { labelId: Label["_id"] };
-
-export type MilestoneAssignedEvent = BaseEvent & {
-  milestoneId: Milestone["_id"];
-};
-export type MilestoneUnassignedEvent = BaseEvent & {
-  milestoneId: Milestone["_id"];
-};
-
-export type UserAssignedEvent = BaseEvent & { userId: User["_id"] };
-export type UserUnassignedEvent = BaseEvent & { userId: User["_id"] };
 
 export type IssueReopenedEvent = BaseEvent & {};
 export type IssueClosedEvent = BaseEvent & {};
@@ -108,6 +104,7 @@ export function handleFor(issue: Issue, event: BaseEvent) {
       const issueCreated = event as IssueCreatedEvent;
       issue.csm = {
         timeStamp: event.timeStamp,
+        author: new ObjectId(event.by.toString()),
         title: issueCreated.title,
         description: issueCreated.description,
         state: IssueState.Open,
@@ -126,81 +123,27 @@ export function handleFor(issue: Issue, event: BaseEvent) {
       break;
     }
     case "LabelAssignedEvent": {
-      const labelAssigned = event as LabelAssignedEvent;
-      const lastLabelEvent = findLastEvent<LabelAssignedEvent | LabelUnassignedEvent>(issue.events, (e) =>
-        compareIds(e?.labelId, labelAssigned?.labelId)
-      );
-      if (lastLabelEvent?.type === "LabelAssignedEvent") {
-        throw new BadLogicException("Label is already assigned to the Issue.", event);
-      }
-
-      issue.csm.labels?.push(labelAssigned?.labelId);
+      labelAssignedEventHandler(issue, event);
       break;
     }
     case "LabelUnassignedEvent": {
-      const labelUnassigned = event as LabelUnassignedEvent;
-      const lastLabelEvent = findLastEvent<LabelAssignedEvent | LabelUnassignedEvent>(issue.events, (e) =>
-        compareIds(e?.labelId, labelUnassigned?.labelId)
-      );
-      if (!lastLabelEvent || lastLabelEvent?.type === "LabelUnassignedEvent") {
-        throw new BadLogicException("Label cannot be unassigned from the Issue.", event);
-      }
-
-      issue.csm.labels = issue?.csm?.labels?.filter(
-        (l) => l !== labelUnassigned?.labelId && l.toString() !== labelUnassigned?.labelId?.toString()
-      );
+      labelUnassignedEventHandler(issue, event);
       break;
     }
     case "MilestoneAssignedEvent": {
-      const milestoneAssigned = event as MilestoneAssignedEvent;
-      const lastMilestoneEvent = findLastEvent<MilestoneAssignedEvent | MilestoneUnassignedEvent>(issue.events, (e) =>
-        compareIds(e?.milestoneId, milestoneAssigned?.milestoneId)
-      );
-      if (lastMilestoneEvent?.type === "MilestoneAssignedEvent") {
-        throw new BadLogicException("Milestone is already assigned to the Issue.", event);
-      }
-
-      issue.csm.milestones?.push(milestoneAssigned?.milestoneId);
+      milestoneAssignedEventHandler(issue, event);
       break;
     }
     case "MilestoneUnassignedEvent": {
-      const milestoneUnassigned = event as MilestoneUnassignedEvent;
-      const lastMilestoneEvent = findLastEvent<MilestoneAssignedEvent | MilestoneUnassignedEvent>(issue.events, (e) =>
-        compareIds(e?.milestoneId, milestoneUnassigned?.milestoneId)
-      );
-      if (!lastMilestoneEvent || lastMilestoneEvent?.type === "MilestoneUnassignedEvent") {
-        throw new BadLogicException("Milestone cannot be unassigned from the Issue.", event);
-      }
-
-      issue.csm.milestones = issue?.csm?.milestones?.filter(
-        (m) => m !== milestoneUnassigned?.milestoneId && m.toString() !== milestoneUnassigned?.milestoneId?.toString()
-      );
+      milestoneUnassignedEventHandler(issue, event);
       break;
     }
     case "UserAssignedEvent": {
-      const userAssigned = event as UserAssignedEvent;
-      const lastUserEvent = findLastEvent<UserAssignedEvent | UserUnassignedEvent>(issue.events, (e) =>
-        compareIds(e?.userId, userAssigned?.userId)
-      );
-      if (lastUserEvent?.type === "UserAssignedEvent") {
-        throw new BadLogicException("User is already assigned to the Issue.", event);
-      }
-
-      issue.csm.assignees?.push(userAssigned?.userId);
+      userAssignedEventHandler(issue, event);
       break;
     }
     case "UserUnassignedEvent": {
-      const userUnassigned = event as UserUnassignedEvent;
-      const lastUserEvent = findLastEvent<UserAssignedEvent | UserUnassignedEvent>(issue.events, (e) =>
-        compareIds(e?.userId, userUnassigned?.userId)
-      );
-      if (!lastUserEvent || lastUserEvent?.type === "UserUnassignedEvent") {
-        throw new BadLogicException("User cannot be unassigned from the Issue.", event);
-      }
-
-      issue.csm.assignees = issue?.csm?.assignees?.filter(
-        (u) => u !== userUnassigned?.userId && u.toString() !== userUnassigned?.userId?.toString()
-      );
+      userUnassignedEventHandler(issue, event);
       break;
     }
     case "IssueReopenedEvent": {
@@ -329,13 +272,6 @@ export function handleFor(issue: Issue, event: BaseEvent) {
   issue.events.push(event);
 }
 
-function findLastEvent<T>(events: BaseEvent[], f: (arg0: T) => boolean) {
-  return events
-    .filter((e) => f(e as T))
-    .sort((e1, e2) => e1.timeStamp.getTime() - e2.timeStamp.getTime())
-    .pop();
-}
-
 function canCommentBeModified(issue: Issue, commentId: Comment["_id"]): boolean {
   const lastCommentEvent = findLastEvent<CommentCreatedEvent | CommentHiddenEvent | CommentDeletedEvent>(
     issue.events,
@@ -353,8 +289,4 @@ function canCommentBeModified(issue: Issue, commentId: Comment["_id"]): boolean 
 
 function findComment(issue: Issue, commentId: Comment["_id"]): Comment {
   return issue.csm.comments?.find((c) => c._id === commentId || c._id?.toString() === commentId?.toString()) as Comment;
-}
-
-function compareIds(id1: BaseEntity["_id"], id2: BaseEntity["_id"]) {
-  return id1 === id2 || id1?.toString() === id2?.toString();
 }

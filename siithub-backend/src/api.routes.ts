@@ -13,6 +13,7 @@ import { blobRoutes } from "./features/blob/blob.routes";
 import { treeRoutes } from "./features/tree/tree.routes";
 import { branchesRoutes } from "./features/branches/branches.routes";
 import { commitRoutes } from "./features/commits/commit.routes";
+import { pullRequestRoutes } from "./features/pull-requests/pull-requests.routes";
 
 const router = Router();
 
@@ -22,6 +23,7 @@ router
   .use("/repositories", repositoryRoutes)
   .use("/repositories", labelRoutes)
   .use("/repositories", issueRoutes)
+  .use("/repositories", pullRequestRoutes)
   .use("/repositories", collaboratorsRoutes)
   .use("/ssh-keys", sshKeyRoutes)
   .use("/", milestoneRoutes)

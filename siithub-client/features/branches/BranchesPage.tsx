@@ -27,8 +27,6 @@ export const BranchesPage: FC<BranchesPageProps> = ({ repo, username }) => {
   const { branches } = useBranches(username, repo, finalName, [branchesResult]);
   const { defaultBranch } = useDefaultBranch(username, repo, [defaultBranchResult]);
 
-  console.log(defaultBranch);
-
   useEffect(() => {
     debouncedCb(() => setFinalName(name));
     // eslint-disable-next-line react-hooks/exhaustive-deps

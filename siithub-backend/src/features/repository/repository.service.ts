@@ -63,7 +63,10 @@ async function search(owner: string, term: string): Promise<Repository[]> {
   });
 }
 
-async function increaseCounterValue(id: Repository["_id"], thing: "milestone" | "issue" | "stars"): Promise<number> {
+async function increaseCounterValue(
+  id: Repository["_id"],
+  thing: "milestone" | "issue" | "stars" | "pull-request"
+): Promise<number> {
   const repo = await findOneOrThrow(id);
   const counters = repo.counters ?? { [thing]: 0 };
   counters[thing] = counters[thing] + 1 || 1;
@@ -88,7 +91,7 @@ export type RepositoryService = {
   create(repository: RepositoryCreate): Promise<Repository | null>;
   delete(owner: string, name: string): Promise<Repository | null>;
   findByOwnerAndName(owner: string, name: string): Promise<Repository | null>;
-  increaseCounterValue(id: Repository["_id"], thing: "milestone" | "issue" | "stars"): Promise<number>;
+  increaseCounterValue(id: Repository["_id"], thing: "milestone" | "issue" | "stars" | "pull-request"): Promise<number>;
   search(owner: string, term?: string): Promise<Repository[]>;
   findByIds(ids: Repository["_id"][]): Promise<Repository[]>;
   decreaseCounterValue(id: Repository["_id"], thing: "stars"): Promise<number>;
