@@ -42,7 +42,7 @@ export const NewPullRequestPage: FC<NewPullRequestPageProps> = ({ repositoryId }
         <div className="mb-5">
           <DefinePullRequestForm />
         </div>
-        {!isLoading && !commits?.length ? (
+        {!isLoading && commits && !commits?.length ? (
           <div className="text-center text-3xl">There isn’t anything to compare.</div>
         ) : (
           <></>

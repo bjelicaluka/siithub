@@ -1,10 +1,16 @@
 import axios from "axios";
 import { type Repository } from "../repository/repository.service";
+import { type Label } from "../labels/labelActions";
+import { type Milestone } from "../milestones/milestoneActions";
+import { type User } from "../users/user.model";
 
 export type PullRequestCSM = {
   base: string;
   compare: string;
   title: string;
+  labels?: Label["_id"][];
+  milestones?: Milestone["_id"][];
+  assignees?: User["_id"][];
 };
 
 type PullRequest = {

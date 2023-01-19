@@ -8,9 +8,19 @@ import {
   userAssignedEventHandler,
   userUnassignedEventHandler,
 } from "../common/events/events.handlers";
+import { type Label } from "../label/label.model";
+import { type Milestone } from "../milestone/milestone.model";
+import { type User } from "../user/user.model";
 import { BadLogicException } from "../../error-handling/errors";
 
-export type PullRequestCSM = {};
+export type PullRequestCSM = {
+  base: string;
+  compare: string;
+  title: string;
+  labels?: Label["_id"][];
+  milestones?: Milestone["_id"][];
+  assignees?: User["_id"][];
+};
 
 export type PullRequest = AggregateRoot<PullRequestCSM> & {
   localId: number;
@@ -59,6 +69,9 @@ function pullRequestCreatedEventHandler(pullRequest: PullRequest, event: BaseEve
     base: prCreatedEvent.base,
     compare: prCreatedEvent.compare,
     title: prCreatedEvent.title,
+    labels: [],
+    milestones: [],
+    assignees: [],
   };
 }
 

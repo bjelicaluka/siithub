@@ -13,8 +13,8 @@ import { Button } from "../../core/components/Button";
 
 const definePullRequestSchema = z.object({
   title: z.string().min(3, "Title should have at least 3 characters."),
-  base: z.string(),
-  compare: z.string(),
+  base: z.string().min(1),
+  compare: z.string().min(1),
 });
 
 type DefinePullRequestType = z.infer<typeof definePullRequestSchema>;
@@ -28,7 +28,7 @@ export const DefinePullRequestForm: FC = () => {
   const { branches } = useBranches(owner, name);
   const { defaultBranch } = useDefaultBranch(owner, name);
 
-  const { pullRequest, pullRequestDispatcher } = usePullRequestContext();
+  const { pullRequest, pullRequestDispatcher, isEdit } = usePullRequestContext();
 
   const {
     register: definePullRequestForm,
@@ -60,7 +60,11 @@ export const DefinePullRequestForm: FC = () => {
 
           <Select
             id="base"
-            defaultValue={[{ value: defaultBranch.branch, label: defaultBranch.branch }]}
+            defaultValue={
+              !isEdit
+                ? [{ value: defaultBranch.branch, label: defaultBranch.branch }]
+                : [{ value: pullRequest.csm.base, label: pullRequest.csm.base }]
+            }
             options={branches?.map((b: any) => ({ value: b, label: b }))}
             onChange={(val) => setValue("base", val?.value ?? "")}
           />
@@ -73,17 +77,28 @@ export const DefinePullRequestForm: FC = () => {
 
           <Select
             id="compare"
+            defaultValue={!isEdit ? [] : [{ value: pullRequest.csm.compare, label: pullRequest.csm.compare }]}
             options={branches?.map((b: any) => ({ value: b, label: b }))}
             onChange={(val: any) => setValue("compare", val?.value ?? "")}
+            isDisabled={isEdit}
           />
         </div>
 
-        <div className="w-[55%] text-right mt-2">
-          <Button>Create</Button>
-        </div>
+        {!isEdit ? (
+          <div className="w-[55%] text-right mt-2">
+            <Button>Create</Button>
+          </div>
+        ) : (
+          <></>
+        )}
       </div>
 
-      <InputField label="Title" formElement={definePullRequestForm("title")} errorMessage={errors?.title?.message} />
+      <InputField
+        label="Title"
+        formElement={definePullRequestForm("title")}
+        errorMessage={errors?.title?.message}
+        disabled={isEdit}
+      />
     </form>
   );
 };

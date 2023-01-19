@@ -1,7 +1,7 @@
 import moment from "moment";
 
 function findDifference(arr1: any, arr2: any): any {
-  return arr1.filter(({ value: id1 }: any) => !arr2.some(({ value: id2 }: any) => id2 === id1)).pop();
+  return arr1.filter((id1: any) => !arr2.some((id2: any) => id2 === id1)).pop();
 }
 
 function findLastEvent<T>(events: any[], f: (arg0: T) => boolean) {
