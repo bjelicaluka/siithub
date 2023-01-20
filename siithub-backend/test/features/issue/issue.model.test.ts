@@ -7,13 +7,6 @@ import {
   type IssueReopenedEvent,
   IssueState,
   type IssueUpdatedEvent,
-  type CommentCreatedEvent,
-  type CommentUpdatedEvent,
-  type CommentHiddenEvent,
-  type CommentDeletedEvent,
-  CommentState,
-  type UserReactedEvent,
-  type UserUnreactedEvent,
 } from "../../../src/features/issue/issue.model";
 import {
   type LabelAssignedEvent,
@@ -22,6 +15,13 @@ import {
   type UserUnassignedEvent,
   type MilestoneAssignedEvent,
   type MilestoneUnassignedEvent,
+  type CommentCreatedEvent,
+  type CommentUpdatedEvent,
+  type CommentHiddenEvent,
+  type CommentDeletedEvent,
+  type UserReactedEvent,
+  type UserUnreactedEvent,
+  CommentState,
 } from "../../../src/features/common/events/events.model";
 import { createEvent } from "./utils";
 

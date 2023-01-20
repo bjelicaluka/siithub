@@ -46,7 +46,11 @@ async function createPullRequest({ events, repositoryId }: PullRequestCreate): P
   const localId = await repositoryService.increaseCounterValue(repositoryId, "pull-request");
   const createdPullRequest = (await pullRequestsRepo.crud.add({
     events: [],
-    csm: {},
+    csm: {
+      base: "",
+      compare: "",
+      title: "",
+    },
     repositoryId,
     localId,
   })) as PullRequest;

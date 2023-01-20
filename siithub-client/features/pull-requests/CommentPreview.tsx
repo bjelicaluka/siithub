@@ -1,22 +1,28 @@
 import { type FC, useState } from "react";
-import { CommentState, type Comment } from "./issueActions";
 import { EyeIcon } from "@heroicons/react/20/solid";
 import parse from "html-react-parser";
 import { useAuthContext } from "../../core/contexts/Auth";
-import { instantAddReaction, instantDeleteComment, instantHideComment, useIssueContext } from "./IssueContext";
 import { CommentForm } from "./CommentForm";
 import { PencilSquareIcon } from "@heroicons/react/20/solid";
 import { EyeSlashIcon } from "@heroicons/react/20/solid";
 import { XCircleIcon } from "@heroicons/react/20/solid";
 import { FaceSmileIcon } from "@heroicons/react/20/solid";
 import EmojiPicker, { Categories, EmojiStyle } from "emoji-picker-react";
+import { type PullRequestComment } from "./pullRequestActions";
+import { CommentState } from "../issues/issueActions";
+import {
+  addReactionToPRComment,
+  deleteCommentOnPR,
+  hideCommentOnPR,
+  usePullRequestContext,
+} from "./PullRequestContext";
 import { EmojisPreview } from "./EmojisPreview";
 
 type CommentPreviewProps = {
-  comment: Comment;
+  comment: PullRequestComment;
 };
 
-function getText(comment: Comment): string {
+function getText(comment: PullRequestComment): string {
   const textsForStates = {
     [CommentState.Hidden]: "<p>This comment is hidden.</p>",
     [CommentState.Existing]: comment.text,
@@ -28,7 +34,7 @@ export const CommentPreview: FC<CommentPreviewProps> = ({ comment }) => {
   const { user } = useAuthContext();
   const executedBy = user?._id ?? "";
 
-  const { issue, issueDispatcher } = useIssueContext();
+  const { pullRequest, pullRequestDispatcher } = usePullRequestContext();
 
   const isHiddable = comment.state === CommentState.Hidden;
   const [showHidden, setShowHidden] = useState(false);
@@ -42,15 +48,15 @@ export const CommentPreview: FC<CommentPreviewProps> = ({ comment }) => {
   const toggleEmojiDivVisibility = () => setShowEmojiDiv((showEmojiDiv) => !showEmojiDiv);
 
   const deleteComment = () => {
-    issueDispatcher(instantDeleteComment(issue, executedBy, comment._id));
+    pullRequestDispatcher(deleteCommentOnPR(pullRequest, executedBy, comment._id));
   };
 
   const hideComment = () => {
-    issueDispatcher(instantHideComment(issue, executedBy, comment._id));
+    pullRequestDispatcher(hideCommentOnPR(pullRequest, executedBy, comment._id));
   };
 
   const addReaction = (code: string) => {
-    issueDispatcher(instantAddReaction(issue, executedBy, comment._id, code));
+    pullRequestDispatcher(addReactionToPRComment(pullRequest, executedBy, comment._id, code));
   };
 
   return (

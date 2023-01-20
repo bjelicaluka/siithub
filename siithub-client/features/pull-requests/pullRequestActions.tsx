@@ -3,6 +3,17 @@ import { type Repository } from "../repository/repository.service";
 import { type Label } from "../labels/labelActions";
 import { type Milestone } from "../milestones/milestoneActions";
 import { type User } from "../users/user.model";
+import { type Comment } from "../issues/issueActions";
+
+type PullRequestComment = Comment & {
+  conversation?: string;
+};
+
+type PullRequestConversation = {
+  _id: string;
+  topic: string;
+  comments?: PullRequestComment[];
+};
 
 export type PullRequestCSM = {
   base: string;
@@ -11,6 +22,8 @@ export type PullRequestCSM = {
   labels?: Label["_id"][];
   milestones?: Milestone["_id"][];
   assignees?: User["_id"][];
+  comments?: PullRequestComment[];
+  conversations?: PullRequestConversation[];
 };
 
 type PullRequest = {
@@ -42,4 +55,4 @@ function updatePullRequest(pullRequest: UpdatePullRequest) {
 
 export { getPullRequest, getPullRequests, createPullRequest, updatePullRequest };
 
-export type { PullRequest, CreatePullRequest, UpdatePullRequest };
+export type { PullRequest, CreatePullRequest, UpdatePullRequest, PullRequestComment, PullRequestConversation };

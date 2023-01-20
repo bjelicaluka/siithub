@@ -4,7 +4,7 @@ import { issueService } from "../issue/issue.service";
 import { starService } from "../star/star.service";
 import { userService } from "../user/user.service";
 import { type BaseEvent } from "../../db/base.repo.utils";
-import { type Issue, type IssueCreatedEvent, type CommentCreatedEvent } from "../issue/issue.model";
+import { type Issue, type IssueCreatedEvent } from "../issue/issue.model";
 import { type Repository } from "../repository/repository.model";
 import { type Star } from "../star/star.model";
 import { type User } from "../user/user.model";
@@ -15,6 +15,7 @@ import {
   type StaringActivity,
   type Activity,
 } from "./activities.models";
+import { type CommentCreatedEvent } from "../common/events/events.model";
 
 async function findActivities(userId: User["_id"], upTill?: Date): Promise<any> {
   const repositories = await getRelevantRepos(userId);

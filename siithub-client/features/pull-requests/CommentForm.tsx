@@ -1,35 +1,37 @@
-import { type FC, useEffect } from "react";
-import { useQuill } from "react-quilljs";
-import { instantCreateComment, instantUpdateComment, useIssueContext } from "./IssueContext";
+import { type FC, useEffect, useState } from "react";
 import { useAuthContext } from "../../core/contexts/Auth";
 import { Button } from "../../core/components/Button";
-import { type Comment } from "./issueActions";
+import { createCommentOnPR, updateCommentOnPR, usePullRequestContext } from "./PullRequestContext";
+import type { PullRequestComment } from "./pullRequestActions";
+import dynamic from "next/dynamic";
+const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
+import "react-quill/dist/quill.snow.css"; // ES6
 
 type CommentProps = {
-  comment?: Comment;
+  comment?: PullRequestComment;
 };
+
+const QuillLib = dynamic(() => import("react-quilljs") as any, { ssr: false });
 
 export const CommentForm: FC<CommentProps> = ({ comment = undefined }) => {
   const { user } = useAuthContext();
   const executedBy = user?._id ?? "";
 
+  const { pullRequest, pullRequestDispatcher } = usePullRequestContext();
   const isEdit = !!comment;
 
-  const { quill, quillRef } = useQuill();
-  const { issue, issueDispatcher } = useIssueContext();
+  const [text, setText] = useState("");
 
   useEffect(() => {
     if (!isEdit) return;
-    quill && quill.clipboard.dangerouslyPasteHTML(comment?.text || "");
-  }, [quill, comment]);
+    setText(comment.text);
+  }, [comment]);
 
   const onSubmit = () => {
-    const textContent = quill?.root.innerHTML.toString() ?? "";
-
-    issueDispatcher(
+    pullRequestDispatcher(
       isEdit
-        ? instantUpdateComment(issue, executedBy, comment?._id ?? "", textContent)
-        : instantCreateComment(issue, executedBy, textContent)
+        ? updateCommentOnPR(pullRequest, executedBy, comment?._id ?? "", text)
+        : createCommentOnPR(pullRequest, executedBy, text)
     );
   };
   return (
@@ -55,9 +57,7 @@ export const CommentForm: FC<CommentProps> = ({ comment = undefined }) => {
             </div>
 
             <div className="col-span-6 mb-7">
-              <div style={{ height: 150 }}>
-                <div ref={quillRef} />
-              </div>
+              <ReactQuill style={{ height: 150 }} value={text} onChange={(text) => setText(text)}></ReactQuill>
             </div>
           </div>
 

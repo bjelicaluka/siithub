@@ -1,31 +1,31 @@
 import { type FC } from "react";
 import { useAuthContext } from "../../core/contexts/Auth";
 import { EmojiPreview } from "../common/EmojiPreview";
-import { type Comment } from "./issueActions";
-import { instantAddReaction, instantRemoveReaction, useIssueContext } from "./IssueContext";
+import { type PullRequestComment } from "./pullRequestActions";
+import { addReactionToPRComment, removeReactionFromPRComment, usePullRequestContext } from "./PullRequestContext";
 
 type EmojisPreviewProps = {
   emojis: any;
-  commentId: Comment["_id"];
+  commentId: PullRequestComment["_id"];
 };
 
 export const EmojisPreview: FC<EmojisPreviewProps> = ({ emojis, commentId }) => {
   const { user } = useAuthContext();
   const executedBy = user?._id ?? "";
 
-  const { issue, issueDispatcher } = useIssueContext();
+  const { pullRequest, pullRequestDispatcher } = usePullRequestContext();
 
   const addReaction = (emoji: string) => {
-    issueDispatcher(instantAddReaction(issue, executedBy, commentId, emoji));
+    pullRequestDispatcher(addReactionToPRComment(pullRequest, executedBy, commentId, emoji));
   };
 
   const removeReaction = (emoji: string) => {
-    issueDispatcher(instantRemoveReaction(issue, executedBy, commentId, emoji));
+    pullRequestDispatcher(removeReactionFromPRComment(pullRequest, executedBy, commentId, emoji));
   };
 
   function canUserUnreact(emoji: string): boolean {
     const findLast = (type: string) =>
-      issue?.events
+      pullRequest?.events
         ?.filter((e: any) => e.type === type && e.by === executedBy && e.code === emoji && e.commentId == commentId)
         .pop();
 

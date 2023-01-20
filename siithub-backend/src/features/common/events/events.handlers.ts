@@ -3,15 +3,24 @@ import type { Label } from "../../label/label.model";
 import type { Milestone } from "../../milestone/milestone.model";
 import type { User } from "../../user/user.model";
 import type {
+  Comment,
+  CommentCreatedEvent,
+  CommentDeletedEvent,
+  CommentHiddenEvent,
+  CommentUpdatedEvent,
   LabelAssignedEvent,
   LabelUnassignedEvent,
   MilestoneAssignedEvent,
   MilestoneUnassignedEvent,
   UserAssignedEvent,
+  UserReactedEvent,
   UserUnassignedEvent,
+  UserUnreactedEvent,
 } from "./events.model";
+import { CommentState } from "./events.model";
 import { BadLogicException } from "../../../error-handling/errors";
-import { compareIds, findLastEvent } from "./utils";
+import { canCommentBeModified, compareIds, findComment, findLastEvent } from "./utils";
+import { ObjectId } from "mongodb";
 
 type Lableable = AggregateRoot<{ labels?: Label["_id"][] }>;
 
@@ -97,6 +106,102 @@ function userUnassignedEventHandler({ csm, events }: Assignable, event: BaseEven
   );
 }
 
+type Commentable = AggregateRoot<{ comments?: Comment[] }>;
+
+function commentCreatedEventHandler({ csm, events }: Commentable, event: BaseEvent) {
+  const commentCreated = event as CommentCreatedEvent;
+  commentCreated.commentId = new ObjectId();
+
+  csm.comments?.push({
+    _id: commentCreated.commentId,
+    text: commentCreated.text,
+    state: CommentState.Existing,
+    reactions: {},
+  });
+}
+
+function commentUpdatedEventHandler({ csm, events }: Commentable, event: BaseEvent) {
+  const commentUpdated = event as CommentUpdatedEvent;
+
+  if (!canCommentBeModified({ events }, commentUpdated.commentId)) {
+    throw new BadLogicException("Comment cannot be updated.", event);
+  }
+
+  const commentToBeUpdated = findComment({ csm }, commentUpdated.commentId);
+  commentToBeUpdated.text = commentUpdated.text;
+}
+
+function commentHiddenEventHandler({ csm, events }: Commentable, event: BaseEvent) {
+  const commentHidden = event as CommentHiddenEvent;
+
+  if (!canCommentBeModified({ events }, commentHidden.commentId)) {
+    throw new BadLogicException("Comment cannot be hidden.", event);
+  }
+
+  const commentToBeHidden = findComment({ csm }, commentHidden.commentId);
+  commentToBeHidden.state = CommentState.Hidden;
+}
+
+function commentDeletedEventHandler({ csm, events }: Commentable, event: BaseEvent) {
+  const commentDeleted = event as CommentDeletedEvent;
+  if (!canCommentBeModified({ events }, commentDeleted.commentId)) {
+    throw new BadLogicException("Comment cannot be deleted.", event);
+  }
+
+  const commentToBeDeleted = findComment({ csm }, commentDeleted.commentId);
+  commentToBeDeleted.state = CommentState.Deleted;
+}
+
+type Reactable = AggregateRoot<{ comments?: { reactions: any }[] }>;
+
+function userReactedEventHandler({ csm, events }: Reactable, event: BaseEvent) {
+  const userReacted = event as UserReactedEvent;
+  const lastReactionEvent = findLastEvent<UserReactedEvent | UserUnreactedEvent>(
+    events,
+    (e) =>
+      compareIds(e?.commentId, userReacted?.commentId) &&
+      compareIds(e?.by, userReacted?.by) &&
+      e?.code === userReacted?.code
+  );
+
+  if (lastReactionEvent?.type === "UserReactedEvent") {
+    throw new BadLogicException("Reaction cannot be added.", event);
+  }
+
+  const comment = findComment({ csm }, userReacted.commentId);
+  if (!comment || comment.state !== CommentState.Existing) {
+    throw new BadLogicException("Reaction cannot be added because comment does not exist.", event);
+  }
+
+  comment.reactions[userReacted.code] = comment.reactions[userReacted.code] + 1 || 1;
+}
+
+function userUnreactedEventHandler({ csm, events }: Reactable, event: BaseEvent) {
+  const userUnreacted = event as UserUnreactedEvent;
+  const lastReactionEvent = findLastEvent<UserReactedEvent | UserUnreactedEvent>(
+    events,
+    (e) =>
+      compareIds(e?.commentId, userUnreacted?.commentId) &&
+      compareIds(e?.by, userUnreacted?.by) &&
+      e?.code === userUnreacted?.code
+  );
+
+  if (!lastReactionEvent || lastReactionEvent?.type === "UserUnreactedEvent") {
+    throw new BadLogicException("Reaction cannot be removed.", event);
+  }
+
+  const comment = findComment({ csm }, userUnreacted.commentId);
+  if (comment.state !== CommentState.Existing) {
+    throw new BadLogicException("Reaction cannot be added because comment does not exist.");
+  }
+
+  comment.reactions[userUnreacted.code] = comment.reactions[userUnreacted.code] - 1;
+
+  if (comment.reactions[userUnreacted.code] === 0) {
+    delete comment.reactions[userUnreacted.code];
+  }
+}
+
 export {
   labelAssignedEventHandler,
   labelUnassignedEventHandler,
@@ -104,4 +209,10 @@ export {
   milestoneUnassignedEventHandler,
   userAssignedEventHandler,
   userUnassignedEventHandler,
+  commentCreatedEventHandler,
+  commentUpdatedEventHandler,
+  commentHiddenEventHandler,
+  commentDeletedEventHandler,
+  userReactedEventHandler,
+  userUnreactedEventHandler,
 };

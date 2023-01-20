@@ -67,6 +67,7 @@ export const DefinePullRequestForm: FC = () => {
             }
             options={branches?.map((b: any) => ({ value: b, label: b }))}
             onChange={(val) => setValue("base", val?.value ?? "")}
+            isDisabled={isEdit}
           />
         </div>
 

@@ -1,11 +1,12 @@
-import { type FC, useEffect } from "react";
+import { type FC } from "react";
 import { type Repository } from "../repository/repository.service";
-import { usePullRequest } from "./usePullRequests";
-import { setPullRequest, usePullRequestContext } from "./PullRequestContext";
 import { DefinePullRequestForm } from "./DefinePullRequestForm";
 import { LabelsForm } from "./LabelsForm";
 import { MilestonesForm } from "./MilestonesForm";
 import { AssignessForm } from "./AssignessForm";
+import { CommentForm } from "./CommentForm";
+import { usePullRequestContext } from "./PullRequestContext";
+import { CommentPreview } from "./CommentPreview";
 
 type PullRequestPageProps = {
   repositoryId: Repository["_id"];
@@ -13,18 +14,9 @@ type PullRequestPageProps = {
 };
 
 export const PullRequestPage: FC<PullRequestPageProps> = ({ repositoryId, pullRequestId }) => {
-  const { pullRequest: existingPullRequest } = usePullRequest(repositoryId, pullRequestId);
+  const { pullRequest, isEdit } = usePullRequestContext();
 
-  const { pullRequest, pullRequestDispatcher } = usePullRequestContext();
-
-  useEffect(() => {
-    if (!existingPullRequest) return;
-
-    console.log(existingPullRequest);
-    pullRequestDispatcher(setPullRequest(existingPullRequest));
-  }, [existingPullRequest]);
-
-  if (!pullRequest?._id) return <></>;
+  if (!isEdit) return <></>;
 
   return (
     <>
@@ -34,6 +26,19 @@ export const PullRequestPage: FC<PullRequestPageProps> = ({ repositoryId, pullRe
             <div className="bg-white px-4 py-5 sm:p-6 mb-1">
               <DefinePullRequestForm />
             </div>
+          </div>
+
+          <div key={pullRequest?.events.length}>
+            {pullRequest?.csm?.comments?.map((c, i) => (
+              <div key={i} className="overflow-hidden shadow sm:rounded-md mb-10">
+                {c?._id}
+                <CommentPreview comment={c} />
+              </div>
+            ))}
+          </div>
+
+          <div key={pullRequest?.csm?.comments?.length ?? -1}>
+            <CommentForm />
           </div>
         </div>
 

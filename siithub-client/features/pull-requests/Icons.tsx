@@ -3,6 +3,7 @@ import { FC } from "react";
 type IconProps = {
   width?: number;
   height?: number;
+  className?: string;
 };
 
 export const PrOpenIcon: FC<IconProps> = ({ width = 16, height = 16 }) => {
@@ -40,6 +41,47 @@ export const PrClosedIcon: FC<IconProps> = ({ width = 16, height = 16 }) => {
           d="M10.72 1.227a.75.75 0 011.06 0l.97.97.97-.97a.75.75 0 111.06 1.061l-.97.97.97.97a.75.75 0 01-1.06 1.06l-.97-.97-.97.97a.75.75 0 11-1.06-1.06l.97-.97-.97-.97a.75.75 0 010-1.06zM12.75 6.5a.75.75 0 00-.75.75v3.378a2.251 2.251 0 101.5 0V7.25a.75.75 0 00-.75-.75zm0 5.5a.75.75 0 100 1.5.75.75 0 000-1.5zM2.5 3.25a.75.75 0 111.5 0 .75.75 0 01-1.5 0zM3.25 1a2.25 2.25 0 00-.75 4.372v5.256a2.251 2.251 0 101.5 0V5.372A2.25 2.25 0 003.25 1zm0 11a.75.75 0 100 1.5.75.75 0 000-1.5z"
         ></path>
       </svg>
+    </>
+  );
+};
+
+export const CollapseIcon: FC<IconProps> = ({ width = 16, height = 16 }) => {
+  return (
+    <>
+      <svg viewBox={`0 0 ${width} ${height}`} width={width} height={height}>
+        <path
+          fillRule="evenodd"
+          d="M12.78 6.22a.75.75 0 010 1.06l-4.25 4.25a.75.75 0 01-1.06 0L3.22 7.28a.75.75 0 011.06-1.06L8 9.94l3.72-3.72a.75.75 0 011.06 0z"
+        ></path>
+      </svg>
+    </>
+  );
+};
+
+export const CollapsedIcon: FC<IconProps> = ({ width = 16, height = 16 }) => {
+  return (
+    <>
+      <svg viewBox={`0 0 ${width} ${height}`} width={width} height={height}>
+        <path
+          fillRule="evenodd"
+          d="M6.22 3.22a.75.75 0 011.06 0l4.25 4.25a.75.75 0 010 1.06l-4.25 4.25a.75.75 0 01-1.06-1.06L9.94 8 6.22 4.28a.75.75 0 010-1.06z"
+        ></path>
+      </svg>
+    </>
+  );
+};
+
+export const PlusIcon: FC<IconProps> = ({ width = 16, height = 16, className = "" }) => {
+  return (
+    <>
+      <div className={className}>
+        <svg viewBox={`0 0 ${width} ${height}`} width={width} height={height}>
+          <path
+            fillRule="evenodd"
+            d="M7.75 2a.75.75 0 01.75.75V7h4.25a.75.75 0 110 1.5H8.5v4.25a.75.75 0 11-1.5 0V8.5H2.75a.75.75 0 010-1.5H7V2.75A.75.75 0 017.75 2z"
+          ></path>
+        </svg>
+      </div>
     </>
   );
 };

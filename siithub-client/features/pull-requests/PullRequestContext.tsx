@@ -4,6 +4,7 @@ import {
   type PullRequest,
   type CreatePullRequest,
   type UpdatePullRequest,
+  type PullRequestComment,
   createPullRequest,
   updatePullRequest,
 } from "./pullRequestActions";
@@ -12,6 +13,7 @@ import { notifications } from "../../core/hooks/useNotifications";
 import { type Label } from "../labels/labelActions";
 import { type Milestone } from "../milestones/milestoneActions";
 import { type User } from "../users/user.model";
+import { CommentState } from "../issues/issueActions";
 
 type PullRequestContextType = {
   pullRequest: PullRequest;
@@ -31,6 +33,8 @@ export const initialPullRequest: PullRequest = {
     labels: [],
     milestones: [],
     assignees: [],
+    comments: [],
+    conversations: [],
   },
 };
 
@@ -40,10 +44,6 @@ type ActionType = {
 };
 
 const pullRequestReducer = {
-  ["TEST"]: (state: PullRequest, action: ActionType) => {
-    state.csm.title = action.payload;
-    return state;
-  },
   ["SET_PULL_REQUEST"]: (state: PullRequest, action: ActionType) => {
     state = { ...action.payload };
     return state;
@@ -65,6 +65,47 @@ const pullRequestReducer = {
   ["UNASSIGN_LABEL"]: unassignEntityFrom("labels"),
   ["UNASSIGN_MILESTONE"]: unassignEntityFrom("milestones"),
   ["UNASSIGN_USER"]: unassignEntityFrom("assignees"),
+  ["CREATE_COMMENT"]: (state: PullRequest, action: ActionType) => {
+    state.csm?.comments?.push(action.payload);
+    return state;
+  },
+  ["UPDATE_COMMENT"]: (state: PullRequest, action: ActionType) => {
+    const commentToBeUpdated = state.csm?.comments?.find((c) => c._id === action.payload._id) as PullRequestComment;
+    commentToBeUpdated.text = action.payload.text;
+    return state;
+  },
+  ["HIDE_COMMENT"]: (state: PullRequest, action: ActionType) => {
+    const commentToBeUpdated = state.csm?.comments?.find((c) => c._id === action.payload) as PullRequestComment;
+    commentToBeUpdated.state = CommentState.Hidden;
+
+    return state;
+  },
+  ["DELETE_COMMENT"]: (state: PullRequest, action: ActionType) => {
+    const commentToBeUpdated = state.csm?.comments?.find((c) => c._id === action.payload) as PullRequestComment;
+    commentToBeUpdated.state = CommentState.Deleted;
+    return state;
+  },
+  ["ADD_REACTION"]: (state: PullRequest, action: ActionType) => {
+    const code = action.payload.code;
+    const commentToAddReactionTo = state.csm?.comments?.find(
+      (c) => c._id === action.payload.commentId
+    ) as PullRequestComment;
+
+    commentToAddReactionTo.reactions[code] = commentToAddReactionTo.reactions[code] + 1 || 1;
+    return state;
+  },
+  ["REMOVE_REACTION"]: (state: PullRequest, action: ActionType) => {
+    const code = action.payload.code;
+    const commentToAddReactionTo = state.csm?.comments?.find(
+      (c) => c._id === action.payload.commentId
+    ) as PullRequestComment;
+
+    commentToAddReactionTo.reactions[code] = commentToAddReactionTo.reactions[code] - 1;
+    if (commentToAddReactionTo.reactions[code] === 0) {
+      delete commentToAddReactionTo.reactions[code];
+    }
+    return state;
+  },
 };
 
 function assignEntityTo(entityName: "labels" | "milestones" | "assignees") {
@@ -200,6 +241,121 @@ export function anassignUserFromPR(pullRequest: PullRequest, userId: User["_id"]
         dispatch({ type: "ADD_EVENT", payload: resp.data.events.pop() });
       })
       .catch((error) => {});
+}
+
+export function createCommentOnPR(pullRequest: PullRequest, by: User["_id"], text: string) {
+  const newPullRequest: UpdatePullRequest = {
+    localId: pullRequest.localId,
+    events: [{ by, type: "CommentCreatedEvent", text }],
+    repositoryId: pullRequest.repositoryId,
+  };
+
+  return (dispatch: any) =>
+    updatePullRequest(newPullRequest)
+      .then((resp) => {
+        notifications.success("You have successfully created a comment.");
+        const commentCreated = resp.data.events.pop();
+        dispatch({
+          type: "CREATE_COMMENT",
+          payload: { _id: commentCreated.commentId, text, state: CommentState.Existing, reactions: {} },
+        });
+        dispatch({ type: "ADD_EVENT", payload: commentCreated });
+      })
+      .catch((_) => {});
+}
+
+export function updateCommentOnPR(pullRequest: PullRequest, by: User["_id"], commentId: string, text: string) {
+  const newPullRequest: UpdatePullRequest = {
+    localId: pullRequest.localId,
+    events: [{ by, type: "CommentUpdatedEvent", commentId, text }],
+    repositoryId: pullRequest.repositoryId,
+  };
+
+  return (dispatch: any) =>
+    updatePullRequest(newPullRequest)
+      .then((resp) => {
+        notifications.success("You have successfully updated a comment.");
+        const commentUpdated = resp.data.events.pop();
+        dispatch({ type: "UPDATE_COMMENT", payload: { _id: commentId, text } });
+        dispatch({ type: "ADD_EVENT", payload: commentUpdated });
+      })
+      .catch((_) => {});
+}
+
+export function deleteCommentOnPR(pullRequest: PullRequest, by: User["_id"], commentId: string) {
+  const newPullRequest: UpdatePullRequest = {
+    localId: pullRequest.localId,
+    events: [{ by, type: "CommentDeletedEvent", commentId }],
+    repositoryId: pullRequest.repositoryId,
+  };
+
+  return (dispatch: any) =>
+    updatePullRequest(newPullRequest)
+      .then((resp) => {
+        notifications.success("You have successfully deleted a comment.");
+        dispatch({ type: "DELETE_COMMENT", payload: commentId });
+        dispatch({ type: "ADD_EVENT", payload: resp.data.events.pop() });
+      })
+      .catch((_) => {});
+}
+
+export function hideCommentOnPR(pullRequest: PullRequest, by: User["_id"], commentId: string) {
+  const newPullRequest: UpdatePullRequest = {
+    localId: pullRequest.localId,
+    events: [{ by, type: "CommentHiddenEvent", commentId }],
+    repositoryId: pullRequest.repositoryId,
+  };
+
+  return (dispatch: any) =>
+    updatePullRequest(newPullRequest)
+      .then((resp) => {
+        notifications.success("You have successfully hid a comment.");
+        dispatch({ type: "HIDE_COMMENT", payload: commentId });
+        dispatch({ type: "ADD_EVENT", payload: resp.data.events.pop() });
+      })
+      .catch((_) => {});
+}
+
+export function addReactionToPRComment(
+  pullRequest: PullRequest,
+  by: User["_id"],
+  commentId: PullRequestComment["_id"],
+  code: string
+) {
+  const newPullRequest: UpdatePullRequest = {
+    localId: pullRequest.localId,
+    events: [{ by, type: "UserReactedEvent", commentId, code }],
+    repositoryId: pullRequest.repositoryId,
+  };
+
+  return (dispatch: any) =>
+    updatePullRequest(newPullRequest)
+      .then((resp) => {
+        dispatch({ type: "ADD_REACTION", payload: { commentId, code } });
+        dispatch({ type: "ADD_EVENT", payload: resp.data.events.pop() });
+      })
+      .catch((_) => {});
+}
+
+export function removeReactionFromPRComment(
+  pullRequest: PullRequest,
+  by: User["_id"],
+  commentId: PullRequestComment["_id"],
+  code: string
+) {
+  const newPullRequest: UpdatePullRequest = {
+    localId: pullRequest.localId,
+    events: [{ by, type: "UserUnreactedEvent", commentId, code }],
+    repositoryId: pullRequest.repositoryId,
+  };
+
+  return (dispatch: any) =>
+    updatePullRequest(newPullRequest)
+      .then((resp) => {
+        dispatch({ type: "REMOVE_REACTION", payload: { commentId, code } });
+        dispatch({ type: "ADD_EVENT", payload: resp.data.events.pop() });
+      })
+      .catch((_) => {});
 }
 
 export function setPullRequest(pullRequest: PullRequest) {
