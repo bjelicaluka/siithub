@@ -6,7 +6,7 @@ import { MilestonesForm } from "./MilestonesForm";
 import { AssignessForm } from "./AssignessForm";
 import { CommentForm } from "./CommentForm";
 import { usePullRequestContext } from "./PullRequestContext";
-import { CommentPreview } from "./CommentPreview";
+import { PullRequestHistory } from "./PullRequestHistory";
 
 type PullRequestPageProps = {
   repositoryId: Repository["_id"];
@@ -28,13 +28,8 @@ export const PullRequestPage: FC<PullRequestPageProps> = ({ repositoryId, pullRe
             </div>
           </div>
 
-          <div key={pullRequest?.events.length}>
-            {pullRequest?.csm?.comments?.map((c, i) => (
-              <div key={i} className="overflow-hidden shadow sm:rounded-md mb-10">
-                {c?._id}
-                <CommentPreview comment={c} />
-              </div>
-            ))}
+          <div>
+            <PullRequestHistory />
           </div>
 
           <div key={pullRequest?.csm?.comments?.length ?? -1}>

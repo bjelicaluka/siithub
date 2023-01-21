@@ -26,6 +26,7 @@ import type {
   CommentUpdatedEvent,
 } from "../common/events/events.model";
 import { ObjectId } from "mongodb";
+import { compareIds, findLastEvent } from "../common/events/utils";
 
 export type PossiblyInConversation<T = {}> = T & {
   conversation?: string;
@@ -34,7 +35,9 @@ export type PossiblyInConversation<T = {}> = T & {
 type PullRequestComment = PossiblyInConversation<Comment>;
 
 type PullRequestConversation = BaseEntity & {
+  isResolved: boolean;
   topic: string;
+  changes: any;
   comments?: PullRequestComment[];
 };
 
@@ -71,11 +74,25 @@ export type PullRequestCommentUpdatedEvent = PossiblyInConversation<CommentUpdat
 export type PullRequestCommentHiddenEvent = PossiblyInConversation<CommentHiddenEvent>;
 export type PullRequestCommentDeletedEvent = PossiblyInConversation<CommentDeletedEvent>;
 
+export type PullRequestConversationCreatedEvent = BaseEvent & {
+  conversationId: PullRequestConversation["_id"];
+  topic: string;
+  changes: any;
+};
+
+export type PullRequestConversationResolvedEvent = BaseEvent & {
+  conversationId: PullRequestConversation["_id"];
+};
+
+export type PullRequestConversationUnresolvedEvent = BaseEvent & {
+  conversationId: PullRequestConversation["_id"];
+};
+
 export function handleAllFor(pullRequest: PullRequest, events: BaseEvent[]) {
   events.forEach((e) => handleFor(pullRequest, e));
 }
 
-export function pullRequestCommentEventHandlerWrapper(eventHandler: any) {
+export function pullRequestCommentCreatedEventHandlerWrapper(eventHandler: any) {
   return (pullRequest: PullRequest, event: BaseEvent) => {
     const possiblyInConversation = event as PossiblyInConversation;
     if (!possiblyInConversation.conversation) {
@@ -83,32 +100,34 @@ export function pullRequestCommentEventHandlerWrapper(eventHandler: any) {
       return;
     }
 
-    let conversation = pullRequest.csm.conversations?.find(
+    const conversation = pullRequest.csm.conversations?.find(
       (conversation) => conversation.topic === possiblyInConversation.conversation
-    );
-    if (!conversation) {
-      conversation = {
-        _id: new ObjectId(),
-        topic: possiblyInConversation.conversation,
-        comments: [],
-      };
-
-      pullRequest.csm.conversations?.push(conversation);
-    }
+    ) as PullRequestConversation;
 
     eventHandler({ _id: conversation._id, csm: conversation, events: pullRequest.events }, event);
   };
 }
 
+export function pullRequestCommentModifiedEventHandlerWrapper(eventHandler: any) {
+  return (pullRequest: PullRequest, event: BaseEvent) => {
+    const comments = getAllComments(pullRequest);
+    eventHandler({ _id: pullRequest._id, csm: { comments }, events: pullRequest.events }, event);
+  };
+}
+
 export function pullRequestReactionEventHandlerWrapper(eventHandler: any) {
   return (pullRequest: PullRequest, event: BaseEvent) => {
-    const comments = [
-      ...(pullRequest?.csm?.conversations?.flatMap((c) => c?.comments ?? []) ?? []),
-      ...(pullRequest?.csm?.comments ?? []),
-    ];
+    const comments = getAllComments(pullRequest);
 
     eventHandler({ _id: pullRequest._id, csm: { comments }, events: pullRequest.events }, event);
   };
+}
+
+function getAllComments(pullRequest: PullRequest) {
+  return [
+    ...(pullRequest?.csm?.conversations?.flatMap((c) => c?.comments ?? []) ?? []),
+    ...(pullRequest?.csm?.comments ?? []),
+  ];
 }
 
 export function handleFor(pullRequest: PullRequest, event: BaseEvent) {
@@ -121,12 +140,16 @@ export function handleFor(pullRequest: PullRequest, event: BaseEvent) {
     MilestoneUnassignedEvent: milestoneUnassignedEventHandler,
     UserAssignedEvent: userAssignedEventHandler,
     UserUnassignedEvent: userUnassignedEventHandler,
-    CommentCreatedEvent: pullRequestCommentEventHandlerWrapper(commentCreatedEventHandler),
-    CommentUpdatedEvent: pullRequestCommentEventHandlerWrapper(commentUpdatedEventHandler),
-    CommentHiddenEvent: pullRequestCommentEventHandlerWrapper(commentHiddenEventHandler),
-    CommentDeletedEvent: pullRequestCommentEventHandlerWrapper(commentDeletedEventHandler),
+    CommentCreatedEvent: pullRequestCommentCreatedEventHandlerWrapper(commentCreatedEventHandler),
+    CommentUpdatedEvent: pullRequestCommentModifiedEventHandlerWrapper(commentUpdatedEventHandler),
+    CommentHiddenEvent: pullRequestCommentModifiedEventHandlerWrapper(commentHiddenEventHandler),
+    CommentDeletedEvent: pullRequestCommentModifiedEventHandlerWrapper(commentDeletedEventHandler),
     UserReactedEvent: pullRequestReactionEventHandlerWrapper(userReactedEventHandler),
     UserUnreactedEvent: pullRequestReactionEventHandlerWrapper(userUnreactedEventHandler),
+    ConversationCreatedEvent: pullRequestConversationCreatedEventHandler,
+    ConversationResolvedEvent: pullRequestConversationResolvedEventHandler,
+    ConversationUnresolvedEvent: pullRequestConversationUnresolvedEventHandler,
+
     Default: nonExistingEventHandler,
   };
 
@@ -159,6 +182,55 @@ function pullRequestUpdatedEventHandler(pullRequest: PullRequest, event: BaseEve
     compare: prCreatedEvent.compare,
     title: prCreatedEvent.title,
   };
+}
+
+function pullRequestConversationCreatedEventHandler(pullRequest: PullRequest, event: BaseEvent) {
+  const prConversationCreatedEvent = event as PullRequestConversationCreatedEvent;
+  prConversationCreatedEvent.conversationId = new ObjectId();
+
+  pullRequest.csm.conversations?.push({
+    _id: prConversationCreatedEvent.conversationId,
+    isResolved: false,
+    topic: prConversationCreatedEvent.topic,
+    changes: prConversationCreatedEvent.changes,
+    comments: [],
+  });
+}
+
+function pullRequestConversationResolvedEventHandler(pullRequest: PullRequest, event: BaseEvent) {
+  const prConversationResolvedEvent = event as PullRequestConversationResolvedEvent;
+
+  const lastConversationEvent = findLastEvent<
+    PullRequestConversationCreatedEvent | PullRequestConversationResolvedEvent | PullRequestConversationUnresolvedEvent
+  >(pullRequest.events, (e) => compareIds(e?.conversationId, prConversationResolvedEvent?.conversationId));
+
+  if (!lastConversationEvent || lastConversationEvent.type === "ConversationResolvedEvent") {
+    throw new BadLogicException("Conversation cannot be resolved.", event);
+  }
+
+  const conversation = findConversation(pullRequest, prConversationResolvedEvent?.conversationId);
+  conversation.isResolved = true;
+}
+
+function pullRequestConversationUnresolvedEventHandler(pullRequest: PullRequest, event: BaseEvent) {
+  const prConversationResolvedEvent = event as PullRequestConversationResolvedEvent;
+
+  const lastConversationEvent = findLastEvent<
+    PullRequestConversationCreatedEvent | PullRequestConversationResolvedEvent | PullRequestConversationUnresolvedEvent
+  >(pullRequest.events, (e) => compareIds(e?.conversationId, prConversationResolvedEvent?.conversationId));
+
+  if (!lastConversationEvent || lastConversationEvent.type !== "ConversationResolvedEvent") {
+    throw new BadLogicException("Conversation cannot be unresolved.", event);
+  }
+
+  const conversation = findConversation(pullRequest, prConversationResolvedEvent?.conversationId);
+  conversation.isResolved = false;
+}
+
+function findConversation(pullRequest: PullRequest, conversationId: PullRequestConversation["_id"]) {
+  return pullRequest.csm.conversations?.find((conversation) =>
+    compareIds(conversation._id, conversationId)
+  ) as PullRequestConversation;
 }
 
 function nonExistingEventHandler(_: PullRequest, event: BaseEvent) {

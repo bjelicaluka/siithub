@@ -1,6 +1,6 @@
 import { type FC, useEffect, useState, useMemo } from "react";
 import { type Repository } from "../repository/repository.service";
-import { usePullRequestContext } from "./PullRequestContext";
+import { addConversation, usePullRequestContext } from "./PullRequestContext";
 import { useCommitsDiffBetweenBranches } from "../commits/useCommits";
 import { useRepositoryContext } from "../repository/RepositoryContext";
 import { getLang } from "../../core/utils/languages";
@@ -15,6 +15,9 @@ import { diffLines, formatLines } from "unidiff";
 import { parseDiff, Diff, Hunk, tokenize, getChangeKey } from "react-diff-view";
 // @ts-ignore
 import * as refractor from "refractor";
+import { type PullRequestConversation } from "./pullRequestActions";
+import { Conversation } from "./Conversation";
+import { useAuthContext } from "../../core/contexts/Auth";
 
 const EMPTY_HUNKS: any = [];
 
@@ -41,10 +44,14 @@ type PullRequestCommitsPageProps = {
   pullRequestId: number;
 };
 
-const renderGutter = ({ renderDefault, inHoverState }: any) => (inHoverState ? <PlusIcon /> : renderDefault());
+const renderGutter = ({ renderDefault, inHoverState, ...props }: any) => {
+  return inHoverState ? <PlusIcon /> : renderDefault();
+};
 
 export const PullRequestFileChangesPage: FC<PullRequestCommitsPageProps> = ({ repositoryId, pullRequestId }) => {
-  const { pullRequest } = usePullRequestContext();
+  const { user } = useAuthContext();
+
+  const { pullRequest, pullRequestDispatcher } = usePullRequestContext();
   const { repository }: any = useRepositoryContext();
   const { owner, name } = repository as Repository;
 
@@ -71,17 +78,44 @@ export const PullRequestFileChangesPage: FC<PullRequestCommitsPageProps> = ({ re
     setVisibilities({ ...initVisibilities });
   }, [commit]);
 
-  const gutterEvents = useMemo(() => {
-    return {
-      onClick({ change }: any) {
-        const key = getChangeKey(change);
-        console.log(change);
-        console.log(key);
+  const gutterEvents = (fileName: string) => ({
+    onClick({ change }: any) {
+      const key = getChangeKey(change);
+      const topic = fileName + "_" + key;
+      pullRequestDispatcher(addConversation(pullRequest, user?._id ?? "", topic, change));
+    },
+  });
 
-        // addWidget(key);
-      },
-    };
-  }, []);
+  const getConversationsForFile = (fileName: string) => {
+    const conversations = pullRequest.csm.conversations || [];
+    return conversations
+      .filter((c) => c.topic.startsWith(fileName))
+      .filter((c) => !c.isResolved)
+      .reduce((acc: any, c: PullRequestConversation) => {
+        const line = c.topic.replace(fileName + "_", "");
+        acc[line] = c;
+        return acc;
+      }, {});
+  };
+
+  const getConversationComponentsForFile = (fileName: string) => {
+    const conversations = pullRequest.csm.conversations || [];
+
+    return conversations
+      .filter((c) => c.topic.startsWith(fileName))
+      .filter((c) => !c.isResolved)
+      .reduce((acc: any, c: PullRequestConversation) => {
+        const line = c.topic.replace(fileName + "_", "");
+        acc[line] = (
+          <>
+            <div className="overflow-hidden shadow sm:rounded-md mb-5">
+              <Conversation conversation={c} />
+            </div>
+          </>
+        );
+        return acc;
+      }, {});
+  };
 
   return (
     <>
@@ -91,8 +125,11 @@ export const PullRequestFileChangesPage: FC<PullRequestCommitsPageProps> = ({ re
           const { type, hunks } = diff;
           const fileName = change.old?.path || change.new?.path;
 
+          const conversations = getConversationComponentsForFile(fileName);
+          const numComments = Object.values(getConversationsForFile(fileName)).flatMap((c: any) => c.comments)?.length;
+
           return (
-            <div key={i} className="overflow-hidden shadow sm:rounded-md mb-5">
+            <div key={`${fileName}_${numComments}`} className="overflow-hidden shadow sm:rounded-md mb-5">
               <div className="bg-white pb-5 mb-1">
                 <div
                   className="bg-gray-200 hover:bg-gray-100 cursor-pointer"
@@ -114,11 +151,12 @@ export const PullRequestFileChangesPage: FC<PullRequestCommitsPageProps> = ({ re
                     diffType={type}
                     hunks={hunks || EMPTY_HUNKS}
                     tokens={highlightTokenizer(fileName, hunks)}
+                    widgets={conversations}
                     renderGutter={renderGutter}
                   >
                     {(hunks: any) =>
                       hunks.map((hunk: any) => (
-                        <Hunk key={"hunk-" + hunk.content} hunk={hunk} gutterEvents={gutterEvents} />
+                        <Hunk key={"hunk-" + hunk.content} hunk={hunk} gutterEvents={gutterEvents(fileName)} />
                       ))
                     }
                   </Diff>

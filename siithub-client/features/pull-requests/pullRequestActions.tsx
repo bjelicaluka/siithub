@@ -11,7 +11,9 @@ type PullRequestComment = Comment & {
 
 type PullRequestConversation = {
   _id: string;
+  isResolved: boolean;
   topic: string;
+  changes: any;
   comments?: PullRequestComment[];
 };
 

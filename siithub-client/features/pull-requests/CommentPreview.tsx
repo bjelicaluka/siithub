@@ -1,4 +1,4 @@
-import { type FC, useState } from "react";
+import { type FC, useState, useEffect } from "react";
 import { EyeIcon } from "@heroicons/react/20/solid";
 import parse from "html-react-parser";
 import { useAuthContext } from "../../core/contexts/Auth";
@@ -18,8 +18,17 @@ import {
 } from "./PullRequestContext";
 import { EmojisPreview } from "./EmojisPreview";
 
+type StylingOptions = {
+  buttonsContainer: string;
+};
+
+const initialStylingOptions: StylingOptions = {
+  buttonsContainer: "mt-10",
+};
+
 type CommentPreviewProps = {
   comment: PullRequestComment;
+  stylingOptions?: StylingOptions;
 };
 
 function getText(comment: PullRequestComment): string {
@@ -30,7 +39,7 @@ function getText(comment: PullRequestComment): string {
   };
   return textsForStates[comment.state];
 }
-export const CommentPreview: FC<CommentPreviewProps> = ({ comment }) => {
+export const CommentPreview: FC<CommentPreviewProps> = ({ comment, stylingOptions = initialStylingOptions }) => {
   const { user } = useAuthContext();
   const executedBy = user?._id ?? "";
 
@@ -58,6 +67,12 @@ export const CommentPreview: FC<CommentPreviewProps> = ({ comment }) => {
   const addReaction = (code: string) => {
     pullRequestDispatcher(addReactionToPRComment(pullRequest, executedBy, comment._id, code));
   };
+
+  useEffect(() => {
+    const lastEvent = pullRequest?.events?.at(-1);
+    if (lastEvent.type !== "CommentUpdatedEvent") return;
+    lastEvent.commentId === comment._id && setShowPreviewDiv(true);
+  }, [pullRequest?.events?.length]);
 
   return (
     <>
@@ -106,7 +121,7 @@ export const CommentPreview: FC<CommentPreviewProps> = ({ comment }) => {
       </div>
 
       <div hidden={!showPreviewDiv}>
-        <div className="mt-10">
+        <div className={stylingOptions.buttonsContainer}>
           {comment.state === CommentState.Existing ? (
             <span>
               <PencilSquareIcon className="inline-block h-5 w-5 text-indigo-500 mr-2" onClick={toggleDivVisibility} />

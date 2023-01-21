@@ -1,3 +1,239 @@
+import { type FC, useMemo } from "react";
+import { usePullRequestContext } from "./PullRequestContext";
+import { type Commit, useCommitsBetweenBranches } from "../commits/useCommits";
+import { useRepositoryContext } from "../repository/RepositoryContext";
+import { type Repository } from "../repository/repository.service";
+import moment from "moment";
+import { type PullRequestComment, type PullRequestConversation } from "./pullRequestActions";
+import { ProfilePicture } from "../../core/components/ProfilePicture";
+import { useUsers } from "../users/registration/useUsers";
+import { type User } from "../users/user.model";
+import { useLabels } from "../labels/useLabels";
+import { useMilestonesByRepoId } from "../milestones/useMilestones";
+import { type Label } from "../labels/labelActions";
+import { type Milestone } from "../milestones/milestoneActions";
+import { LabelPreview } from "../labels/LabelPreview";
+import { CommentPreview } from "./CommentPreview";
+import { ConversationCard } from "./Conversation";
+
+const eventsToTake = [
+  "LabelAssignedEvent",
+  "LabelUnassignedEvent",
+  "MilestoneAssignedEvent",
+  "MilestoneUnassignedEvent",
+  "UserAssignedEvent",
+  "UserUnassignedEvent",
+  "CommentCreatedEvent",
+  "ConversationCreatedEvent",
+];
+
 export const PullRequestHistory = () => {
-  return <></>;
+  const { repository } = useRepositoryContext();
+  const { owner, name } = repository as Repository;
+
+  const { pullRequest } = usePullRequestContext();
+
+  const events = useMemo(
+    () => pullRequest?.events.filter((e) => eventsToTake.includes(e.type)),
+    [pullRequest.events.length]
+  );
+
+  const { commits } = useCommitsBetweenBranches(owner, name, pullRequest.csm.base, pullRequest.csm.compare);
+
+  const entities = [
+    ...(events || [])
+      .filter((e) => e.type !== "CommentCreatedEvent" || !e.conversation)
+      .filter((e) => {
+        if (e.type !== "ConversationCreatedEvent") {
+          return true;
+        }
+
+        const x = events?.find((e2) => e.topic === e2.conversation && e2.type === "CommentCreatedEvent");
+        return !!x;
+      })
+      .map((e) => ({
+        timeStamp: e.timeStamp,
+        type: "Event",
+        entity: e,
+      })),
+    ...(commits || []).map((c) => ({
+      timeStamp: c.date,
+      type: "Commit",
+      entity: c,
+    })),
+  ].sort((e1, e2) => moment(e1.timeStamp).unix() - moment(e2.timeStamp).unix());
+
+  return (
+    <>
+      <ol className="relative border-l border-gray-200">
+        {entities?.map((e, i) => {
+          return (
+            <li key={i} className="mb-10 ml-6">
+              {e?.type === "Commit" ? <CommitRow commit={e.entity as Commit} /> : <EventRow event={e.entity} />}
+            </li>
+          );
+        })}
+      </ol>
+    </>
+  );
+};
+
+type CommitRowProps = {
+  commit: Commit;
+};
+
+const CommitRow: FC<CommitRowProps> = ({ commit }) => {
+  const { repository } = useRepositoryContext();
+  const { owner, name } = repository as Repository;
+
+  return (
+    <>
+      <span className="flex absolute -left-3 justify-center items-center w-6 h-6 bg-blue-200 rounded-full ring-8 ring-white">
+        <ProfilePicture username={commit.author.username || commit.author.email} size={40} />
+      </span>
+      <div className="pb-2">
+        <div className="grid grid-cols-12">
+          <div className="col-span-10 text-left ">
+            {commit.author.name} commited{" "}
+            <a className="hover:underline" href={`/${owner}/${name}/commit/${commit.sha}`}>
+              {commit.message}
+            </a>
+          </div>
+
+          <div className="col-span-2 text-right">
+            <time className="mb-1 text-xs font-normal text-gray-400 sm:order-last sm:mb-0">
+              {moment(commit.date).fromNow()}
+            </time>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+};
+
+type EventRowProps = {
+  event: any;
+};
+
+const EventRow: FC<EventRowProps> = ({ event }) => {
+  const { pullRequest } = usePullRequestContext();
+
+  const { users } = useUsers();
+  const { labels } = useLabels(pullRequest.repositoryId);
+  const { milestones } = useMilestonesByRepoId(pullRequest.repositoryId);
+
+  const findUser = (userId: User["_id"]) => users?.find((u: User) => u._id === userId);
+  const findLabel = (labelId: Label["_id"]) => labels?.find((l: Label) => l._id === labelId);
+  const findMilestone = (milestoneId: Milestone["_id"]) => milestones?.find((m: Milestone) => m._id === milestoneId);
+  const findComment = (commentId: PullRequestComment["_id"]) =>
+    pullRequest.csm.comments?.find((c) => c._id === commentId);
+  const findConvesation = (conversationId: PullRequestConversation["_id"]) =>
+    pullRequest.csm.conversations?.find((c) => c.topic === conversationId);
+
+  const EventComponent = () => {
+    switch (event.type) {
+      case "LabelAssignedEvent": {
+        const label = findLabel(event.labelId);
+        if (!label) return <></>;
+        return (
+          <>
+            {findUser(event.by)?.name} added the <LabelPreview {...label} />
+          </>
+        );
+      }
+
+      case "LabelUnassignedEvent": {
+        const label = findLabel(event.labelId);
+        if (!label) return <></>;
+        return (
+          <>
+            {findUser(event.by)?.name} added the <LabelPreview {...label} />
+          </>
+        );
+      }
+
+      case "MilestoneAssignedEvent": {
+        const milestone = findMilestone(event.milestoneId);
+        return (
+          <>
+            {findUser(event.by)?.name} added the {milestone?.title} milestone
+          </>
+        );
+      }
+
+      case "MilestoneUnassignedEvent": {
+        const milestone = findMilestone(event.milestoneId);
+        return (
+          <>
+            {findUser(event.by)?.name} removed the {milestone?.title} milestone
+          </>
+        );
+      }
+
+      case "UserAssignedEvent": {
+        const by = findUser(event.by);
+        const assigned = findUser(event.userId);
+        if (by?._id === assigned?._id) {
+          return <>{by?.name} self-assigned</>;
+        }
+        return (
+          <>
+            {by?.name} assigned {assigned?.name}
+          </>
+        );
+      }
+      case "UserUnassignedEvent": {
+        const by = findUser(event.by);
+        const unassigned = findUser(event.userId);
+        if (by?._id === unassigned?._id) {
+          return <>{by?.name} self-unassigned</>;
+        }
+        return (
+          <>
+            {by?.name} unassigned {unassigned?.name}
+          </>
+        );
+      }
+      case "CommentCreatedEvent": {
+        const comment = findComment(event.commentId);
+        return (
+          <>
+            <div>{findUser(event.by)?.name} has commented</div>
+            {comment ? <CommentPreview comment={comment as PullRequestComment} /> : <></>}
+          </>
+        );
+      }
+      case "ConversationCreatedEvent": {
+        const conversation = findConvesation(event.topic);
+        return (
+          <>
+            <div>{findUser(event.by)?.name} has opened a new conversation</div>
+            {conversation ? <ConversationCard conversation={conversation as PullRequestConversation} /> : <></>}
+          </>
+        );
+      }
+    }
+
+    return <></>;
+  };
+  return (
+    <>
+      <span className="flex absolute -left-3 justify-center items-center w-6 h-6 bg-blue-200 rounded-full ring-8 ring-white">
+        <ProfilePicture username={findUser(event.by)?.username ?? ""} size={40} />
+      </span>
+      <div className="pb-2">
+        <div className="grid grid-cols-12">
+          <div className="col-span-10 text-left ">
+            <EventComponent />
+          </div>
+
+          <div className="col-span-2 text-right">
+            <time className="mb-1 text-xs font-normal text-gray-400 sm:order-last sm:mb-0">
+              {moment(event.timeStamp).fromNow()}
+            </time>
+          </div>
+        </div>
+      </div>
+    </>
+  );
 };

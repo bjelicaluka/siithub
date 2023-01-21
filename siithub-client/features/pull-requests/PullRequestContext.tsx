@@ -5,6 +5,7 @@ import {
   type CreatePullRequest,
   type UpdatePullRequest,
   type PullRequestComment,
+  type PullRequestConversation,
   createPullRequest,
   updatePullRequest,
 } from "./pullRequestActions";
@@ -66,39 +67,40 @@ const pullRequestReducer = {
   ["UNASSIGN_MILESTONE"]: unassignEntityFrom("milestones"),
   ["UNASSIGN_USER"]: unassignEntityFrom("assignees"),
   ["CREATE_COMMENT"]: (state: PullRequest, action: ActionType) => {
-    state.csm?.comments?.push(action.payload);
+    if (action.payload.conversation) {
+      const conversation = state?.csm?.conversations?.find((c) => c.topic === action.payload.conversation);
+      conversation?.comments?.push(action.payload);
+    } else {
+      state.csm?.comments?.push(action.payload);
+    }
     return state;
   },
   ["UPDATE_COMMENT"]: (state: PullRequest, action: ActionType) => {
-    const commentToBeUpdated = state.csm?.comments?.find((c) => c._id === action.payload._id) as PullRequestComment;
+    const commentToBeUpdated = findComment(state, action.payload._id);
     commentToBeUpdated.text = action.payload.text;
     return state;
   },
   ["HIDE_COMMENT"]: (state: PullRequest, action: ActionType) => {
-    const commentToBeUpdated = state.csm?.comments?.find((c) => c._id === action.payload) as PullRequestComment;
-    commentToBeUpdated.state = CommentState.Hidden;
+    const commentToBeHidden = findComment(state, action.payload);
+    commentToBeHidden.state = CommentState.Hidden;
 
     return state;
   },
   ["DELETE_COMMENT"]: (state: PullRequest, action: ActionType) => {
-    const commentToBeUpdated = state.csm?.comments?.find((c) => c._id === action.payload) as PullRequestComment;
-    commentToBeUpdated.state = CommentState.Deleted;
+    const commentToBeDeleted = findComment(state, action.payload);
+    commentToBeDeleted.state = CommentState.Deleted;
     return state;
   },
   ["ADD_REACTION"]: (state: PullRequest, action: ActionType) => {
     const code = action.payload.code;
-    const commentToAddReactionTo = state.csm?.comments?.find(
-      (c) => c._id === action.payload.commentId
-    ) as PullRequestComment;
+    const commentToAddReactionTo = findComment(state, action.payload.commentId);
 
     commentToAddReactionTo.reactions[code] = commentToAddReactionTo.reactions[code] + 1 || 1;
     return state;
   },
   ["REMOVE_REACTION"]: (state: PullRequest, action: ActionType) => {
     const code = action.payload.code;
-    const commentToAddReactionTo = state.csm?.comments?.find(
-      (c) => c._id === action.payload.commentId
-    ) as PullRequestComment;
+    const commentToAddReactionTo = findComment(state, action.payload.commentId);
 
     commentToAddReactionTo.reactions[code] = commentToAddReactionTo.reactions[code] - 1;
     if (commentToAddReactionTo.reactions[code] === 0) {
@@ -106,7 +108,35 @@ const pullRequestReducer = {
     }
     return state;
   },
+  ["CREATE_CONVERSATION"]: (state: PullRequest, action: ActionType) => {
+    state?.csm?.conversations?.push(action.payload);
+
+    return state;
+  },
+  ["RESOLVE_CONVERSATION"]: (state: PullRequest, action: ActionType) => {
+    const conversation = findConversation(state, action.payload);
+    conversation.isResolved = true;
+
+    return state;
+  },
+  ["UNRESOLVE_CONVERSATION"]: (state: PullRequest, action: ActionType) => {
+    const conversation = findConversation(state, action.payload);
+    conversation.isResolved = false;
+
+    return state;
+  },
 };
+
+function findComment(pullRequest: PullRequest, commentId: PullRequestComment["_id"]) {
+  return [
+    ...(pullRequest?.csm?.conversations?.flatMap((c) => c?.comments ?? []) ?? []),
+    ...(pullRequest?.csm?.comments ?? []),
+  ].find((c) => c._id === commentId) as PullRequestComment;
+}
+
+function findConversation(pullRequest: PullRequest, conversationId: PullRequestConversation["_id"]) {
+  return pullRequest?.csm?.conversations?.find((c) => c._id === conversationId) as PullRequestConversation;
+}
 
 function assignEntityTo(entityName: "labels" | "milestones" | "assignees") {
   return (state: PullRequest, action: ActionType) => {
@@ -243,10 +273,10 @@ export function anassignUserFromPR(pullRequest: PullRequest, userId: User["_id"]
       .catch((error) => {});
 }
 
-export function createCommentOnPR(pullRequest: PullRequest, by: User["_id"], text: string) {
+export function createCommentOnPR(pullRequest: PullRequest, by: User["_id"], text: string, conversation?: string) {
   const newPullRequest: UpdatePullRequest = {
     localId: pullRequest.localId,
-    events: [{ by, type: "CommentCreatedEvent", text }],
+    events: [{ by, type: "CommentCreatedEvent", text, conversation }],
     repositoryId: pullRequest.repositoryId,
   };
 
@@ -257,7 +287,7 @@ export function createCommentOnPR(pullRequest: PullRequest, by: User["_id"], tex
         const commentCreated = resp.data.events.pop();
         dispatch({
           type: "CREATE_COMMENT",
-          payload: { _id: commentCreated.commentId, text, state: CommentState.Existing, reactions: {} },
+          payload: { _id: commentCreated.commentId, text, conversation, state: CommentState.Existing, reactions: {} },
         });
         dispatch({ type: "ADD_EVENT", payload: commentCreated });
       })
@@ -354,6 +384,74 @@ export function removeReactionFromPRComment(
       .then((resp) => {
         dispatch({ type: "REMOVE_REACTION", payload: { commentId, code } });
         dispatch({ type: "ADD_EVENT", payload: resp.data.events.pop() });
+      })
+      .catch((_) => {});
+}
+
+export function addConversation(pullRequest: PullRequest, by: User["_id"], topic: string, changes: any) {
+  const newPullRequest: UpdatePullRequest = {
+    localId: pullRequest.localId,
+    events: [{ by, type: "ConversationCreatedEvent", topic, changes }],
+    repositoryId: pullRequest.repositoryId,
+  };
+
+  return (dispatch: any) =>
+    updatePullRequest(newPullRequest)
+      .then((resp) => {
+        const conversationCreated = resp.data.events.pop();
+        dispatch({
+          type: "CREATE_CONVERSATION",
+          payload: { _id: conversationCreated.conversationId, isResolved: false, topic, changes, comments: [] },
+        });
+        dispatch({ type: "ADD_EVENT", payload: conversationCreated });
+      })
+      .catch((_) => {});
+}
+
+export function resolveConversation(
+  pullRequest: PullRequest,
+  by: User["_id"],
+  conversationId: PullRequestConversation["_id"]
+) {
+  const newPullRequest: UpdatePullRequest = {
+    localId: pullRequest.localId,
+    events: [{ by, type: "ConversationResolvedEvent", conversationId }],
+    repositoryId: pullRequest.repositoryId,
+  };
+
+  return (dispatch: any) =>
+    updatePullRequest(newPullRequest)
+      .then((resp) => {
+        const conversationResolved = resp.data.events.pop();
+        dispatch({
+          type: "RESOLVE_CONVERSATION",
+          payload: conversationResolved.conversationId,
+        });
+        dispatch({ type: "ADD_EVENT", payload: conversationResolved });
+      })
+      .catch((_) => {});
+}
+
+export function unresolveConversation(
+  pullRequest: PullRequest,
+  by: User["_id"],
+  conversationId: PullRequestConversation["_id"]
+) {
+  const newPullRequest: UpdatePullRequest = {
+    localId: pullRequest.localId,
+    events: [{ by, type: "ConversationUnresolvedEvent", conversationId }],
+    repositoryId: pullRequest.repositoryId,
+  };
+
+  return (dispatch: any) =>
+    updatePullRequest(newPullRequest)
+      .then((resp) => {
+        const conversationUnresolved = resp.data.events.pop();
+        dispatch({
+          type: "UNRESOLVE_CONVERSATION",
+          payload: conversationUnresolved.conversationId,
+        });
+        dispatch({ type: "ADD_EVENT", payload: conversationUnresolved });
       })
       .catch((_) => {});
 }

@@ -9,11 +9,10 @@ import "react-quill/dist/quill.snow.css"; // ES6
 
 type CommentProps = {
   comment?: PullRequestComment;
+  conversation?: string;
 };
 
-const QuillLib = dynamic(() => import("react-quilljs") as any, { ssr: false });
-
-export const CommentForm: FC<CommentProps> = ({ comment = undefined }) => {
+export const CommentForm: FC<CommentProps> = ({ comment = undefined, conversation = undefined }) => {
   const { user } = useAuthContext();
   const executedBy = user?._id ?? "";
 
@@ -31,7 +30,7 @@ export const CommentForm: FC<CommentProps> = ({ comment = undefined }) => {
     pullRequestDispatcher(
       isEdit
         ? updateCommentOnPR(pullRequest, executedBy, comment?._id ?? "", text)
-        : createCommentOnPR(pullRequest, executedBy, text)
+        : createCommentOnPR(pullRequest, executedBy, text, conversation)
     );
   };
   return (
