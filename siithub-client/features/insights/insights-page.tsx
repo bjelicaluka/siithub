@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { type FC } from "react";
 import { Button } from "../../core/components/Button";
+import { CodeFrequencyInsights } from "./code-frequency-insights";
+import { CommitsInsights } from "./commits-insights";
+import { ContributorsInsights } from "./contributors-insights";
 import { PulseInsights } from "./pulse-insights";
 
 type RepoInsightsProps = {
@@ -40,13 +43,40 @@ export const RepoInsights: FC<RepoInsightsProps> = ({ username, repo, graph }) =
           </Link>
         </div>
         <div className="flex flex-col gap-5 flex-1 items-center min-w-[812px] max-w-[1024px]">
-          <div className="flex justify-between items-center w-full border-b pb-3">
-            <div className="text-2xl">January 11, 2023 - January 18, 2023</div>
-            <Button>Period: 1 week</Button>
+          <div className="flex items-center w-full border-b pb-3">
+            {/* This Changes */}
+            {graph === "pulse" && <div className="text-2xl">Pull requests and Issues</div>}
+            {graph === "contributors" && (
+              <div className="text-2xl">
+                Contributors of{" "}
+                <b>
+                  {username}/{repo}
+                </b>
+              </div>
+            )}
+            {graph === "commits" && (
+              <div className="text-2xl">
+                Commits insights of{" "}
+                <b>
+                  {username}/{repo}
+                </b>
+              </div>
+            )}
+            {graph === "code-frequency" && (
+              <div className="text-2xl">
+                Code frequency over the history of{" "}
+                <b>
+                  {username}/{repo}
+                </b>
+              </div>
+            )}
           </div>
-          
+
           {/* This Changes */}
-          {graph === "pulse" && <PulseInsights />}
+          {graph === "pulse" && <PulseInsights username={username} repo={repo} />}
+          {graph === "contributors" && <ContributorsInsights username={username} repo={repo} />}
+          {graph === "commits" && <CommitsInsights username={username} repo={repo} />}
+          {graph === "code-frequency" && <CodeFrequencyInsights username={username} repo={repo} />}
         </div>
       </div>
     </div>

@@ -82,6 +82,15 @@ async function getCommitsDiffBetweenBranches(username: string, repoName: string,
     const response = await axios.get(`${config.gitServer.url}/api/commits/${username}/${repoName}/diff/between`, {
       params: { base, compare },
     });
+  } catch (err) {
+    throw new MissingEntityException("Commits not found");
+  }
+}
+async function getCommitsWithDiff(username: string, repoName: string, branch: string) {
+  try {
+    const response = await axios.get(
+      `${config.gitServer.url}/api/commits/${username}/${repoName}/${encodeURIComponent(branch)}/with-diff`
+    );
     return response.data;
   } catch (err) {
     throw new MissingEntityException("Commits not found");
@@ -180,6 +189,7 @@ export type GitServerClient = GitServerBranchesClient & {
   getCommits(username: string, repoName: string, branch: string): Promise<any>;
   getCommitsBetweenBranches(username: string, repoName: string, base: string, compare: string): Promise<any>;
   getCommitsDiffBetweenBranches(username: string, repoName: string, base: string, compare: string): Promise<any>;
+  getCommitsWithDiff(username: string, repoName: string, branch: string): Promise<any>;
   getCommitCount(username: string, repoName: string, branch: string): Promise<any>;
   getCommit(username: string, repoName: string, sha: string): Promise<any>;
   mergeCommits(username: string, repoName: string, base: string, compare: string): Promise<any>;
@@ -206,6 +216,7 @@ const gitServerClient: GitServerCollaboratorsClient & GitServerClient = {
   getCommits,
   getCommitsBetweenBranches,
   getCommitsDiffBetweenBranches,
+  getCommitsWithDiff,
   getCommitCount,
   getCommit,
   mergeCommits,
