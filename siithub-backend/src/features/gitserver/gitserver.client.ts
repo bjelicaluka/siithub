@@ -66,6 +66,17 @@ async function getCommits(username: string, repoName: string, branch: string) {
   }
 }
 
+async function getCommitsWithDiff(username: string, repoName: string, branch: string) {
+  try {
+    const response = await axios.get(
+      `${config.gitServer.url}/api/commits/${username}/${repoName}/${encodeURIComponent(branch)}/with-diff`
+    );
+    return response.data;
+  } catch (err) {
+    throw new MissingEntityException("Commits not found");
+  }
+}
+
 async function getCommitCount(username: string, repoName: string, branch: string) {
   try {
     const response = await axios.get(
@@ -141,6 +152,7 @@ export type GitServerClient = GitServerBranchesClient & {
   removeSshKey(username: string, key: string): Promise<any>;
   getTree(username: string, repoName: string, branch: string, treePath: string): Promise<any>;
   getCommits(username: string, repoName: string, branch: string): Promise<any>;
+  getCommitsWithDiff(username: string, repoName: string, branch: string): Promise<any>;
   getCommitCount(username: string, repoName: string, branch: string): Promise<any>;
   getCommit(username: string, repoName: string, sha: string): Promise<any>;
   getFileHistoryCommits(username: string, repoName: string, branch: string, filePath: string): Promise<any>;
@@ -164,6 +176,7 @@ const gitServerClient: GitServerCollaboratorsClient & GitServerClient = {
   getBlob,
   getBlobInfo,
   getCommits,
+  getCommitsWithDiff,
   getCommitCount,
   getCommit,
   getFileHistoryCommits,

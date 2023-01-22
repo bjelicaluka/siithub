@@ -1,11 +1,16 @@
 import { gitServerClient } from "../gitserver/gitserver.client";
 import type { User } from "../user/user.model";
 import { userService } from "../user/user.service";
-import type { Commit, LastCommitAndContrib } from "./commit.model";
+import type { Commit, CommitWithDiff, LastCommitAndContrib } from "./commit.model";
 
 async function getCommits(username: string, repoName: string, branch: string) {
   const commits: Commit[] = await gitServerClient.getCommits(username, repoName, branch);
   return await resolveAuthors(commits);
+}
+
+async function getCommitsWithDiff(username: string, repoName: string, branch: string) {
+  const commits: CommitWithDiff[] = await gitServerClient.getCommitsWithDiff(username, repoName, branch);
+  return (await resolveAuthors(commits)) as CommitWithDiff[];
 }
 
 async function getCommitCount(username: string, repoName: string, branch: string) {
@@ -47,6 +52,7 @@ async function resolveAuthors(commits: Commit[]): Promise<Commit[]> {
 
 export type CommitService = {
   getCommits(username: string, repoName: string, branch: string): Promise<Commit[]>;
+  getCommitsWithDiff(username: string, repoName: string, branch: string): Promise<CommitWithDiff[]>;
   getCommitCount(username: string, repoName: string, branch: string): Promise<{ count: number }>;
   getCommit(username: string, repoName: string, sha: string): Promise<Commit>;
   getFileHistoryCommits(username: string, repoName: string, branch: string, filePath: string): Promise<Commit[]>;
@@ -55,6 +61,7 @@ export type CommitService = {
 
 const commitService: CommitService = {
   getCommits,
+  getCommitsWithDiff,
   getCommitCount,
   getCommit,
   getFileHistoryCommits,

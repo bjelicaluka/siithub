@@ -2,7 +2,7 @@ import { Commit, ConvenientPatch, Repository, Revwalk } from "nodegit";
 import { homePath } from "../config";
 import { isCommitSha } from "../string.utils";
 
-export async function getCommits(username: string, repoName: string, branch: string) {
+export async function getCommits(username: string, repoName: string, branch: string, withDiff = false) {
   try {
     const repoPath = `${homePath}/${username}/${repoName}`;
     const repo = await Repository.open(repoPath + "/.git");
@@ -11,12 +11,19 @@ export async function getCommits(username: string, repoName: string, branch: str
     walker.push(headCommit.id());
     walker.sorting(Revwalk.SORT.TIME);
     const commits = await walker.getCommits(999999);
-    return commits.map((commit) => ({
-      message: commit.message(),
-      sha: commit.sha(),
-      date: commit.date(),
-      author: { name: commit.author().name(), email: commit.author().email() },
-    }));
+    return await Promise.all(
+      commits.map(async (commit) => ({
+        message: commit.message(),
+        sha: commit.sha(),
+        date: commit.date(),
+        author: { name: commit.author().name(), email: commit.author().email() },
+        ...(withDiff
+          ? {
+              diff: await getCommitDiff(commit),
+            }
+          : {}),
+      }))
+    );
   } catch {
     return null;
   }
@@ -41,20 +48,25 @@ export async function getCommit(username: string, repoName: string, sha: string)
     const repoPath = `${homePath}/${username}/${repoName}`;
     const repo = await Repository.open(repoPath + "/.git");
     const commit = await repo.getCommit(sha);
-    const parentCommits = await commit.getParents(1);
-    const diffList = await commit.getDiff();
-    const diff = diffList[0];
-    const patches = await diff.patches();
+
     return {
       message: commit.message(),
       sha: commit.sha(),
       date: commit.date(),
       author: { name: commit.author().name(), email: commit.author().email() },
-      diff: await Promise.all(patches.map(async (patch) => await getPatchData(patch, commit, parentCommits[0]))),
+      diff: await getCommitDiff(commit),
     };
   } catch {
     return null;
   }
+}
+
+async function getCommitDiff(commit: Commit) {
+  const parentCommits = await commit.getParents(1);
+  const diffList = await commit.getDiff();
+  const diff = diffList[0];
+  const patches = await diff.patches();
+  return await Promise.all(patches.map(async (patch) => await getPatchData(patch, commit, parentCommits[0])));
 }
 
 async function getPatchData(patch: ConvenientPatch, commit: Commit, parentCommit: Commit) {

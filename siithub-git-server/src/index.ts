@@ -172,6 +172,15 @@ app.get("/api/commits/:username/:repository/:branch/", async (req: Request, res:
   res.send(commits);
 });
 
+app.get("/api/commits/:username/:repository/:branch/with-diff", async (req: Request, res: Response) => {
+  const commits = await getCommits(req.params.username, req.params.repository, req.params.branch, true);
+  if (!commits) {
+    res.status(404).send({ m: "commits not found" });
+    return;
+  }
+  res.send(commits);
+});
+
 app.get("/api/commits/:username/:repository/:branch/:filePath", async (req: Request, res: Response) => {
   const { username, repository, branch, filePath } = req.params;
   const commits = await getFileHistoryCommits(username, repository, branch, filePath);
