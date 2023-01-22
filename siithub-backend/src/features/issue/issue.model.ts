@@ -74,6 +74,7 @@ function issueCreatedEventHadler(issue: Issue, event: BaseEvent) {
   const issueCreated = event as IssueCreatedEvent;
   issue.csm = {
     timeStamp: event.timeStamp,
+    lastModified: event.timeStamp,
     author: new ObjectId(event.by.toString()),
     title: issueCreated.title,
     description: issueCreated.description,

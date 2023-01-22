@@ -1,15 +1,24 @@
 import { Filter, FindOptions, ObjectId } from "mongodb";
 import type { Repository } from "../repository/repository.model";
-import type { PullRequest, PullRequestCreate, PullRequestUpdate } from "./pull-requests.model";
+import {
+  type PullRequest,
+  type PullRequestCreate,
+  type PullRequestUpdate,
+  type PullRequestCreatedEvent,
+  type PullRequestUpdatedEvent,
+  PullRequestState,
+} from "./pull-requests.model";
 import type { BaseEvent } from "../../db/base.repo.utils";
 import type { LabelAssignedEvent, MilestoneAssignedEvent, UserAssignedEvent } from "../common/events/events.model";
 import { handleFor } from "./pull-requests.model";
 import { pullRequestsRepo } from "./pull-requests.repo";
-import { MissingEntityException } from "../../error-handling/errors";
+import { BadLogicException, MissingEntityException } from "../../error-handling/errors";
 import { repositoryService } from "../repository/repository.service";
 import { labelService } from "../label/label.service";
 import { milestoneService } from "../milestone/milestone.service";
 import { userService } from "../user/user.service";
+import { type PullRequestsQuery } from "./pull-requests.query";
+import { commitService } from "../commits/commit.service";
 
 async function findOne(id: PullRequest["_id"]): Promise<PullRequest | null> {
   return await pullRequestsRepo.crud.findOne(id);
@@ -42,11 +51,18 @@ async function findMany(
   return await pullRequestsRepo.crud.findMany(filters, options);
 }
 
+async function searchByQuery(query: PullRequestsQuery, repositoryId: Repository["_id"]): Promise<PullRequest[]> {
+  query.state = query.state?.map((s) => +s);
+  return await pullRequestsRepo.searchByQuery(query, repositoryId);
+}
+
 async function createPullRequest({ events, repositoryId }: PullRequestCreate): Promise<PullRequest | null> {
   const localId = await repositoryService.increaseCounterValue(repositoryId, "pull-request");
   const createdPullRequest = (await pullRequestsRepo.crud.add({
     events: [],
     csm: {
+      isClosed: false,
+      state: PullRequestState.Opened,
       base: "",
       compare: "",
       title: "",
@@ -73,17 +89,39 @@ async function updateEventsFor(pullRequest: PullRequest, events: BaseEvent[]) {
 }
 
 async function handleEvent(pullRequest: PullRequest, event: BaseEvent): Promise<void> {
-  await validateEventFor(event);
+  await validateEventFor(pullRequest, event);
 
   event._id = new ObjectId();
   event.streamId = pullRequest._id;
   event.timeStamp = new Date();
   event.by = new ObjectId(event.by?.toString());
 
+  if (event.type === "PullRequestMergedEvent") {
+    const { owner, name } = await repositoryService.findOneOrThrow(pullRequest.repositoryId);
+    const { base, compare } = pullRequest.csm;
+    const mergeResult: any = await commitService.mergeCommits(owner, name, base, compare);
+    if (!mergeResult) {
+      throw new BadLogicException("Unable to merge pull request becase of merge conflicts.");
+    }
+    const prUpdatedEvent: PullRequestUpdatedEvent = {
+      type: "PullRequestUpdatedEvent",
+      title: pullRequest.csm.title,
+      base: mergeResult.base || pullRequest.csm.base,
+      compare: mergeResult.compare || pullRequest.csm.compare,
+      _id: new ObjectId(),
+      streamId: pullRequest._id,
+      timeStamp: new Date(),
+      by: new ObjectId(event.by?.toString()),
+    };
+
+    handleFor(pullRequest, prUpdatedEvent);
+    return;
+  }
+
   handleFor(pullRequest, event);
 }
 
-async function validateEventFor(event: BaseEvent): Promise<void> {
+async function validateEventFor(pullRequest: PullRequest, event: BaseEvent): Promise<void> {
   switch (event.type) {
     case "LabelAssignedEvent": {
       const labelAssigned = event as LabelAssignedEvent;
@@ -102,6 +140,17 @@ async function validateEventFor(event: BaseEvent): Promise<void> {
       await userService.findOneOrThrow(new ObjectId(userAssigned?.userId?.toString()));
       return;
     }
+
+    case "PullRequestUpdatedEvent":
+    case "PullRequestCreatedEvent": {
+      const prEvent = event as PullRequestCreatedEvent | PullRequestUpdatedEvent;
+      const { owner, name } = await repositoryService.findOneOrThrow(pullRequest.repositoryId);
+      const { base, compare } = prEvent;
+      const commits = await commitService.getCommitsBetweenBranches(owner, name, base, compare);
+      if (!commits || !commits.length) {
+        throw new BadLogicException("Cannot set those branches because there aren't any changes.");
+      }
+    }
   }
 }
 
@@ -111,9 +160,10 @@ export type PullRequestService = {
   findByRepositoryId(repositoryId: Repository["_id"]): Promise<PullRequest[]>;
   findByRepositoryIdAndLocalId(repositoryId: Repository["_id"], localId: number): Promise<PullRequest>;
   findMany(filters?: Filter<PullRequest>, options?: FindOptions<PullRequest>): Promise<PullRequest[]>;
+  searchByQuery(query: PullRequestsQuery, repositoryId: Repository["_id"]): Promise<PullRequest[]>;
   create(pullRequest: PullRequestCreate): Promise<PullRequest | null>;
   update(pullRequest: PullRequestUpdate): Promise<PullRequest | null>;
-  validateEventFor(event: BaseEvent): Promise<void>;
+  validateEventFor(pullRequest: PullRequest, event: BaseEvent): Promise<void>;
 };
 
 const pullRequestService: PullRequestService = {
@@ -122,6 +172,7 @@ const pullRequestService: PullRequestService = {
   findByRepositoryId,
   findByRepositoryIdAndLocalId,
   findMany,
+  searchByQuery,
   create: createPullRequest,
   update: updatePullRequest,
   validateEventFor,

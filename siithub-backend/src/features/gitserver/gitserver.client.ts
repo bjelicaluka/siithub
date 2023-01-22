@@ -110,6 +110,21 @@ async function getCommit(username: string, repoName: string, sha: string) {
   }
 }
 
+async function mergeCommits(username: string, repoName: string, base: string, compare: string) {
+  try {
+    const response = await axios.post(
+      `${config.gitServer.url}/api/commits/merge/${username}/${repoName}`,
+      {},
+      {
+        params: { base, compare },
+      }
+    );
+    return response.data;
+  } catch (err) {
+    return null;
+  }
+}
+
 async function getFileHistoryCommits(username: string, repoName: string, branch: string, filePath: string) {
   try {
     const response = await axios.get(
@@ -167,6 +182,7 @@ export type GitServerClient = GitServerBranchesClient & {
   getCommitsDiffBetweenBranches(username: string, repoName: string, base: string, compare: string): Promise<any>;
   getCommitCount(username: string, repoName: string, branch: string): Promise<any>;
   getCommit(username: string, repoName: string, sha: string): Promise<any>;
+  mergeCommits(username: string, repoName: string, base: string, compare: string): Promise<any>;
   getFileHistoryCommits(username: string, repoName: string, branch: string, filePath: string): Promise<any>;
   getBlob(
     username: string,
@@ -192,6 +208,7 @@ const gitServerClient: GitServerCollaboratorsClient & GitServerClient = {
   getCommitsDiffBetweenBranches,
   getCommitCount,
   getCommit,
+  mergeCommits,
   getFileHistoryCommits,
   ...gitServerCollaboratorsClient,
   ...gitServerBranchesClient,

@@ -41,7 +41,20 @@ type PullRequestConversation = BaseEntity & {
   comments?: PullRequestComment[];
 };
 
+export enum PullRequestState {
+  Opened,
+  ChangesRequired,
+  Approved,
+  Canceled,
+  Merged,
+}
+
 export type PullRequestCSM = {
+  timeStamp?: Date;
+  lastModified?: Date;
+  author?: User["_id"];
+  isClosed: boolean;
+  state: PullRequestState;
   base: string;
   compare: string;
   title: string;
@@ -87,6 +100,11 @@ export type PullRequestConversationResolvedEvent = BaseEvent & {
 export type PullRequestConversationUnresolvedEvent = BaseEvent & {
   conversationId: PullRequestConversation["_id"];
 };
+
+export type PullRequestMergedEvent = BaseEvent & {};
+export type PullRequestCanceledEvent = BaseEvent & {};
+export type PullRequestApprovedEvent = BaseEvent & {};
+export type PullRequestChangesRequiredEvent = BaseEvent & {};
 
 export function handleAllFor(pullRequest: PullRequest, events: BaseEvent[]) {
   events.forEach((e) => handleFor(pullRequest, e));
@@ -149,6 +167,10 @@ export function handleFor(pullRequest: PullRequest, event: BaseEvent) {
     ConversationCreatedEvent: pullRequestConversationCreatedEventHandler,
     ConversationResolvedEvent: pullRequestConversationResolvedEventHandler,
     ConversationUnresolvedEvent: pullRequestConversationUnresolvedEventHandler,
+    PullRequestApprovedEvent: pullRequestApprovedEventHandler,
+    PullRequestChangesRequiredEvent: pullRequestChangesRequiredEventHandler,
+    PullRequestMergedEvent: pullRequestMergedEventHandler,
+    PullRequestCanceledEvent: pullRequestCanceledEventHandler,
 
     Default: nonExistingEventHandler,
   };
@@ -163,6 +185,11 @@ export function handleFor(pullRequest: PullRequest, event: BaseEvent) {
 function pullRequestCreatedEventHandler(pullRequest: PullRequest, event: BaseEvent) {
   const prCreatedEvent = event as PullRequestCreatedEvent;
   pullRequest.csm = {
+    timeStamp: event.timeStamp,
+    lastModified: event.timeStamp,
+    author: new ObjectId(prCreatedEvent.by?.toString()),
+    isClosed: false,
+    state: PullRequestState.Opened,
     base: prCreatedEvent.base,
     compare: prCreatedEvent.compare,
     title: prCreatedEvent.title,
@@ -178,6 +205,7 @@ function pullRequestUpdatedEventHandler(pullRequest: PullRequest, event: BaseEve
   const prCreatedEvent = event as PullRequestCreatedEvent;
   pullRequest.csm = {
     ...pullRequest.csm,
+    lastModified: event.timeStamp,
     base: prCreatedEvent.base,
     compare: prCreatedEvent.compare,
     title: prCreatedEvent.title,
@@ -225,6 +253,71 @@ function pullRequestConversationUnresolvedEventHandler(pullRequest: PullRequest,
 
   const conversation = findConversation(pullRequest, prConversationResolvedEvent?.conversationId);
   conversation.isResolved = false;
+}
+
+function pullRequestChangesRequiredEventHandler(pullRequest: PullRequest, event: BaseEvent) {
+  if (!canModifyPullRequest(pullRequest, event)) {
+    throw new BadLogicException("Cannot require changes for the pull request.");
+  }
+
+  pullRequest.csm.state = PullRequestState.ChangesRequired;
+}
+
+function pullRequestApprovedEventHandler(pullRequest: PullRequest, event: BaseEvent) {
+  if (!canModifyPullRequest(pullRequest, event)) {
+    throw new BadLogicException("Cannot approve the pull request.");
+  }
+
+  pullRequest.csm.state = PullRequestState.Approved;
+}
+
+function pullRequestCanceledEventHandler(pullRequest: PullRequest, event: BaseEvent) {
+  if (!canModifyPullRequest(pullRequest, event)) {
+    throw new BadLogicException("Cannot cancel the pull request.");
+  }
+
+  pullRequest.csm.state = PullRequestState.Canceled;
+  pullRequest.csm.isClosed = true;
+}
+
+function pullRequestMergedEventHandler(pullRequest: PullRequest, event: BaseEvent) {
+  if (!canModifyPullRequest(pullRequest, event)) {
+    throw new BadLogicException("Cannot merge the pull request.");
+  }
+
+  const lastEvent = findLastEvent<PullRequestApprovedEvent | PullRequestChangesRequiredEvent>(
+    pullRequest.events,
+    (e) =>
+      compareIds(e.streamId, pullRequest._id) &&
+      ["PullRequestApprovedEvent", "PullRequestChangesRequiredEvent"].includes(e.type)
+  );
+  if (lastEvent?.type === "PullRequestChangesRequiredEvent") {
+    throw new BadLogicException("Cannot merge the pull request.");
+  }
+
+  pullRequest.csm.state = PullRequestState.Merged;
+  pullRequest.csm.isClosed = true;
+}
+
+function canModifyPullRequest(pullRequest: PullRequest, event: BaseEvent) {
+  const createdEvent = findLastEvent<PullRequestCreatedEvent>(
+    pullRequest.events,
+    (e) => compareIds(e.streamId, pullRequest._id) && e.type === "PullRequestCreatedEvent"
+  );
+  if (!createdEvent) {
+    return false;
+  }
+
+  const lastClosedEvent = findLastEvent<PullRequestMergedEvent | PullRequestCanceledEvent>(
+    pullRequest.events,
+    (e) =>
+      compareIds(e.streamId, pullRequest._id) && ["PullRequestMergedEvent", "PullRequestCanceledEvent"].includes(e.type)
+  );
+  if (lastClosedEvent) {
+    return false;
+  }
+
+  return true;
 }
 
 function findConversation(pullRequest: PullRequest, conversationId: PullRequestConversation["_id"]) {

@@ -11,8 +11,14 @@ type CommitDiffViewerProps = {
 };
 
 export const CommitDiffViewer: FC<CommitDiffViewerProps> = ({ commit }) => {
-  const additions = useMemo(() => commit.diff.reduce((acc, val) => acc + val.stats.total_additions, 0), [commit]);
-  const deletions = useMemo(() => commit.diff.reduce((acc, val) => acc + val.stats.total_deletions, 0), [commit]);
+  const additions = useMemo(
+    () => commit.diff.reduce((acc, val) => acc + (val?.stats?.total_additions || 0), 0),
+    [commit]
+  );
+  const deletions = useMemo(
+    () => commit.diff.reduce((acc, val) => acc + (val?.stats?.total_deletions || 0), 0),
+    [commit]
+  );
 
   return (
     <>
@@ -24,7 +30,7 @@ export const CommitDiffViewer: FC<CommitDiffViewerProps> = ({ commit }) => {
       {commit.diff.map((diff, i) => {
         return (
           <div
-            key={i + truncate(diff.old?.content ?? "", 5) + truncate(diff.new?.content ?? "", 5)}
+            key={i + truncate(diff?.old?.content ?? "", 5) + truncate(diff?.new?.content ?? "", 5)}
             className="w-full overflow-x-scroll mt-2"
           >
             <a id={`${i}`} />
@@ -34,19 +40,19 @@ export const CommitDiffViewer: FC<CommitDiffViewerProps> = ({ commit }) => {
               }}
               leftTitle={
                 <Link href={`#${i}`} className="hover:text-blue-400 hover:underline text-sm">
-                  {diff.old?.path}
+                  {diff?.old?.path}
                 </Link>
               }
               rightTitle={
                 <Link href={`#${i}`} className="hover:text-blue-400 hover:underline text-sm">
-                  {diff.new?.path}
+                  {diff?.new?.path}
                 </Link>
               }
-              oldValue={diff.old?.content}
-              newValue={diff.new?.content}
+              oldValue={diff?.old?.content}
+              newValue={diff?.new?.content}
               splitView={true}
             />
-            {diff.large && <div className="w-full text-center p-3">Large diffs are not rendered by default</div>}
+            {diff?.large && <div className="w-full text-center p-3">Large diffs are not rendered by default</div>}
           </div>
         );
       })}

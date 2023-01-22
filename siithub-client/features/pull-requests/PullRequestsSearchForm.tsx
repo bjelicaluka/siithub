@@ -1,18 +1,26 @@
-import { InputField } from "../../core/components/InputField";
-import { IssueState, type IssuesQuery } from "./issueActions";
-import Select from "react-select";
 import { type FC, useState } from "react";
-import { type Label } from "../labels/labelActions";
-import { type Repository } from "../repository/repository.service";
-import { type Milestone } from "../milestones/milestoneActions";
-import { useLabels } from "../labels/useLabels";
+import { InputField } from "../../core/components/InputField";
+import Select from "react-select";
 import { useUsers } from "../users/registration/useUsers";
-import { useMilestonesByRepoId } from "../milestones/useMilestones";
+import { type Repository } from "../repository/repository.service";
+import { ChooseAssignessField } from "../common/ChooseAssignessField";
+import { PullRequestState, type PullRequestsQuery } from "./pullRequestActions";
+import { ChooseLabelsField } from "../common/ChooseLabelsField";
+import { ChooseMilestonesField } from "../common/ChooseMilestonesField";
 
 const avaiableStates = [
-  { value: [IssueState.Open, IssueState.Reopened, IssueState.Closed], label: "Any" },
-  { value: [IssueState.Open, IssueState.Reopened], label: "Opened" },
-  { value: [IssueState.Closed], label: "Closed" },
+  {
+    value: [
+      PullRequestState.Opened,
+      PullRequestState.Approved,
+      PullRequestState.ChangesRequired,
+      PullRequestState.Merged,
+      PullRequestState.Canceled,
+    ],
+    label: "Any",
+  },
+  { value: [PullRequestState.Opened, PullRequestState.Approved, PullRequestState.ChangesRequired], label: "Opened" },
+  { value: [PullRequestState.Merged, PullRequestState.Canceled], label: "Closed" },
 ];
 
 const sortOptions = [
@@ -22,22 +30,20 @@ const sortOptions = [
   { value: { lastModified: 1 }, label: "Least recently updated" },
 ];
 
-type IssuesSearchFormProps = {
+type PullRequestsSearchFormProps = {
   repositoryId: Repository["_id"];
-  existingParams: IssuesQuery;
-  onParamsChange: (params: IssuesQuery) => any;
+  existingParams: PullRequestsQuery;
+  onParamsChange: (params: PullRequestsQuery) => any;
 };
 
-export const IssuesSearchForm: FC<IssuesSearchFormProps> = ({ repositoryId, existingParams, onParamsChange }) => {
-  const [params, setParams] = useState<IssuesQuery>(existingParams);
+export const PullRequestsSearchForm: FC<PullRequestsSearchFormProps> = ({
+  repositoryId,
+  existingParams,
+  onParamsChange,
+}) => {
+  const [params, setParams] = useState<PullRequestsQuery>(existingParams);
 
-  const { labels } = useLabels(repositoryId);
-  const labelOptions = labels?.map((l: Label) => ({ value: l._id, label: l.name }));
-
-  const { milestones } = useMilestonesByRepoId(repositoryId);
-  const milestoneOptions = milestones?.map((m: Milestone) => ({ value: m._id, label: m.title }));
-
-  const { users } = useUsers(); // TODO: use collaborators
+  const { users } = useUsers(["PullRequestsSearchForm"], true); // TODO: use collaborators
   const userOptions = [
     { value: "", label: "Any" },
     ...(users?.map((u: any) => ({ value: u._id, label: u.name })) ?? []),
@@ -113,50 +119,26 @@ export const IssuesSearchForm: FC<IssuesSearchFormProps> = ({ repositoryId, exis
         </div>
 
         <div className="col-span-3">
-          <label className="block text-sm font-medium text-gray-700">Assigne</label>
-
-          <Select
-            isMulti
-            name="assignees"
-            defaultValue={undefined}
-            options={userOptions}
-            className="mt-1 basic-multi-select"
-            classNamePrefix="select"
-            onChange={(assignees: any) => {
-              onDataChange({ assignees: assignees.map((a: any) => a.value) });
-            }}
+          <ChooseAssignessField
+            repositoryId={repositoryId}
+            selectedAssignes={existingParams.assignees}
+            onAssignessChange={(assignees: any) => onDataChange({ assignees })}
           />
         </div>
 
         <div className="col-span-3">
-          <label className="block text-sm font-medium text-gray-700">Labels</label>
-
-          <Select
-            isMulti
-            name="labels"
-            defaultValue={undefined}
-            options={labelOptions}
-            className="mt-1 basic-multi-select"
-            classNamePrefix="select"
-            onChange={(labels: any) => {
-              onDataChange({ labels: labels.map((l: any) => l.value) });
-            }}
+          <ChooseLabelsField
+            repositoryId={repositoryId}
+            selectedLabels={existingParams.labels}
+            onLabelChange={(labels: any) => onDataChange({ labels })}
           />
         </div>
 
         <div className="col-span-3">
-          <label className="block text-sm font-medium text-gray-700">Milestones</label>
-
-          <Select
-            isMulti
-            name="milestones"
-            defaultValue={undefined}
-            options={milestoneOptions}
-            className="mt-1 basic-multi-select"
-            classNamePrefix="select"
-            onChange={(milestones: any) => {
-              onDataChange({ milestones: milestones.map((m: any) => m.value) });
-            }}
+          <ChooseMilestonesField
+            repositoryId={repositoryId}
+            selectedMilestones={existingParams.milestones}
+            onMilestonesChange={(milestones: any) => onDataChange({ milestones })}
           />
         </div>
       </div>

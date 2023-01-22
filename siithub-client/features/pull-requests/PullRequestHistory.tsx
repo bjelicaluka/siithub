@@ -25,6 +25,10 @@ const eventsToTake = [
   "UserUnassignedEvent",
   "CommentCreatedEvent",
   "ConversationCreatedEvent",
+  "PullRequestApprovedEvent",
+  "PullRequestChangesRequiredEvent",
+  "PullRequestMergedEvent",
+  "PullRequestCanceledEvent",
 ];
 
 export const PullRequestHistory = () => {
@@ -118,7 +122,7 @@ type EventRowProps = {
 const EventRow: FC<EventRowProps> = ({ event }) => {
   const { pullRequest } = usePullRequestContext();
 
-  const { users } = useUsers();
+  const { users } = useUsers(["EventRow"], true);
   const { labels } = useLabels(pullRequest.repositoryId);
   const { milestones } = useMilestonesByRepoId(pullRequest.repositoryId);
 
@@ -211,6 +215,18 @@ const EventRow: FC<EventRowProps> = ({ event }) => {
             {conversation ? <ConversationCard conversation={conversation as PullRequestConversation} /> : <></>}
           </>
         );
+      }
+      case "PullRequestApprovedEvent": {
+        return <div>{findUser(event.by)?.name} has approved this pull request</div>;
+      }
+      case "PullRequestChangesRequiredEvent": {
+        return <div>{findUser(event.by)?.name} has requested changes for this pull request</div>;
+      }
+      case "PullRequestMergedEvent": {
+        return <div>{findUser(event.by)?.name} has merged and closed this pull request</div>;
+      }
+      case "PullRequestCanceledEvent": {
+        return <div>{findUser(event.by)?.name} has canceled and closed this pull request</div>;
       }
     }
 

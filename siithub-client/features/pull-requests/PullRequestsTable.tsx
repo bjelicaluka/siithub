@@ -1,9 +1,15 @@
-import { type FC } from "react";
+import { useCallback, type FC } from "react";
 import { type Repository } from "../repository/repository.service";
-import { type PullRequest } from "./pullRequestActions";
+import { PullRequestState, type PullRequest } from "./pullRequestActions";
 import { useRepositoryContext } from "../repository/RepositoryContext";
 import { useRouter } from "next/router";
-import { PrOpenIcon } from "./Icons";
+import { PrClosedIcon, PrMergedIcon, PrOpenIcon } from "./Icons";
+import { useLabels } from "../labels/useLabels";
+import { type Label } from "../labels/labelActions";
+import { LabelPreview } from "../labels/LabelPreview";
+import { findLastEvent } from "../common/utils";
+import { useUser } from "../users/profile/useUser";
+import moment from "moment";
 
 type PullRequestsTableProps = {
   repositoryId: Repository["_id"];
@@ -11,12 +17,45 @@ type PullRequestsTableProps = {
 };
 
 const AdditionalText = ({ pullRequest }: { pullRequest: PullRequest }) => {
-  return <>Nothing for now</>;
+  const prCreated = findLastEvent(pullRequest.events, (e: any) => e.type === "PullRequestCreatedEvent");
+  const { user: prCreator } = useUser(prCreated?.by);
+
+  const prClosed = findLastEvent(pullRequest.events, (e: any) =>
+    ["PullRequestCanceledEvent", "PullRequestMergedEvent"].includes(e.type)
+  );
+  const { user: prCloser } = useUser(prClosed?.by);
+
+  if (!pullRequest.csm.isClosed) {
+    return (
+      <>
+        #{pullRequest.localId} opened {moment(prCreated?.timeStamp).fromNow()} by {prCreator?.username}
+      </>
+    );
+  }
+
+  return (
+    <>
+      #{pullRequest.localId} by {prCloser?.username} was{" "}
+      {pullRequest.csm.state === PullRequestState.Merged ? "merged" : "canceled"}{" "}
+      {moment(prCreated?.timeStamp).fromNow()}
+    </>
+  );
+};
+
+const Icon = ({ pullRequest }: { pullRequest: PullRequest }) => {
+  if (!pullRequest.csm.isClosed) {
+    return <PrOpenIcon />;
+  }
+
+  return pullRequest.csm.state === PullRequestState.Merged ? <PrMergedIcon /> : <PrClosedIcon />;
 };
 
 export const PullRequestsTable: FC<PullRequestsTableProps> = ({ repositoryId, pullRequests }) => {
   const { repository } = useRepositoryContext();
   const router = useRouter();
+
+  const { labels } = useLabels(repositoryId);
+  const findLabel = useCallback((labelId: Label["_id"]) => labels?.find((l: Label) => l._id === labelId), [labels]);
 
   const navigateToPullRequestEdit = (localId: number) =>
     router.push(`/${repository?.owner ?? ""}/${repository?.name ?? ""}/pull-requests/${localId}`);
@@ -32,10 +71,15 @@ export const PullRequestsTable: FC<PullRequestsTableProps> = ({ repositoryId, pu
                   <div className="cursor-pointer" onClick={() => navigateToPullRequestEdit(pullRequest.localId)}>
                     <div className="flex">
                       <span className="mr-2 mt-2">
-                        {/* {pullRequest.csm.state === IssueState.Closed ? <ClosedIcon /> : <OpenedIcon />} */}
-                        <PrOpenIcon />
+                        <Icon pullRequest={pullRequest} />
                       </span>
                       <span className="text-xl mr-2">{pullRequest.csm.title}</span>
+                      <span>
+                        {pullRequest.csm.labels?.map((lId) => {
+                          const label = findLabel(lId) || {};
+                          return <LabelPreview key={label._id} {...label} />;
+                        })}
+                      </span>
                     </div>
                     <div className="ml-6">
                       <AdditionalText pullRequest={pullRequest} />

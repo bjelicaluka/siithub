@@ -16,6 +16,7 @@ import {
   getCommitsDiffBetweenBranches,
   getFileHistoryCommits,
   getLatestCommit,
+  mergeCommits,
 } from "./git/commits";
 import { execCmd } from "./cmd.utils";
 
@@ -240,6 +241,18 @@ app.get("/api/commit/:username/:repository/:sha/", async (req: Request, res: Res
     return;
   }
   res.send(commit);
+});
+
+app.post("/api/commits/merge/:username/:repository", async (req: Request, res: Response) => {
+  const { username, repository } = req.params;
+  const { base, compare } = req.query as any;
+
+  const mergeResult = await mergeCommits(username, repository, base, compare);
+  if (!mergeResult) {
+    res.status(400).send({ m: "Merge conflict" });
+    return;
+  }
+  res.send(mergeResult);
 });
 
 app.listen(config.port, () => {

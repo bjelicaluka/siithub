@@ -8,6 +8,7 @@ import {
   type PullRequestConversation,
   createPullRequest,
   updatePullRequest,
+  PullRequestState,
 } from "./pullRequestActions";
 import Router from "next/router";
 import { notifications } from "../../core/hooks/useNotifications";
@@ -28,6 +29,9 @@ export const initialPullRequest: PullRequest = {
   repositoryId: "",
   events: [],
   csm: {
+    author: "",
+    isClosed: false,
+    state: PullRequestState.Opened,
     title: "",
     base: "",
     compare: "",
@@ -125,6 +129,12 @@ const pullRequestReducer = {
 
     return state;
   },
+  ["CHANGE_STATE"]: (state: PullRequest, action: ActionType) => {
+    state.csm.state = action.payload;
+    state.csm.isClosed = [PullRequestState.Merged, PullRequestState.Canceled].includes(action.payload);
+
+    return state;
+  },
 };
 
 function findComment(pullRequest: PullRequest, commentId: PullRequestComment["_id"]) {
@@ -152,7 +162,7 @@ function unassignEntityFrom(entityName: "labels" | "milestones" | "assignees") {
   };
 }
 
-export function createNewPullRequest(pullRequest: PullRequest, by: User["_id"]) {
+export function createNewPullRequest(pullRequest: PullRequest, by: User["_id"], comment: string) {
   const newPullRequest: CreatePullRequest = {
     events: [
       {
@@ -161,6 +171,11 @@ export function createNewPullRequest(pullRequest: PullRequest, by: User["_id"]) 
         title: pullRequest.csm.title,
         base: pullRequest.csm.base,
         compare: pullRequest.csm.compare,
+      },
+      {
+        by,
+        type: "CommentCreatedEvent",
+        text: comment,
       },
       ...pullRequest.events,
     ],
@@ -175,6 +190,32 @@ export function createNewPullRequest(pullRequest: PullRequest, by: User["_id"]) 
     .catch((_) => {});
 
   return {};
+}
+
+export function updateAnExistingPullRequest(pullRequest: PullRequest, by: User["_id"]) {
+  const newPullRequest: UpdatePullRequest = {
+    localId: pullRequest.localId,
+    events: [
+      {
+        by,
+        type: "PullRequestUpdatedEvent",
+        base: pullRequest.csm.base,
+        compare: pullRequest.csm.compare,
+        title: pullRequest.csm.title,
+      },
+    ],
+    repositoryId: pullRequest.repositoryId,
+  };
+
+  return (dispatch: any) =>
+    updatePullRequest(newPullRequest)
+      .then((resp) => {
+        notifications.success("You have successfully updated an existing pull request.");
+        dispatch({ type: "ADD_EVENT", payload: resp.data.events.pop() });
+      })
+      .catch((error) => {
+        notifications.error(error?.response?.data?.message);
+      });
 }
 
 export function assignLabelToPR(pullRequest: PullRequest, labelId: Label["_id"], by: User["_id"]) {
@@ -454,6 +495,62 @@ export function unresolveConversation(
         dispatch({ type: "ADD_EVENT", payload: conversationUnresolved });
       })
       .catch((_) => {});
+}
+
+export function approvePullRequest(pullRequest: PullRequest, by: User["_id"]) {
+  return changePullRequestState(
+    "PullRequestApprovedEvent",
+    PullRequestState.Approved,
+    "You have successfully approved this Pull Request."
+  )(pullRequest, by);
+}
+
+export function requireChangesForPullRequest(pullRequest: PullRequest, by: User["_id"]) {
+  return changePullRequestState(
+    "PullRequestChangesRequiredEvent",
+    PullRequestState.ChangesRequired,
+    "You have successfully requested changes for this Pull Request."
+  )(pullRequest, by);
+}
+
+export function cancelPullRequest(pullRequest: PullRequest, by: User["_id"]) {
+  return changePullRequestState(
+    "PullRequestCanceledEvent",
+    PullRequestState.Canceled,
+    "You have successfully canceled this Pull Request."
+  )(pullRequest, by);
+}
+
+export function mergePullRequest(pullRequest: PullRequest, by: User["_id"]) {
+  return changePullRequestState(
+    "PullRequestMergedEvent",
+    PullRequestState.Merged,
+    "You have successfully merged this Pull Request.",
+    "Unable to merge pull request because of conflicts."
+  )(pullRequest, by);
+}
+
+function changePullRequestState(eventType: string, newState: PullRequestState, message: string, errorMessage?: string) {
+  return (pullRequest: PullRequest, by: User["_id"]) => {
+    const newPullRequest: UpdatePullRequest = {
+      localId: pullRequest.localId,
+      events: [{ by, type: eventType }],
+      repositoryId: pullRequest.repositoryId,
+    };
+
+    return (dispatch: any) =>
+      updatePullRequest(newPullRequest)
+        .then((resp) => {
+          notifications.success(message);
+          const pullRequestCanceled = resp.data.events.pop();
+          dispatch({
+            type: "CHANGE_STATE",
+            payload: newState,
+          });
+          dispatch({ type: "ADD_EVENT", payload: pullRequestCanceled });
+        })
+        .catch((_: any) => errorMessage && notifications.error(errorMessage));
+  };
 }
 
 export function setPullRequest(pullRequest: PullRequest) {

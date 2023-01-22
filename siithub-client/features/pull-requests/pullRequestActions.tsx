@@ -17,7 +17,18 @@ type PullRequestConversation = {
   comments?: PullRequestComment[];
 };
 
+export enum PullRequestState {
+  Opened,
+  ChangesRequired,
+  Approved,
+  Canceled,
+  Merged,
+}
+
 export type PullRequestCSM = {
+  author: string;
+  isClosed: boolean;
+  state: PullRequestState;
   base: string;
   compare: string;
   title: string;
@@ -39,12 +50,26 @@ type PullRequest = {
 type CreatePullRequest = Omit<PullRequest, "_id" | "csm" | "localId">;
 type UpdatePullRequest = Omit<PullRequest, "csm" | "_id">;
 
+type PullRequestsQuery = {
+  title?: string;
+  state?: PullRequestState[];
+  author?: User["_id"];
+  assignees?: User["_id"][];
+  labels?: Label["_id"][];
+  milestones?: Milestone["_id"][];
+  sort?: any;
+};
+
 function getPullRequest(repositoryId: Repository["_id"], localId: number) {
   return axios.get(`/api/repositories/${repositoryId}/pull-requests/${localId}`);
 }
 
 function getPullRequests(repositoryId: Repository["_id"]) {
   return axios.get(`/api/repositories/${repositoryId}/pull-requests/`);
+}
+
+function searchPullRequests(query: PullRequestsQuery, repositoryId: Repository["_id"]) {
+  return axios.get(`/api/repositories/${repositoryId}/pull-requests/search`, { params: query });
 }
 
 function createPullRequest(pullRequest: CreatePullRequest) {
@@ -55,6 +80,13 @@ function updatePullRequest(pullRequest: UpdatePullRequest) {
   return axios.put(`/api/repositories/${pullRequest.repositoryId}/pull-requests/${pullRequest.localId}`, pullRequest);
 }
 
-export { getPullRequest, getPullRequests, createPullRequest, updatePullRequest };
+export { getPullRequest, getPullRequests, searchPullRequests, createPullRequest, updatePullRequest };
 
-export type { PullRequest, CreatePullRequest, UpdatePullRequest, PullRequestComment, PullRequestConversation };
+export type {
+  PullRequest,
+  CreatePullRequest,
+  UpdatePullRequest,
+  PullRequestComment,
+  PullRequestConversation,
+  PullRequestsQuery,
+};

@@ -27,6 +27,11 @@ async function getCommit(username: string, repoName: string, sha: string) {
   return (await resolveAuthors([commit]))[0];
 }
 
+async function mergeCommits(username: string, repoName: string, base: string, compare: string): Promise<any> {
+  const mergeResult = await gitServerClient.mergeCommits(username, repoName, base, compare);
+  return mergeResult;
+}
+
 async function getFileHistoryCommits(username: string, repoName: string, branch: string, filePath: string) {
   const commits: Commit[] = await gitServerClient.getFileHistoryCommits(username, repoName, branch, filePath);
   return await resolveAuthors(commits);
@@ -61,6 +66,7 @@ export type CommitService = {
   getCommitsDiffBetweenBranches(username: string, repoName: string, base: string, compare: string): Promise<Commit>;
   getCommitCount(username: string, repoName: string, branch: string): Promise<{ count: number }>;
   getCommit(username: string, repoName: string, sha: string): Promise<Commit>;
+  mergeCommits(username: string, repoName: string, base: string, compare: string): Promise<any>;
   getFileHistoryCommits(username: string, repoName: string, branch: string, filePath: string): Promise<Commit[]>;
   getFileInfo(username: string, repoName: string, branch: string, filePath: string): Promise<LastCommitAndContrib>;
 };
@@ -71,6 +77,7 @@ const commitService: CommitService = {
   getCommitsDiffBetweenBranches,
   getCommitCount,
   getCommit,
+  mergeCommits,
   getFileHistoryCommits,
   getFileInfo,
 };

@@ -1,8 +1,9 @@
 import { type FC } from "react";
 import { type Repository } from "../repository/repository.service";
 import { type User } from "../users/user.model";
-import { useUsers } from "../users/registration/useUsers";
 import Select from "react-select";
+import { useCollaborators } from "../collaborators/useCollaborators";
+import { useRepositoryContext } from "../repository/RepositoryContext";
 
 type ChooseAssignessFieldProps = {
   repositoryId: Repository["_id"];
@@ -15,7 +16,11 @@ export const ChooseAssignessField: FC<ChooseAssignessFieldProps> = ({
   selectedAssignes,
   onAssignessChange,
 }) => {
-  const { users } = useUsers(); // TODO: use collaborators
+  const { repository } = useRepositoryContext();
+  const { owner, name } = repository as Repository;
+
+  const { collaborators } = useCollaborators(owner, name, "");
+  const users = collaborators?.map((c: any) => c.user) ?? [];
 
   const assignessOptions = users?.map((u: User) => ({ value: u._id, label: u.name })) ?? [];
   const defaultValue = assignessOptions?.filter((a: any) => selectedAssignes?.includes(a.value));

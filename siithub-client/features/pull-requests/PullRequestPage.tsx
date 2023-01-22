@@ -7,6 +7,7 @@ import { AssignessForm } from "./AssignessForm";
 import { CommentForm } from "./CommentForm";
 import { usePullRequestContext } from "./PullRequestContext";
 import { PullRequestHistory } from "./PullRequestHistory";
+import { PullRequestClosingForm } from "./PullRequestClosingForm";
 
 type PullRequestPageProps = {
   repositoryId: Repository["_id"];
@@ -34,6 +35,10 @@ export const PullRequestPage: FC<PullRequestPageProps> = ({ repositoryId, pullRe
 
           <div key={pullRequest?.csm?.comments?.length ?? -1}>
             <CommentForm />
+          </div>
+
+          <div>
+            <PullRequestClosingForm />
           </div>
         </div>
 

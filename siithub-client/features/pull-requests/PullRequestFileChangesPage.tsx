@@ -1,13 +1,14 @@
-import { type FC, useEffect, useState, useMemo } from "react";
+import { type FC, useEffect, useState, Fragment } from "react";
 import { type Repository } from "../repository/repository.service";
 import { addConversation, usePullRequestContext } from "./PullRequestContext";
 import { useCommitsDiffBetweenBranches } from "../commits/useCommits";
 import { useRepositoryContext } from "../repository/RepositoryContext";
 import { getLang } from "../../core/utils/languages";
 import { CollapseIcon, CollapsedIcon, PlusIcon } from "./Icons";
-
-import "react-diff-view/style/index.css";
-import "prism-themes/themes/prism-vs.css";
+import { PullRequestReviewForm } from "./PullRequestReviewForm";
+import { type PullRequestConversation } from "./pullRequestActions";
+import { Conversation } from "./Conversation";
+import { useAuthContext } from "../../core/contexts/Auth";
 
 // @ts-ignore
 import { diffLines, formatLines } from "unidiff";
@@ -15,9 +16,9 @@ import { diffLines, formatLines } from "unidiff";
 import { parseDiff, Diff, Hunk, tokenize, getChangeKey } from "react-diff-view";
 // @ts-ignore
 import * as refractor from "refractor";
-import { type PullRequestConversation } from "./pullRequestActions";
-import { Conversation } from "./Conversation";
-import { useAuthContext } from "../../core/contexts/Auth";
+
+import "react-diff-view/style/index.css";
+import "prism-themes/themes/prism-vs.css";
 
 const EMPTY_HUNKS: any = [];
 
@@ -65,13 +66,13 @@ export const PullRequestFileChangesPage: FC<PullRequestCommitsPageProps> = ({ re
 
   useEffect(() => {
     const changes = commit?.diff?.slice(0, 10).map((change) => {
-      const diffText = formatLines(diffLines(change.old?.content ?? "", change.new?.content ?? ""), { context: 3 });
+      const diffText = formatLines(diffLines(change?.old?.content ?? "", change?.new?.content ?? ""), { context: 3 });
       const [diff] = parseDiff(diffText, { nearbySequences: "zip" });
       return { change, diff };
     });
 
     const initVisibilities = commit?.diff?.slice(0, 10).reduce((acc: any, change: any) => {
-      acc[change.old?.path || change.new?.path] = true;
+      acc[change?.old?.path || change?.new?.path] = true;
       return acc;
     }, {});
     setChanges(changes);
@@ -120,10 +121,14 @@ export const PullRequestFileChangesPage: FC<PullRequestCommitsPageProps> = ({ re
   return (
     <>
       <div>
+        <PullRequestReviewForm />
+
         {changes?.map((changeWithDiff: any, i: number) => {
           const { change, diff } = changeWithDiff;
           const { type, hunks } = diff;
-          const fileName = change.old?.path || change.new?.path;
+          const fileName = change?.old?.path || change?.new?.path;
+
+          if (!fileName) return <Fragment key={i}></Fragment>;
 
           const conversations = getConversationComponentsForFile(fileName);
           const numComments = Object.values(getConversationsForFile(fileName)).flatMap((c: any) => c.comments)?.length;
