@@ -39,6 +39,54 @@ export function useCommits(
   };
 }
 
+export function useCommitsBetweenBranches(
+  username: string,
+  repoName: string,
+  base: string,
+  compare: string,
+  dependencies: any[] = []
+) {
+  const { data, error, isLoading } = useQuery(
+    [`commits_between_${username}/${repoName}/${base}/${compare}`, ...dependencies],
+    () =>
+      axios.get(`/api/${username}/${repoName}/commits/between`, {
+        params: { base, compare },
+      }),
+    {
+      enabled: !!base && !!compare,
+    }
+  );
+  return {
+    commits: data?.data as Commit[],
+    error: (error as any)?.response?.data,
+    isLoading: isLoading,
+  };
+}
+
+export function useCommitsDiffBetweenBranches(
+  username: string,
+  repoName: string,
+  base: string,
+  compare: string,
+  dependencies: any[] = []
+) {
+  const { data, error, isLoading } = useQuery(
+    [`commits_diff_between_${username}/${repoName}/${base}/${compare}`, ...dependencies],
+    () =>
+      axios.get(`/api/${username}/${repoName}/commits/between/diff`, {
+        params: { base, compare },
+      }),
+    {
+      enabled: !!base && !!compare,
+    }
+  );
+  return {
+    commit: data?.data as CommitWithDiff,
+    error: (error as any)?.response?.data,
+    isLoading: isLoading,
+  };
+}
+
 export function useCommitCount(username: string, repoName: string, branch: string, dependencies: any[] = []) {
   const { data, error, isLoading } = useQuery(
     [`commit-count_${username}/${repoName}/${branch}`, ...dependencies],
@@ -54,7 +102,7 @@ export function useCommitCount(username: string, repoName: string, branch: strin
   };
 }
 
-type CommitWithDiff = Commit & {
+export type CommitWithDiff = Commit & {
   diff: {
     old: { path: string; content: string | undefined };
     new: { path: string; content: string | undefined };

@@ -8,9 +8,6 @@ import {
   type Issue,
   type IssueUpdate,
   handleFor,
-  type LabelAssignedEvent,
-  type UserAssignedEvent,
-  type MilestoneAssignedEvent,
   type IssueWithParticipants,
   IssueState,
 } from "./issue.model";
@@ -20,6 +17,7 @@ import { repositoryService } from "../repository/repository.service";
 import { IssuesQuery } from "./issue.query";
 import { milestoneService } from "../milestone/milestone.service";
 import { type User } from "../user/user.model";
+import type { LabelAssignedEvent, MilestoneAssignedEvent, UserAssignedEvent } from "../common/events/events.model";
 
 async function findOne(id: Issue["_id"]): Promise<Issue | null> {
   return await issueRepo.crud.findOne(id);
@@ -121,8 +119,9 @@ async function resolveParticipants(issues: Issue[]): Promise<IssueWithParticipan
   const participantsIds: User["_id"][] = [];
   for (const issue of issues) {
     for (const event of issue.events) {
-      participantsIds.push(event.by);
-      if (event.type === "UserAssignedEvent") participantsIds.push((event as UserAssignedEvent).userId);
+      participantsIds.push(new ObjectId(event.by?.toString()));
+      if (event.type === "UserAssignedEvent")
+        participantsIds.push(new ObjectId((event as UserAssignedEvent).userId?.toString()));
     }
   }
   const users = (

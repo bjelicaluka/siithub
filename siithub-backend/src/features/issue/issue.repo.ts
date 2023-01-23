@@ -1,3 +1,4 @@
+import { ObjectId } from "mongodb";
 import { type BaseRepo, BaseRepoFactory } from "../../db/base.repo.utils";
 import { type Repository } from "../repository/repository.model";
 import { type Issue } from "./issue.model";
@@ -20,14 +21,14 @@ async function searchByQuery(query: IssuesQuery, repositoryId: Repository["_id"]
     repositoryId,
     ...(title ? { "csm.title": { $regex: title, $options: "i" } } : {}),
     ...(state ? { "csm.state": { $in: state } } : {}),
-    // ...(author ? { "csm.author": author } : {}),
+    ...(author ? { "csm.author": new ObjectId(author?.toString()) } : {}),
     ...(assignees && assignees.length ? { "csm.assignees": { $all: assignees } } : {}),
     ...(labels && labels.length ? { "csm.labels": { $all: labels } } : {}),
     ...(milestones && milestones.length ? { "csm.milestones": { $all: milestones } } : {}),
   };
 
   const formatSort = (sort: any) => ({ ["csm." + Object.keys(sort)[0]]: sort[Object.keys(sort)[0]] });
-  const sortParams = sort ? formatSort(sort) : { "csm.timeStamp": 1 };
+  const sortParams = sort ? formatSort(sort) : { "csm.timeStamp": -1 };
 
   return (await issueRepo.crud.findManyCursor(searchParams)).sort(sortParams).toArray();
 }

@@ -4,7 +4,13 @@ import { type FC, ReactElement, useState } from "react";
 import { Button } from "../../core/components/Button";
 import { ProfilePicture } from "../../core/components/ProfilePicture";
 import { RepositoryCard } from "../repository/RepositoryCard";
-import { type Activity, type NewCommentActivity, type NewIssueActivity, type StaringActivity } from "./activityActions";
+import {
+  type Activity,
+  type StaringActivity,
+  type NewCommentActivity,
+  type NewIssueActivity,
+  type NewPullRequestActivity,
+} from "./activityActions";
 import { useActivities } from "./useActivities";
 
 type ActivitySharedWrapperProps = ActivityComponentProps & {
@@ -70,7 +76,7 @@ const NewIssueActivityComponent: FC<ActivityComponentProps> = ({ activity }) => 
           has created a new issue{" "}
           <Link
             className="text-blue-500 hover:underline"
-            href={`/${activity.repoOwner}/${activity.repoName}/issues/${newIssueActivity.issueId}`}
+            href={`/${activity.repoOwner}/${activity.repoName}/issues/${newIssueActivity.localId}`}
           >
             {newIssueActivity.title}
           </Link>{" "}
@@ -97,9 +103,36 @@ const NewCommentActivityComponent: FC<ActivityComponentProps> = ({ activity }) =
           has posted a new comment on the{" "}
           <Link
             className="text-blue-500 hover:underline"
-            href={`/${activity.repoOwner}/${activity.repoName}/issues/${newCommentActivity.issueId}`}
+            href={`/${activity.repoOwner}/${activity.repoName}/issues/${newCommentActivity.localId}`}
           >
             {newCommentActivity.title}
+          </Link>{" "}
+          inside{" "}
+          <Link className="text-blue-500 hover:underline" href={`/${activity.repoOwner}/${activity.repoName}`}>
+            {activity.repoOwner}/{activity.repoName}
+          </Link>
+        </div>
+      </ActivitySharedWrapper>
+    </>
+  );
+};
+
+const NewPullRequestActivityComponent: FC<ActivityComponentProps> = ({ activity }) => {
+  const newPullRequestActivity = activity as NewPullRequestActivity;
+
+  return (
+    <>
+      <ActivitySharedWrapper activity={newPullRequestActivity}>
+        <div>
+          <Link className="text-blue-500 hover:underline" href={`/users/${activity.username}`}>
+            {activity.username}
+          </Link>{" "}
+          has created a new pull request{" "}
+          <Link
+            className="text-blue-500 hover:underline"
+            href={`/${activity.repoOwner}/${activity.repoName}/pull-requests/${newPullRequestActivity.localId}`}
+          >
+            {newPullRequestActivity.title}
           </Link>{" "}
           inside{" "}
           <Link className="text-blue-500 hover:underline" href={`/${activity.repoOwner}/${activity.repoName}`}>
@@ -115,6 +148,7 @@ const ActivityComponents: any = {
   StaringActivity: StarredActivityComponent,
   NewIssueActivity: NewIssueActivityComponent,
   NewCommentActivity: NewCommentActivityComponent,
+  NewPullRequestActivity: NewPullRequestActivityComponent,
 };
 
 type ActivityComponentProps = { activity: Activity };

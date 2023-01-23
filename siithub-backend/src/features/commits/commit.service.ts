@@ -8,6 +8,16 @@ async function getCommits(username: string, repoName: string, branch: string) {
   return await resolveAuthors(commits);
 }
 
+async function getCommitsBetweenBranches(username: string, repoName: string, base: string, compare: string) {
+  const commits: Commit[] = await gitServerClient.getCommitsBetweenBranches(username, repoName, base, compare);
+  return await resolveAuthors(commits);
+}
+
+async function getCommitsDiffBetweenBranches(username: string, repoName: string, base: string, compare: string) {
+  const commit: Commit = await gitServerClient.getCommitsDiffBetweenBranches(username, repoName, base, compare);
+  return (await resolveAuthors([commit]))[0];
+}
+
 async function getCommitCount(username: string, repoName: string, branch: string) {
   return await gitServerClient.getCommitCount(username, repoName, branch);
 }
@@ -15,6 +25,11 @@ async function getCommitCount(username: string, repoName: string, branch: string
 async function getCommit(username: string, repoName: string, sha: string) {
   const commit: Commit = await gitServerClient.getCommit(username, repoName, sha);
   return (await resolveAuthors([commit]))[0];
+}
+
+async function mergeCommits(username: string, repoName: string, base: string, compare: string): Promise<any> {
+  const mergeResult = await gitServerClient.mergeCommits(username, repoName, base, compare);
+  return mergeResult;
 }
 
 async function getFileHistoryCommits(username: string, repoName: string, branch: string, filePath: string) {
@@ -32,7 +47,7 @@ async function getFileInfo(username: string, repoName: string, branch: string, f
 
 async function resolveAuthors(commits: Commit[]): Promise<Commit[]> {
   const contributorsEmails = commits
-    .map((c) => c.author.email)
+    .map((c) => c.author?.email)
     .filter((value, index, array) => array.indexOf(value) === index);
   const users: { [email: string]: User } = (await userService.findManyByEmails(contributorsEmails)).reduce(
     (acc: any, user: User) => {
@@ -41,22 +56,28 @@ async function resolveAuthors(commits: Commit[]): Promise<Commit[]> {
     },
     {}
   );
-  commits.forEach((commit) => (commit.author = users[commit.author.email] ?? commit.author));
+  commits.forEach((commit) => (commit.author = users[commit.author?.email] ?? commit.author));
   return commits;
 }
 
 export type CommitService = {
   getCommits(username: string, repoName: string, branch: string): Promise<Commit[]>;
+  getCommitsBetweenBranches(username: string, repoName: string, base: string, compare: string): Promise<Commit[]>;
+  getCommitsDiffBetweenBranches(username: string, repoName: string, base: string, compare: string): Promise<Commit>;
   getCommitCount(username: string, repoName: string, branch: string): Promise<{ count: number }>;
   getCommit(username: string, repoName: string, sha: string): Promise<Commit>;
+  mergeCommits(username: string, repoName: string, base: string, compare: string): Promise<any>;
   getFileHistoryCommits(username: string, repoName: string, branch: string, filePath: string): Promise<Commit[]>;
   getFileInfo(username: string, repoName: string, branch: string, filePath: string): Promise<LastCommitAndContrib>;
 };
 
 const commitService: CommitService = {
   getCommits,
+  getCommitsBetweenBranches,
+  getCommitsDiffBetweenBranches,
   getCommitCount,
   getCommit,
+  mergeCommits,
   getFileHistoryCommits,
   getFileInfo,
 };

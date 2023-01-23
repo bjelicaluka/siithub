@@ -6,9 +6,9 @@ import { LabelPreview } from "../labels/LabelPreview";
 import { useLabels } from "../labels/useLabels";
 import { ClosedIcon, OpenedIcon } from "./Icons";
 import { type Issue, IssueState } from "./issueActions";
-import { findLastEvent } from "./utils";
 import { type Repository } from "../repository/repository.service";
 import { useRepositoryContext } from "../repository/RepositoryContext";
+import { findLastEvent } from "../common/utils";
 
 type IssuesTableType = {
   repositoryId: Repository["_id"];

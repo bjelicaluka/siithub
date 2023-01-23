@@ -8,7 +8,16 @@ import { getBlob } from "./git/blob.utils";
 import { addKey, removeKey } from "./key.utils";
 import { addUserToGroup, deleteUserFromGroup } from "./git/group.utils";
 import { createBranch, getBranches, removeBranch, renameBranch } from "./git/branches.utils";
-import { getCommit, getCommitCount, getCommits, getFileHistoryCommits, getLatestCommit } from "./git/commits";
+import {
+  getCommit,
+  getCommitCount,
+  getCommits,
+  getCommitsBetweenBranches,
+  getCommitsDiffBetweenBranches,
+  getFileHistoryCommits,
+  getLatestCommit,
+  mergeCommits,
+} from "./git/commits";
 import { execCmd } from "./cmd.utils";
 
 const app: Express = express();
@@ -163,6 +172,40 @@ app.delete("/api/branches/:username/:repository/:branchName", async (req: Reques
   res.send(deletedBranch);
 });
 
+app.get("/api/commits/:username/:repository/between", async (req: Request, res: Response) => {
+  const { username, repository } = req.params;
+  const { base, compare } = req.query;
+
+  const commits = await getCommitsBetweenBranches(
+    username,
+    repository,
+    base?.toString() ?? "",
+    compare?.toString() ?? ""
+  );
+  if (!commits) {
+    res.status(404).send({ m: "commits not found" });
+    return;
+  }
+  res.send(commits);
+});
+
+app.get("/api/commits/:username/:repository/diff/between", async (req: Request, res: Response) => {
+  const { username, repository } = req.params;
+  const { base, compare } = req.query;
+
+  const commits = await getCommitsDiffBetweenBranches(
+    username,
+    repository,
+    base?.toString() ?? "",
+    compare?.toString() ?? ""
+  );
+  if (!commits) {
+    res.status(404).send({ m: "commits not found" });
+    return;
+  }
+  res.send(commits);
+});
+
 app.get("/api/commits/:username/:repository/:branch/", async (req: Request, res: Response) => {
   const commits = await getCommits(req.params.username, req.params.repository, req.params.branch);
   if (!commits) {
@@ -198,6 +241,18 @@ app.get("/api/commit/:username/:repository/:sha/", async (req: Request, res: Res
     return;
   }
   res.send(commit);
+});
+
+app.post("/api/commits/merge/:username/:repository", async (req: Request, res: Response) => {
+  const { username, repository } = req.params;
+  const { base, compare } = req.query as any;
+
+  const mergeResult = await mergeCommits(username, repository, base, compare);
+  if (!mergeResult) {
+    res.status(400).send({ m: "Merge conflict" });
+    return;
+  }
+  res.send(mergeResult);
 });
 
 app.listen(config.port, () => {

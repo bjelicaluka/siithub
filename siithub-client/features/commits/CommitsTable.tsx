@@ -2,21 +2,49 @@ import moment from "moment";
 import { Fragment, type FC } from "react";
 import NotFound from "../../core/components/NotFound";
 import { Spinner } from "../../core/components/Spinner";
-import { useCommits } from "./useCommits";
+import { type Commit, useCommits } from "./useCommits";
 import { BranchesMenu } from "../branches/BranchesMenu";
 import { FilePath } from "../file/FilePath";
 import { CommitCard } from "./CommitCard";
 
-type DirectoryTableProps = {
+type CommitsHistoryProps = {
+  username: string;
+  repoName: string;
+  commits: Commit[];
+};
+
+export const CommitsHistory: FC<CommitsHistoryProps> = ({ username, repoName, commits }) => {
+  let currentDate = "";
+
+  return (
+    <>
+      {commits?.map((commit) => {
+        const date = moment(commit.date).format("MMM D, YYYY");
+
+        const isNewDate = date !== currentDate;
+        if (isNewDate) currentDate = date;
+        return (
+          <Fragment key={commit.sha}>
+            {isNewDate && (
+              <div className="p-3 font-semibold">{`Commits on ${moment(commit.date).format("MMM D, YYYY")}`}</div>
+            )}
+            <CommitCard commit={commit} username={username} repoName={repoName} />
+          </Fragment>
+        );
+      })}
+    </>
+  );
+};
+
+type CommitsTableProps = {
   username: string;
   repoName: string;
   branch: string;
   filePath?: string;
 };
 
-export const CommitsTable: FC<DirectoryTableProps> = ({ username, repoName, branch, filePath }) => {
+export const CommitsTable: FC<CommitsTableProps> = ({ username, repoName, branch, filePath }) => {
   const { commits, error, isLoading } = useCommits(username, repoName, branch, filePath ?? "");
-  let currentDate = "";
 
   if (error) return <NotFound />;
 
@@ -41,19 +69,7 @@ export const CommitsTable: FC<DirectoryTableProps> = ({ username, repoName, bran
               </div>
             </div>
           ) : (
-            commits?.map((commit) => {
-              const date = commit.date.substring(0, 10);
-              const isNewDate = date !== currentDate;
-              if (isNewDate) currentDate = date;
-              return (
-                <Fragment key={commit.sha}>
-                  {isNewDate && (
-                    <div className="p-3 font-semibold">{`Commits on ${moment(commit.date).format("MMM D, YYYY")}`}</div>
-                  )}
-                  <CommitCard commit={commit} username={username} repoName={repoName} />
-                </Fragment>
-              );
-            })
+            <CommitsHistory username={username} repoName={repoName} commits={commits} />
           )}
         </div>
       </div>

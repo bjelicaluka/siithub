@@ -8,7 +8,7 @@ import {
   updateIssue,
   CommentState,
 } from "./issueActions";
-import { useReducerWithThunk } from "../../core/hooks/useReducerWithThunk";
+import { useReducerWithThunk } from "../../core/hooks/useReducerCustom";
 import Router from "next/router";
 import { notifications } from "../../core/hooks/useNotifications";
 import { type User } from "../users/user.model";

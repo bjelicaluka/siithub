@@ -2,11 +2,11 @@ import { InputField } from "../../core/components/InputField";
 import { IssueState, type IssuesQuery } from "./issueActions";
 import Select from "react-select";
 import { type FC, useState } from "react";
-import { useLabels } from "../labels/useLabels";
 import { type Label } from "../labels/labelActions";
-import { useUsers } from "../users/registration/useUsers";
 import { type Repository } from "../repository/repository.service";
 import { type Milestone } from "../milestones/milestoneActions";
+import { useLabels } from "../labels/useLabels";
+import { useUsers } from "../users/registration/useUsers";
 import { useMilestonesByRepoId } from "../milestones/useMilestones";
 
 const avaiableStates = [
@@ -16,10 +16,10 @@ const avaiableStates = [
 ];
 
 const sortOptions = [
-  { value: { timeStamp: 1 }, label: "Oldest" },
   { value: { timeStamp: -1 }, label: "Newest" },
-  { value: { timeStamp: 1 }, label: "Least recently updated" },
+  { value: { timeStamp: 1 }, label: "Oldest" },
   { value: { lastModified: -1 }, label: "Recently updated" },
+  { value: { lastModified: 1 }, label: "Least recently updated" },
 ];
 
 type IssuesSearchFormProps = {
@@ -37,7 +37,7 @@ export const IssuesSearchForm: FC<IssuesSearchFormProps> = ({ repositoryId, exis
   const { milestones } = useMilestonesByRepoId(repositoryId);
   const milestoneOptions = milestones?.map((m: Milestone) => ({ value: m._id, label: m.title }));
 
-  const { users } = useUsers(); // TODO: use collaborators
+  const { users } = useUsers();
   const userOptions = [
     { value: "", label: "Any" },
     ...(users?.map((u: any) => ({ value: u._id, label: u.name })) ?? []),

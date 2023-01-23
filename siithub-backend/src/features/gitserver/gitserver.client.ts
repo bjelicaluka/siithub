@@ -66,6 +66,28 @@ async function getCommits(username: string, repoName: string, branch: string) {
   }
 }
 
+async function getCommitsBetweenBranches(username: string, repoName: string, base: string, compare: string) {
+  try {
+    const response = await axios.get(`${config.gitServer.url}/api/commits/${username}/${repoName}/between`, {
+      params: { base, compare },
+    });
+    return response.data;
+  } catch (err) {
+    throw new MissingEntityException("Commits not found");
+  }
+}
+
+async function getCommitsDiffBetweenBranches(username: string, repoName: string, base: string, compare: string) {
+  try {
+    const response = await axios.get(`${config.gitServer.url}/api/commits/${username}/${repoName}/diff/between`, {
+      params: { base, compare },
+    });
+    return response.data;
+  } catch (err) {
+    throw new MissingEntityException("Commits not found");
+  }
+}
+
 async function getCommitCount(username: string, repoName: string, branch: string) {
   try {
     const response = await axios.get(
@@ -85,6 +107,21 @@ async function getCommit(username: string, repoName: string, sha: string) {
     return response.data;
   } catch (err) {
     throw new MissingEntityException("Commit not found");
+  }
+}
+
+async function mergeCommits(username: string, repoName: string, base: string, compare: string) {
+  try {
+    const response = await axios.post(
+      `${config.gitServer.url}/api/commits/merge/${username}/${repoName}`,
+      {},
+      {
+        params: { base, compare },
+      }
+    );
+    return response.data;
+  } catch (err) {
+    return null;
   }
 }
 
@@ -141,8 +178,11 @@ export type GitServerClient = GitServerBranchesClient & {
   removeSshKey(username: string, key: string): Promise<any>;
   getTree(username: string, repoName: string, branch: string, treePath: string): Promise<any>;
   getCommits(username: string, repoName: string, branch: string): Promise<any>;
+  getCommitsBetweenBranches(username: string, repoName: string, base: string, compare: string): Promise<any>;
+  getCommitsDiffBetweenBranches(username: string, repoName: string, base: string, compare: string): Promise<any>;
   getCommitCount(username: string, repoName: string, branch: string): Promise<any>;
   getCommit(username: string, repoName: string, sha: string): Promise<any>;
+  mergeCommits(username: string, repoName: string, base: string, compare: string): Promise<any>;
   getFileHistoryCommits(username: string, repoName: string, branch: string, filePath: string): Promise<any>;
   getBlob(
     username: string,
@@ -164,8 +204,11 @@ const gitServerClient: GitServerCollaboratorsClient & GitServerClient = {
   getBlob,
   getBlobInfo,
   getCommits,
+  getCommitsBetweenBranches,
+  getCommitsDiffBetweenBranches,
   getCommitCount,
   getCommit,
+  mergeCommits,
   getFileHistoryCommits,
   ...gitServerCollaboratorsClient,
   ...gitServerBranchesClient,

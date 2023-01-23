@@ -9,6 +9,8 @@ import { CommentPreview } from "./CommentPreview";
 import { type Comment } from "./issueActions";
 import { ProfilePicture } from "../../core/components/ProfilePicture";
 import { useMilestonesByRepoId } from "../milestones/useMilestones";
+import { useAuthContext } from "../../core/contexts/Auth";
+import { type User } from "../users/user.model";
 
 const eventTypesToExclude = ["UserReactedEvent", "UserUnreactedEvent"];
 
@@ -16,6 +18,13 @@ export const IssueHistory: FC = () => {
   const { issue } = useIssueContext();
   const { labels } = useLabels(issue.repositoryId);
   const { milestones } = useMilestonesByRepoId(issue.repositoryId);
+
+  const { user } = useAuthContext();
+
+  const participants = {
+    ...(issue.participants || {}),
+    [user?._id ?? ""]: user as any as User,
+  };
 
   const IssuesWrapper = ({ events }: any) => {
     return (
@@ -64,9 +73,9 @@ export const IssueHistory: FC = () => {
       }
 
       case "UserAssignedEvent":
-        return <>assigned {issue.participants?.[event.userId].name}</>;
+        return <>assigned {participants?.[event.userId]?.name}</>;
       case "UserUnassignedEvent":
-        return <>removed {issue.participants?.[event.userId].name}</>;
+        return <>removed {participants?.[event.userId]?.name}</>;
 
       case "IssueReopenedEvent":
         return <>reopened this issue</>;
@@ -84,19 +93,19 @@ export const IssueHistory: FC = () => {
         const commentById = issue.events?.find(
           (e) => e.commentId === event.commentId && e.type === "CommentCreatedEvent"
         ).by;
-        return <> edited comment from {issue.participants?.[commentById].name}</>;
+        return <> edited comment from {participants[commentById].name}</>;
       }
       case "CommentHiddenEvent": {
         const commentById = issue.events?.find(
           (e) => e.commentId === event.commentId && e.type === "CommentCreatedEvent"
         ).by;
-        return <> hid comment from {issue.participants?.[commentById].name}</>;
+        return <> hid comment from {participants[commentById].name}</>;
       }
       case "CommentDeletedEvent": {
         const commentById = issue.events?.find(
           (e) => e.commentId === event.commentId && e.type === "CommentCreatedEvent"
         ).by;
-        return <> deleted comment from {issue.participants?.[commentById].name}</>;
+        return <> deleted comment from {participants[commentById].name}</>;
       }
 
       default:
@@ -105,14 +114,14 @@ export const IssueHistory: FC = () => {
   };
 
   const DoneBy = ({ event }: any) => {
-    return <>{issue.participants?.[event.by].username}</>;
+    return <>{participants?.[event.by].username}</>;
   };
 
   const IssueComponent = ({ event }: any) => {
     return (
       <li className="mb-10 ml-6">
         <span className="flex absolute -left-3 justify-center items-center w-6 h-6 bg-blue-200 rounded-full ring-8 ring-white">
-          <ProfilePicture username={issue.participants?.[event.by].username ?? ""} size={40} />
+          <ProfilePicture username={participants?.[event.by].username ?? ""} size={40} />
         </span>
         <div className="p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
           <div className="grid grid-cols-12">
