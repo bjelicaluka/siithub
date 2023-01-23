@@ -7,7 +7,6 @@ import { HideResolvedIcon, ShowResolvedIcon } from "./Icons";
 import { resolveConversation, unresolveConversation, usePullRequestContext } from "./PullRequestContext";
 import { findLastEvent } from "../common/utils";
 import moment from "moment";
-import { useUsers } from "../users/registration/useUsers";
 import { type User } from "../users/user.model";
 import { useAuthContext } from "../../core/contexts/Auth";
 import { Button } from "../../core/components/Button";
@@ -20,14 +19,19 @@ type CommentCardProps = {
 
 const CommentCard: FC<CommentCardProps> = ({ comment }) => {
   const { pullRequest } = usePullRequestContext();
-  const { users } = useUsers(["CommentCard"], true);
+
+  const { user: loggedUser } = useAuthContext();
+  const participants = {
+    ...pullRequest.participants,
+    [loggedUser?._id ?? ""]: loggedUser as any as User,
+  };
 
   const commentCreated = useMemo(
     () => findLastEvent(pullRequest.events, (e: any) => e.type === "CommentCreatedEvent" && e.commentId == comment._id),
     [comment, pullRequest]
   );
 
-  const user = useMemo(() => users?.find((u: User) => u._id === commentCreated?.by), [users, commentCreated]);
+  const user = participants[commentCreated?.by];
 
   return (
     <div className="p-4">
@@ -135,7 +139,10 @@ const ConversationResolvation: FC<ConversationProps> = ({ conversation }) => {
   const { user: loggedUser } = useAuthContext();
   const { pullRequest, pullRequestDispatcher } = usePullRequestContext();
 
-  const { users } = useUsers(["ConversationResolvation"], true);
+  const participants = {
+    ...pullRequest.participants,
+    [loggedUser?._id ?? ""]: loggedUser as any as User,
+  };
 
   const lastConversationEvent = useMemo(
     () =>
@@ -146,10 +153,7 @@ const ConversationResolvation: FC<ConversationProps> = ({ conversation }) => {
     [conversation, pullRequest]
   );
 
-  const user = useMemo(
-    () => users?.find((u: User) => u._id === lastConversationEvent?.by),
-    [users, lastConversationEvent]
-  );
+  const user = participants[lastConversationEvent?.by];
 
   const resolve = () => {
     pullRequestDispatcher(resolveConversation(pullRequest, loggedUser?._id ?? "", conversation._id));

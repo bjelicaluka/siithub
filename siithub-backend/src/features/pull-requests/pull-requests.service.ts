@@ -6,6 +6,7 @@ import {
   type PullRequestUpdate,
   type PullRequestCreatedEvent,
   type PullRequestUpdatedEvent,
+  type PullRequestWithParticipants,
   PullRequestState,
 } from "./pull-requests.model";
 import type { BaseEvent } from "../../db/base.repo.utils";
@@ -18,6 +19,7 @@ import { labelService } from "../label/label.service";
 import { milestoneService } from "../milestone/milestone.service";
 import { userService } from "../user/user.service";
 import { type PullRequestsQuery } from "./pull-requests.query";
+import { type User } from "../user/user.model";
 import { commitService } from "../commits/commit.service";
 
 async function findOne(id: PullRequest["_id"]): Promise<PullRequest | null> {
@@ -154,6 +156,34 @@ async function validateEventFor(pullRequest: PullRequest, event: BaseEvent): Pro
   }
 }
 
+async function resolveParticipants(pullRequests: PullRequest[]): Promise<PullRequestWithParticipants[]> {
+  const getPRParticipants = (pullRequest: PullRequest) => {
+    return pullRequest.events.flatMap((e: any) => {
+      if (e.type !== "UserAssignedEvent") {
+        return [new ObjectId(e?.by?.toString())];
+      }
+      return [new ObjectId(e?.by?.toString()), new ObjectId(e?.userId?.toString())];
+    });
+  };
+
+  const participantsPerPr = pullRequests.map(getPRParticipants);
+  const participantsForAllPrs = participantsPerPr.flatMap((p) => p);
+
+  const users = (await userService.findManyByIds(participantsForAllPrs)).reduce((acc: any, user: User) => {
+    acc[user?._id?.toString()] = user;
+    return acc;
+  }, {});
+
+  return pullRequests.map((pullRequest, i) => {
+    const participants = participantsPerPr[i].reduce((acc: any, p) => {
+      acc[p?.toString()] = users[p?.toString()];
+      return acc;
+    }, {});
+
+    return { ...pullRequest, participants };
+  });
+}
+
 export type PullRequestService = {
   findOne(id: PullRequest["_id"]): Promise<PullRequest | null>;
   findOneOrThrow(id: PullRequest["_id"]): Promise<PullRequest>;
@@ -164,6 +194,7 @@ export type PullRequestService = {
   create(pullRequest: PullRequestCreate): Promise<PullRequest | null>;
   update(pullRequest: PullRequestUpdate): Promise<PullRequest | null>;
   validateEventFor(pullRequest: PullRequest, event: BaseEvent): Promise<void>;
+  resolveParticipants(pullRequests: PullRequest[]): Promise<PullRequestWithParticipants[]>;
 };
 
 const pullRequestService: PullRequestService = {
@@ -176,6 +207,7 @@ const pullRequestService: PullRequestService = {
   create: createPullRequest,
   update: updatePullRequest,
   validateEventFor,
+  resolveParticipants,
 };
 
 export { pullRequestService, validateEventFor };

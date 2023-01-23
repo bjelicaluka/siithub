@@ -8,6 +8,7 @@ import {
 } from "../../../../../features/pull-requests/PullRequestContext";
 import { usePullRequest } from "../../../../../features/pull-requests/usePullRequests";
 import { useRepositoryContext } from "../../../../../features/repository/RepositoryContext";
+import { PullRequestHeader } from "../../../../../features/pull-requests/PullRequestHeader";
 
 const links: MenuItem[] = [
   {
@@ -63,6 +64,10 @@ export const PullRequestsEditLayout: FC<PropsWithChildren> = ({ children }) => {
     <>
       <PullRequestContextProvider>
         <PullRequestFetcher>
+          <div className="mb-3">
+            <PullRequestHeader />
+          </div>
+
           <HorizontalMenu links={links} onItemClick={changePath} />
           <div className="mt-10">{children}</div>
         </PullRequestFetcher>

@@ -43,7 +43,7 @@ export const PullRequestsSearchForm: FC<PullRequestsSearchFormProps> = ({
 }) => {
   const [params, setParams] = useState<PullRequestsQuery>(existingParams);
 
-  const { users } = useUsers(["PullRequestsSearchForm"], true); // TODO: use collaborators
+  const { users } = useUsers(["PullRequestsSearchForm"], true);
   const userOptions = [
     { value: "", label: "Any" },
     ...(users?.map((u: any) => ({ value: u._id, label: u.name })) ?? []),

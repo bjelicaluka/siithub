@@ -70,6 +70,10 @@ export type PullRequest = AggregateRoot<PullRequestCSM> & {
   repositoryId: Repository["_id"];
 };
 
+export type PullRequestWithParticipants = PullRequest & {
+  participants: { [uid: string]: any };
+};
+
 export type PullRequestCreate = Omit<PullRequest, "_id" | "cms" | "localId">;
 export type PullRequestUpdate = Omit<PullRequest, "cms">;
 

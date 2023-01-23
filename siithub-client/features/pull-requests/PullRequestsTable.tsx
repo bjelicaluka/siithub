@@ -3,13 +3,12 @@ import { type Repository } from "../repository/repository.service";
 import { PullRequestState, type PullRequest } from "./pullRequestActions";
 import { useRepositoryContext } from "../repository/RepositoryContext";
 import { useRouter } from "next/router";
-import { PrClosedIcon, PrMergedIcon, PrOpenIcon } from "./Icons";
 import { useLabels } from "../labels/useLabels";
 import { type Label } from "../labels/labelActions";
 import { LabelPreview } from "../labels/LabelPreview";
 import { findLastEvent } from "../common/utils";
-import { useUser } from "../users/profile/useUser";
 import moment from "moment";
+import { PRIcon } from "./PRIcon";
 
 type PullRequestsTableProps = {
   repositoryId: Repository["_id"];
@@ -18,36 +17,29 @@ type PullRequestsTableProps = {
 
 const AdditionalText = ({ pullRequest }: { pullRequest: PullRequest }) => {
   const prCreated = findLastEvent(pullRequest.events, (e: any) => e.type === "PullRequestCreatedEvent");
-  const { user: prCreator } = useUser(prCreated?.by);
 
   const prClosed = findLastEvent(pullRequest.events, (e: any) =>
     ["PullRequestCanceledEvent", "PullRequestMergedEvent"].includes(e.type)
   );
-  const { user: prCloser } = useUser(prClosed?.by);
+
+  const participants = pullRequest.participants;
 
   if (!pullRequest.csm.isClosed) {
     return (
       <>
-        #{pullRequest.localId} opened {moment(prCreated?.timeStamp).fromNow()} by {prCreator?.username}
+        #{pullRequest.localId} opened {moment(prCreated?.timeStamp).fromNow()} by{" "}
+        {participants[prCreated?.by]?.username}
       </>
     );
   }
 
   return (
     <>
-      #{pullRequest.localId} by {prCloser?.username} was{" "}
+      #{pullRequest.localId} by {participants[prClosed?.by]?.username} was{" "}
       {pullRequest.csm.state === PullRequestState.Merged ? "merged" : "canceled"}{" "}
       {moment(prCreated?.timeStamp).fromNow()}
     </>
   );
-};
-
-const Icon = ({ pullRequest }: { pullRequest: PullRequest }) => {
-  if (!pullRequest.csm.isClosed) {
-    return <PrOpenIcon />;
-  }
-
-  return pullRequest.csm.state === PullRequestState.Merged ? <PrMergedIcon /> : <PrClosedIcon />;
 };
 
 export const PullRequestsTable: FC<PullRequestsTableProps> = ({ repositoryId, pullRequests }) => {
@@ -71,7 +63,7 @@ export const PullRequestsTable: FC<PullRequestsTableProps> = ({ repositoryId, pu
                   <div className="cursor-pointer" onClick={() => navigateToPullRequestEdit(pullRequest.localId)}>
                     <div className="flex">
                       <span className="mr-2 mt-2">
-                        <Icon pullRequest={pullRequest} />
+                        <PRIcon pullRequest={pullRequest} />
                       </span>
                       <span className="text-xl mr-2">{pullRequest.csm.title}</span>
                       <span>

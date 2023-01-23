@@ -23,7 +23,7 @@ import { useRouter } from "next/router";
 
 const definePullRequestSchema = z.object({
   title: z.string().min(3, "Title should have at least 3 characters."),
-  comment: z.string(),
+  comment: z.string().optional(),
   base: z.string().min(1),
   compare: z.string().min(1),
 });

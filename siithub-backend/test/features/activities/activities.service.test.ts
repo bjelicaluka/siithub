@@ -13,6 +13,8 @@ import { type Star } from "../../../src/features/star/star.model";
 import { type Issue } from "../../../src/features/issue/issue.model";
 import { type Activity } from "../../../src/features/activities/activities.models";
 import { ObjectId } from "mongodb";
+import { type PullRequest } from "../../../src/features/pull-requests/pull-requests.model";
+import { type PullRequestsRepo } from "../../../src/features/pull-requests/pull-requests.repo";
 
 describe("ActivitiesService", () => {
   setupTestEnv("ActivitiesService");
@@ -24,12 +26,14 @@ describe("ActivitiesService", () => {
   let collaboratorsRepository: CollaboratorsRepo;
   let starRepository: StarRepo;
   let issueRepository: IssueRepo;
+  let pullRequestRepository: PullRequestsRepo;
 
   let repositories: Repository[];
   let users: User[];
   let collaborators: Collaborator[];
   let stars: Star[];
   let issues: Issue[];
+  let pullRequests: PullRequest[];
 
   beforeEach(async () => {
     const { activitiesService } = await import("../../../src/features/activities/activities.service");
@@ -38,6 +42,7 @@ describe("ActivitiesService", () => {
     const { collaboratorsRepo } = await import("../../../src/features/collaborators/collaborators.repo");
     const { starRepo } = await import("../../../src/features/star/star.repo");
     const { issueRepo } = await import("../../../src/features/issue/issue.repo");
+    const { pullRequestsRepo } = await import("../../../src/features/pull-requests/pull-requests.repo");
 
     service = activitiesService;
     userRepository = userRepo;
@@ -45,6 +50,7 @@ describe("ActivitiesService", () => {
     collaboratorsRepository = collaboratorsRepo;
     starRepository = starRepo;
     issueRepository = issueRepo;
+    pullRequestRepository = pullRequestsRepo;
 
     await setupUsers();
     await setupRepositories();
@@ -449,6 +455,115 @@ describe("ActivitiesService", () => {
       expect(newCommentActivity).toHaveProperty("repoOwner", users[0].username);
       expect(newCommentActivity).toHaveProperty("repoName", repositories[0].name);
       expect(newCommentActivity).toHaveProperty("repoDescription", repositories[0].description);
+    });
+  });
+
+  describe("getNewPullRequestsActivities", () => {
+    beforeEach(async () => {
+      const currentDate = new Date();
+      const yesterday = new Date();
+      yesterday.setDate(currentDate.getDate() - 1);
+
+      pullRequests = [
+        (await pullRequestRepository.crud.add({
+          repositoryId: repositories[0]._id,
+          events: [
+            {
+              type: "PullRequestCreatedEvent",
+              by: users[0]._id,
+              timeStamp: currentDate,
+              title: "PullRequest1",
+            },
+          ],
+          csm: {
+            title: "PullRequest1",
+          },
+        } as any)) as PullRequest,
+
+        (await pullRequestRepository.crud.add({
+          repositoryId: repositories[0]._id,
+          events: [
+            {
+              type: "PullRequestCreatedEvent",
+              by: users[1]._id,
+              timeStamp: currentDate,
+              title: "PullRequest2",
+            },
+          ],
+          csm: {
+            title: "PullRequest2",
+          },
+        } as any)) as PullRequest,
+
+        (await pullRequestRepository.crud.add({
+          repositoryId: repositories[1]._id,
+          events: [
+            {
+              type: "PullRequestCreatedEvent",
+              by: users[1]._id,
+              timeStamp: yesterday,
+              title: "PullRequest3",
+            },
+          ],
+          csm: {
+            title: "PullRequest3",
+          },
+        } as any)) as PullRequest,
+      ];
+    });
+
+    it("shouldn't find any new pull request", async () => {
+      const userId = users[2]._id;
+      const relevantRepos = await service.getRelevantRepos(userId);
+
+      const newPullRequestActivities = await service.getNewPullRequestActivities(relevantRepos, userId);
+
+      expect(newPullRequestActivities.length).toBeFalsy();
+    });
+
+    it("return new pull request for all users expect himself", async () => {
+      const userId = users[0]._id;
+      const relevantRepos = await service.getRelevantRepos(userId);
+
+      const newPullRequestActivities = await service.getNewPullRequestActivities(relevantRepos, userId);
+
+      expect(newPullRequestActivities.length).toBe(2);
+      expect(newPullRequestActivities[0]).toHaveProperty("repoId", pullRequests[1].repositoryId);
+      expect(newPullRequestActivities[0]).toHaveProperty("userId", pullRequests[1].events[0].by);
+      expect(newPullRequestActivities[0]).toHaveProperty("pullRequestId", pullRequests[1]._id);
+      expect(newPullRequestActivities[0]).toHaveProperty("title", pullRequests[1].csm.title);
+      expect(newPullRequestActivities[1]).toHaveProperty("repoId", pullRequests[2].repositoryId);
+      expect(newPullRequestActivities[1]).toHaveProperty("userId", pullRequests[2].events[0].by);
+      expect(newPullRequestActivities[1]).toHaveProperty("pullRequestId", pullRequests[2]._id);
+      expect(newPullRequestActivities[1]).toHaveProperty("title", pullRequests[2].csm.title);
+    });
+
+    it("return new pull requests according to the up till date", async () => {
+      const userId = users[0]._id;
+      const relevantRepos = await service.getRelevantRepos(userId);
+      const upTill = new Date();
+      upTill.setDate(upTill.getDate() - 1);
+
+      const newPullRequestActivities = await service.getNewPullRequestActivities(relevantRepos, userId, upTill);
+
+      expect(newPullRequestActivities.length).toBe(1);
+      expect(newPullRequestActivities[0]).toHaveProperty("repoId", pullRequests[1].repositoryId);
+      expect(newPullRequestActivities[0]).toHaveProperty("userId", pullRequests[1].events[0].by);
+      expect(newPullRequestActivities[0]).toHaveProperty("pullRequestId", pullRequests[1]._id);
+      expect(newPullRequestActivities[0]).toHaveProperty("title", pullRequests[1].csm.title);
+    });
+
+    it("return new pull request connected to the repo", async () => {
+      const userId = users[0]._id;
+      const relevantRepos = await service.getRelevantRepos(userId);
+
+      const newPullRequestActivities = await service.getNewPullRequestActivities(relevantRepos, userId);
+      const newPullRequestActiviy = newPullRequestActivities[0];
+
+      expect(newPullRequestActiviy).toHaveProperty("userId", users[1]._id);
+      expect(newPullRequestActiviy).toHaveProperty("repoOwner", users[0].username);
+      expect(newPullRequestActiviy).toHaveProperty("repoName", repositories[0].name);
+      expect(newPullRequestActiviy).toHaveProperty("repoDescription", repositories[0].description);
     });
   });
 });

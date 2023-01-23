@@ -6,7 +6,6 @@ import { type Repository } from "../repository/repository.service";
 import moment from "moment";
 import { type PullRequestComment, type PullRequestConversation } from "./pullRequestActions";
 import { ProfilePicture } from "../../core/components/ProfilePicture";
-import { useUsers } from "../users/registration/useUsers";
 import { type User } from "../users/user.model";
 import { useLabels } from "../labels/useLabels";
 import { useMilestonesByRepoId } from "../milestones/useMilestones";
@@ -15,6 +14,7 @@ import { type Milestone } from "../milestones/milestoneActions";
 import { LabelPreview } from "../labels/LabelPreview";
 import { CommentPreview } from "./CommentPreview";
 import { ConversationCard } from "./Conversation";
+import { useAuthContext } from "../../core/contexts/Auth";
 
 const eventsToTake = [
   "LabelAssignedEvent",
@@ -122,11 +122,16 @@ type EventRowProps = {
 const EventRow: FC<EventRowProps> = ({ event }) => {
   const { pullRequest } = usePullRequestContext();
 
-  const { users } = useUsers(["EventRow"], true);
+  const { user } = useAuthContext();
+  const participants = {
+    ...pullRequest.participants,
+    [user?._id ?? ""]: user as any as User,
+  };
+
   const { labels } = useLabels(pullRequest.repositoryId);
   const { milestones } = useMilestonesByRepoId(pullRequest.repositoryId);
 
-  const findUser = (userId: User["_id"]) => users?.find((u: User) => u._id === userId);
+  const findUser = (userId: User["_id"]) => participants[userId];
   const findLabel = (labelId: Label["_id"]) => labels?.find((l: Label) => l._id === labelId);
   const findMilestone = (milestoneId: Milestone["_id"]) => milestones?.find((m: Milestone) => m._id === milestoneId);
   const findComment = (commentId: PullRequestComment["_id"]) =>

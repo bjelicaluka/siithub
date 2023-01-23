@@ -20,7 +20,9 @@ router.get(
   isAllowedToAccessRepo(true),
   async (req: Request, res: Response) => {
     const repositoryId = idSchema.parse(req.params.repositoryId);
-    res.send(await pullRequestService.findByRepositoryId(repositoryId));
+
+    const pullRequests = await pullRequestService.findByRepositoryId(repositoryId);
+    res.send(await pullRequestService.resolveParticipants(pullRequests));
   }
 );
 
@@ -32,7 +34,8 @@ router.get(
     const repositoryId = idSchema.parse(req.params.repositoryId);
     const query = req.query as PullRequestsQuery;
 
-    res.send(await pullRequestService.searchByQuery(query, repositoryId));
+    const pullRequests = await pullRequestService.searchByQuery(query, repositoryId);
+    res.send(await pullRequestService.resolveParticipants(pullRequests));
   }
 );
 
@@ -43,7 +46,9 @@ router.get(
   async (req: Request, res: Response) => {
     const repositoryId = idSchema.parse(req.params.repositoryId);
     const localId = localIdSchema.parse(+req.params.localId);
-    res.send(await pullRequestService.findByRepositoryIdAndLocalId(repositoryId, localId));
+
+    const pullRequest = await pullRequestService.findByRepositoryIdAndLocalId(repositoryId, localId);
+    res.send((await pullRequestService.resolveParticipants([pullRequest]))[0]);
   }
 );
 

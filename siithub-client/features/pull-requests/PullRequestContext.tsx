@@ -41,6 +41,7 @@ export const initialPullRequest: PullRequest = {
     comments: [],
     conversations: [],
   },
+  participants: {},
 };
 
 type ActionType = {
@@ -162,7 +163,7 @@ function unassignEntityFrom(entityName: "labels" | "milestones" | "assignees") {
   };
 }
 
-export function createNewPullRequest(pullRequest: PullRequest, by: User["_id"], comment: string) {
+export function createNewPullRequest(pullRequest: PullRequest, by: User["_id"], comment?: string) {
   const newPullRequest: CreatePullRequest = {
     events: [
       {
@@ -172,15 +173,17 @@ export function createNewPullRequest(pullRequest: PullRequest, by: User["_id"], 
         base: pullRequest.csm.base,
         compare: pullRequest.csm.compare,
       },
-      {
-        by,
-        type: "CommentCreatedEvent",
-        text: comment,
-      },
-      ...pullRequest.events,
     ],
     repositoryId: pullRequest.repositoryId,
   };
+
+  if (comment) {
+    newPullRequest.events.push({
+      by,
+      type: "CommentCreatedEvent",
+      text: comment,
+    });
+  }
 
   createPullRequest(newPullRequest)
     .then((resp) => {
@@ -497,18 +500,20 @@ export function unresolveConversation(
       .catch((_) => {});
 }
 
-export function approvePullRequest(pullRequest: PullRequest, by: User["_id"]) {
+export function approvePullRequest(pullRequest: PullRequest, by: User["_id"], review?: string) {
   return changePullRequestState(
     "PullRequestApprovedEvent",
     PullRequestState.Approved,
+    review ?? "",
     "You have successfully approved this Pull Request."
   )(pullRequest, by);
 }
 
-export function requireChangesForPullRequest(pullRequest: PullRequest, by: User["_id"]) {
+export function requireChangesForPullRequest(pullRequest: PullRequest, by: User["_id"], review?: string) {
   return changePullRequestState(
     "PullRequestChangesRequiredEvent",
     PullRequestState.ChangesRequired,
+    review ?? "",
     "You have successfully requested changes for this Pull Request."
   )(pullRequest, by);
 }
@@ -517,6 +522,7 @@ export function cancelPullRequest(pullRequest: PullRequest, by: User["_id"]) {
   return changePullRequestState(
     "PullRequestCanceledEvent",
     PullRequestState.Canceled,
+    "",
     "You have successfully canceled this Pull Request."
   )(pullRequest, by);
 }
@@ -525,12 +531,19 @@ export function mergePullRequest(pullRequest: PullRequest, by: User["_id"]) {
   return changePullRequestState(
     "PullRequestMergedEvent",
     PullRequestState.Merged,
+    "",
     "You have successfully merged this Pull Request.",
     "Unable to merge pull request because of conflicts."
   )(pullRequest, by);
 }
 
-function changePullRequestState(eventType: string, newState: PullRequestState, message: string, errorMessage?: string) {
+function changePullRequestState(
+  eventType: string,
+  newState: PullRequestState,
+  review: string,
+  message: string,
+  errorMessage?: string
+) {
   return (pullRequest: PullRequest, by: User["_id"]) => {
     const newPullRequest: UpdatePullRequest = {
       localId: pullRequest.localId,
@@ -538,10 +551,23 @@ function changePullRequestState(eventType: string, newState: PullRequestState, m
       repositoryId: pullRequest.repositoryId,
     };
 
+    if (review) {
+      newPullRequest.events.push({
+        by,
+        type: "CommentCreatedEvent",
+        text: review,
+      });
+    }
+
     return (dispatch: any) =>
       updatePullRequest(newPullRequest)
         .then((resp) => {
           notifications.success(message);
+          if (review) {
+            Router.push(Router.asPath.replace("/changes", "").replace("/commits", ""));
+            return;
+          }
+
           const pullRequestCanceled = resp.data.events.pop();
           dispatch({
             type: "CHANGE_STATE",

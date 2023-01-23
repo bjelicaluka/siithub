@@ -10,12 +10,15 @@ import { type Star } from "../star/star.model";
 import { type User } from "../user/user.model";
 import { type Collaborator } from "../collaborators/collaborators.model";
 import {
+  type NewPullRequestActivity,
   type NewCommentActivity,
   type NewIssueActivity,
   type StaringActivity,
   type Activity,
 } from "./activities.models";
 import { type CommentCreatedEvent } from "../common/events/events.model";
+import { pullRequestService } from "../pull-requests/pull-requests.service";
+import { type PullRequest, type PullRequestCreatedEvent } from "../pull-requests/pull-requests.model";
 
 async function findActivities(userId: User["_id"], upTill?: Date): Promise<any> {
   const repositories = await getRelevantRepos(userId);
@@ -24,8 +27,9 @@ async function findActivities(userId: User["_id"], upTill?: Date): Promise<any> 
     getStaringActivities(repositories, userId, upTill),
     getNewIssueActivities(repositories, userId, upTill),
     getNewCommentActivities(repositories, userId, upTill),
-  ]).then(([staring, newIssues, newComments]) => {
-    return [...staring, ...newIssues, ...newComments].sort(
+    getNewPullRequestActivities(repositories, userId, upTill),
+  ]).then(([staring, newIssues, newComments, newPullRequests]) => {
+    return [...staring, ...newIssues, ...newComments, ...newPullRequests].sort(
       (a1: Activity, a2: Activity) => Number(new Date(a2.timeStamp)) - Number(new Date(a1.timeStamp))
     );
   });
@@ -90,7 +94,7 @@ async function getNewIssueActivities(
         },
       },
     },
-    { projection: { _id: 1, repositoryId: 1, "events.$": 1 } }
+    { projection: { _id: 1, localId: 1, repositoryId: 1, "events.$": 1 } }
   );
 
   return newIssues.map((issue: Issue) => {
@@ -99,6 +103,7 @@ async function getNewIssueActivities(
 
     return {
       issueId: issue._id,
+      localId: issue.localId,
       userId: issueCreated.by,
       username: "",
       repoId: issue.repositoryId,
@@ -146,6 +151,7 @@ async function getNewCommentActivities(
     {
       projection: {
         _id: 1,
+        localId: 1,
         repositoryId: 1,
         "csm.title": 1,
         events: { $elemMatch: { type: "CommentCreatedEvent", by: { $ne: userId } } },
@@ -160,6 +166,7 @@ async function getNewCommentActivities(
 
       return {
         issueId: issue._id,
+        localId: issue.localId,
         userId: issueCommented.by,
         username: "",
         repoId: issue.repositoryId,
@@ -173,6 +180,48 @@ async function getNewCommentActivities(
       };
     })
   );
+}
+
+async function getNewPullRequestActivities(
+  repos: Repository[],
+  userId: User["_id"],
+  upTill?: Date
+): Promise<NewPullRequestActivity[]> {
+  const repoIds = repos.map((repo: Repository) => repo._id);
+  const repositoriesMap = getRepoMap(repos);
+
+  const newPullRequests = await pullRequestService.findMany(
+    {
+      repositoryId: { $in: repoIds },
+      events: {
+        $elemMatch: {
+          type: "PullRequestCreatedEvent",
+          by: { $ne: userId },
+          ...(upTill ? { timeStamp: { $gte: upTill } } : {}),
+        },
+      },
+    },
+    { projection: { _id: 1, localId: 1, repositoryId: 1, "events.$": 1 } }
+  );
+
+  return newPullRequests.map((pullRequest: PullRequest) => {
+    const pullRequestCreated = pullRequest.events[0] as PullRequestCreatedEvent;
+    const repo: Repository = repositoriesMap[pullRequest.repositoryId.toString()];
+
+    return {
+      pullRequestId: pullRequest._id,
+      localId: pullRequest.localId,
+      userId: pullRequestCreated.by,
+      username: "",
+      repoId: pullRequest.repositoryId,
+      repoOwner: repo.owner,
+      repoName: repo.name,
+      repoDescription: repo.description || "",
+      title: pullRequestCreated.title,
+      timeStamp: pullRequestCreated.timeStamp,
+      type: "NewPullRequestActivity",
+    };
+  });
 }
 
 async function connectWithUsers(activities: Activity[]): Promise<Activity[]> {
@@ -207,6 +256,11 @@ export type ActivitiesService = {
   getStaringActivities(repos: Repository[], userId: User["_id"], upTill?: Date): Promise<StaringActivity[]>;
   getNewIssueActivities(repos: Repository[], userId: User["_id"], upTill?: Date): Promise<NewIssueActivity[]>;
   getNewCommentActivities(repos: Repository[], userId: User["_id"], upTill?: Date): Promise<NewCommentActivity[]>;
+  getNewPullRequestActivities(
+    repos: Repository[],
+    userId: User["_id"],
+    upTill?: Date
+  ): Promise<NewPullRequestActivity[]>;
 };
 
 const activitiesService: ActivitiesService = {
@@ -216,6 +270,7 @@ const activitiesService: ActivitiesService = {
   getStaringActivities,
   getNewIssueActivities,
   getNewCommentActivities,
+  getNewPullRequestActivities,
 };
 
 export { activitiesService };

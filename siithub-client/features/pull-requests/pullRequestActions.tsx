@@ -45,10 +45,11 @@ type PullRequest = {
   localId: number;
   events: any[];
   csm: PullRequestCSM;
+  participants: { [uid: string]: User };
 };
 
-type CreatePullRequest = Omit<PullRequest, "_id" | "csm" | "localId">;
-type UpdatePullRequest = Omit<PullRequest, "csm" | "_id">;
+type CreatePullRequest = Omit<PullRequest, "_id" | "csm" | "localId" | "participants">;
+type UpdatePullRequest = Omit<PullRequest, "csm" | "_id" | "participants">;
 
 type PullRequestsQuery = {
   title?: string;
