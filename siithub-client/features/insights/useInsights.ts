@@ -1,15 +1,27 @@
 import axios from "axios";
 import { useQuery } from "react-query";
 
-export function usePulseInsights() {
-  return {
-    totalPrs: 8,
-    activePrs: 5,
-    mergedPrs: 4,
+export type PulseInsights = {
+  totalPrs: number;
+  activePrs: number;
+  mergedPrs: number;
+  totalIssues: number;
+  closedIssues: number;
+  newIssues: number;
+};
 
-    totalIssues: 8,
-    closedIssues: 5,
-    newIssues: 4,
+export function usePulseInsights(username: string, repoName: string, dependencies: any[] = []) {
+  const { data, error, isLoading } = useQuery(
+    [`contributor_insights${username}/${repoName}`, ...dependencies],
+    () => axios.get(`/api/insights/${username}/${repoName}/pulse`),
+    {
+      enabled: dependencies.reduce((acc, d) => acc && !!d, true),
+    }
+  );
+  return {
+    insights: data?.data as PulseInsights,
+    error: (error as any)?.response?.data,
+    isLoading: isLoading,
   };
 }
 
@@ -20,12 +32,17 @@ export type GroupedCommitCount = {
 
 export type ContributorInsights = {
   all: GroupedCommitCount[];
+  authorDataMax: {
+    adds: number;
+    dels: number;
+    commits: number;
+  };
   perAuthor: {
     data: GroupedCommitCount[];
-    author: string;
-    total: number;
-    additions: number;
-    deletitions: number;
+    author: { username?: string; name: string };
+    commitsTotal: number;
+    addsTotal: number;
+    delsTotal: number;
   }[];
 };
 

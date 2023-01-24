@@ -8,7 +8,11 @@ import { FC } from "react";
 import { usePulseInsights } from "./useInsights";
 
 export const PulseInsights: FC<{ repo: string; username: string }> = ({ username, repo }) => {
-  const { totalPrs, activePrs, mergedPrs, totalIssues, newIssues, closedIssues } = usePulseInsights();
+  const { insights, isLoading } = usePulseInsights(username, repo);
+
+  if (isLoading || !insights) return <>loading...</>;
+
+  const { totalPrs, activePrs, mergedPrs, totalIssues, newIssues, closedIssues } = insights;
 
   return (
     <div className="flex flex-col w-full border rounded-md">

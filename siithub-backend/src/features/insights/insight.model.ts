@@ -5,12 +5,17 @@ export type GroupedCommitCount = {
 
 export type ContributorInsights = {
   all: GroupedCommitCount[];
+  authorDataMax: {
+    adds: number;
+    dels: number;
+    commits: number;
+  };
   perAuthor: {
     data: GroupedCommitCount[];
-    author: string;
-    total: number;
-    additions: number;
-    deletitions: number;
+    author: { username?: string; name: string };
+    commitsTotal: number;
+    addsTotal: number;
+    delsTotal: number;
   }[];
 };
 

@@ -4,6 +4,10 @@ import { insightService } from "./insight.service";
 
 const router = Router();
 
+router.get("/insights/:username/:repository/pulse", async (req: Request, res: Response) => {
+  res.send(await insightService.getPulseInsights(req.params.username, req.params.repository));
+});
+
 router.get("/insights/:username/:repository/commits/:branch/contributors", async (req: Request, res: Response) => {
   res.send(await insightService.getContributorInsights(req.params.username, req.params.repository, req.params.branch));
 });

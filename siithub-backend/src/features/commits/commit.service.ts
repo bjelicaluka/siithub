@@ -75,6 +75,7 @@ export type CommitService = {
   mergeCommits(username: string, repoName: string, base: string, compare: string): Promise<any>;
   getFileHistoryCommits(username: string, repoName: string, branch: string, filePath: string): Promise<Commit[]>;
   getFileInfo(username: string, repoName: string, branch: string, filePath: string): Promise<LastCommitAndContrib>;
+  resolveAuthors(commits: Commit[]): Promise<Commit[]>;
 };
 
 const commitService: CommitService = {
@@ -87,6 +88,7 @@ const commitService: CommitService = {
   mergeCommits,
   getFileHistoryCommits,
   getFileInfo,
+  resolveAuthors,
 };
 
 export { commitService };
