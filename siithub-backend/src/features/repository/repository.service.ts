@@ -1,8 +1,17 @@
 import { BadLogicException, DuplicateException, MissingEntityException } from "../../error-handling/errors";
+import { collaboratorsService } from "../collaborators/collaborators.service";
 import { gitServerClient } from "../gitserver/gitserver.client";
+import { User } from "../user/user.model";
 import { userService } from "../user/user.service";
 import type { Repository, RepositoryCreate, RepositoryUpdate } from "./repository.model";
 import { repositoryRepo } from "./repository.repo";
+
+async function getRelevantRepos(userId: User["_id"]): Promise<Repository[]> {
+  const collabs = await collaboratorsService.findByUser(userId);
+  const repoIds: Repository["_id"][] = collabs.map((collab) => collab.repositoryId);
+
+  return repositoryService.findByIds(repoIds);
+}
 
 async function findOneOrThrow(id: Repository["_id"]): Promise<Repository> {
   const repository = await repositoryRepo.crud.findOne(id);
@@ -57,10 +66,9 @@ async function findByOwnerAndName(owner: string, name: string): Promise<Reposito
 }
 
 async function search(owner: string, term: string): Promise<Repository[]> {
-  return await repositoryRepo.crud.findMany({
-    owner,
-    ...(term !== undefined ? { name: { $regex: term, $options: "i" } } : {}),
-  });
+  const user = await userService.findByUsername(owner);
+  if (!user) throw new MissingEntityException("User not found");
+  return (await getRelevantRepos(user._id)).filter((x) => !term || x.name.includes(term));
 }
 
 async function increaseCounterValue(
@@ -95,6 +103,7 @@ export type RepositoryService = {
   search(owner: string, term?: string): Promise<Repository[]>;
   findByIds(ids: Repository["_id"][]): Promise<Repository[]>;
   decreaseCounterValue(id: Repository["_id"], thing: "stars"): Promise<number>;
+  getRelevantRepos(userId: User["_id"]): Promise<Repository[]>;
 };
 
 const repositoryService: RepositoryService = {
@@ -106,6 +115,7 @@ const repositoryService: RepositoryService = {
   search,
   findByIds,
   decreaseCounterValue,
+  getRelevantRepos,
 };
 
 export { repositoryService };
