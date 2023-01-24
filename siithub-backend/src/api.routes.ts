@@ -14,6 +14,7 @@ import { treeRoutes } from "./features/tree/tree.routes";
 import { branchesRoutes } from "./features/branches/branches.routes";
 import { commitRoutes } from "./features/commits/commit.routes";
 import { pullRequestRoutes } from "./features/pull-requests/pull-requests.routes";
+import { advanceSearchRoutes } from "./features/advance-search/advance-search.routes";
 
 const router = Router();
 
@@ -27,6 +28,7 @@ router
   .use("/repositories", collaboratorsRoutes)
   .use("/ssh-keys", sshKeyRoutes)
   .use("/", milestoneRoutes)
+  .use("/search", advanceSearchRoutes)
   .use("/", starRoutes)
   .use("/", activitiesRoutes)
   .use("/", treeRoutes)
