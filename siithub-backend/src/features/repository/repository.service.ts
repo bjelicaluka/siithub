@@ -1,7 +1,7 @@
 import { BadLogicException, DuplicateException, MissingEntityException } from "../../error-handling/errors";
 import { collaboratorsService } from "../collaborators/collaborators.service";
 import { gitServerClient } from "../gitserver/gitserver.client";
-import { User } from "../user/user.model";
+import { type User } from "../user/user.model";
 import { userService } from "../user/user.service";
 import type { Repository, RepositoryCreate, RepositoryUpdate } from "./repository.model";
 import { repositoryRepo } from "./repository.repo";
@@ -38,7 +38,15 @@ async function createRepository(repository: RepositoryCreate): Promise<Repositor
     throw new BadLogicException("Failed to create repository in the file system.");
   }
 
-  return await repositoryRepo.crud.add(repository);
+  const repo = await repositoryRepo.crud.add(repository);
+  if (!repo) throw new BadLogicException("Failed to create repository.");
+  
+  await collaboratorsService.add({
+    repositoryId: repo._id,
+    userId: existingUser._id,
+  });
+
+  return repo;
 }
 
 async function deleteRepository(owner: string, name: string): Promise<Repository | null> {
@@ -68,7 +76,7 @@ async function findByOwnerAndName(owner: string, name: string): Promise<Reposito
 async function search(owner: string, term: string): Promise<Repository[]> {
   const user = await userService.findByUsername(owner);
   if (!user) throw new MissingEntityException("User not found");
-  return (await getRelevantRepos(user._id)).filter((x) => !term || x.name.includes(term));
+  return (await getRelevantRepos(user._id)).filter((x) => !term || x.name.toLowerCase().includes(term.toLowerCase()));
 }
 
 async function increaseCounterValue(
