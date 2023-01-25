@@ -1,6 +1,7 @@
 import { BadLogicException, DuplicateException, MissingEntityException } from "../../error-handling/errors";
 import { collaboratorsService } from "../collaborators/collaborators.service";
 import { gitServerClient } from "../gitserver/gitserver.client";
+import { labelSeeder } from "../label/label.seeder";
 import { type User } from "../user/user.model";
 import { userService } from "../user/user.service";
 import type { Repository, RepositoryCreate, RepositoryUpdate } from "./repository.model";
@@ -40,11 +41,13 @@ async function createRepository(repository: RepositoryCreate): Promise<Repositor
 
   const repo = await repositoryRepo.crud.add(repository);
   if (!repo) throw new BadLogicException("Failed to create repository.");
-  
+
   await collaboratorsService.add({
     repositoryId: repo._id,
     userId: existingUser._id,
   });
+
+  await labelSeeder.seedDefaultLabels(repo._id);
 
   return repo;
 }
