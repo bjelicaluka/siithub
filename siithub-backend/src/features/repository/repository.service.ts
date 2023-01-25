@@ -1,8 +1,18 @@
 import { BadLogicException, DuplicateException, MissingEntityException } from "../../error-handling/errors";
+import { collaboratorsService } from "../collaborators/collaborators.service";
 import { gitServerClient } from "../gitserver/gitserver.client";
+import { labelSeeder } from "../label/label.seeder";
+import { type User } from "../user/user.model";
 import { userService } from "../user/user.service";
 import type { Repository, RepositoryCreate, RepositoryUpdate } from "./repository.model";
 import { repositoryRepo } from "./repository.repo";
+
+async function getRelevantRepos(userId: User["_id"]): Promise<Repository[]> {
+  const collabs = await collaboratorsService.findByUser(userId);
+  const repoIds: Repository["_id"][] = collabs.map((collab) => collab.repositoryId);
+
+  return repositoryService.findByIds(repoIds);
+}
 
 async function findOneOrThrow(id: Repository["_id"]): Promise<Repository> {
   const repository = await repositoryRepo.crud.findOne(id);
@@ -29,7 +39,17 @@ async function createRepository(repository: RepositoryCreate): Promise<Repositor
     throw new BadLogicException("Failed to create repository in the file system.");
   }
 
-  return await repositoryRepo.crud.add(repository);
+  const repo = await repositoryRepo.crud.add(repository);
+  if (!repo) throw new BadLogicException("Failed to create repository.");
+
+  await collaboratorsService.add({
+    repositoryId: repo._id,
+    userId: existingUser._id,
+  });
+
+  await labelSeeder.seedDefaultLabels(repo._id);
+
+  return repo;
 }
 
 async function deleteRepository(owner: string, name: string): Promise<Repository | null> {
@@ -57,10 +77,9 @@ async function findByOwnerAndName(owner: string, name: string): Promise<Reposito
 }
 
 async function search(owner: string, term: string): Promise<Repository[]> {
-  return await repositoryRepo.crud.findMany({
-    owner,
-    ...(term !== undefined ? { name: { $regex: term, $options: "i" } } : {}),
-  });
+  const user = await userService.findByUsername(owner);
+  if (!user) throw new MissingEntityException("User not found");
+  return (await getRelevantRepos(user._id)).filter((x) => !term || x.name.toLowerCase().includes(term.toLowerCase()));
 }
 
 async function increaseCounterValue(
@@ -95,6 +114,7 @@ export type RepositoryService = {
   search(owner: string, term?: string): Promise<Repository[]>;
   findByIds(ids: Repository["_id"][]): Promise<Repository[]>;
   decreaseCounterValue(id: Repository["_id"], thing: "stars"): Promise<number>;
+  getRelevantRepos(userId: User["_id"]): Promise<Repository[]>;
 };
 
 const repositoryService: RepositoryService = {
@@ -106,6 +126,7 @@ const repositoryService: RepositoryService = {
   search,
   findByIds,
   decreaseCounterValue,
+  getRelevantRepos,
 };
 
 export { repositoryService };
