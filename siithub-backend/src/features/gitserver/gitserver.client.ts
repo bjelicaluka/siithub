@@ -82,6 +82,7 @@ async function getCommitsDiffBetweenBranches(username: string, repoName: string,
     const response = await axios.get(`${config.gitServer.url}/api/commits/${username}/${repoName}/diff/between`, {
       params: { base, compare },
     });
+    return response.data;
   } catch (err) {
     throw new MissingEntityException("Commits not found");
   }

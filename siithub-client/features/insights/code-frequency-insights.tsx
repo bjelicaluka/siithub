@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { type FC } from "react";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useDefaultBranch } from "../branches/useBranches";
 import { useCodeFrequencyInsights } from "./useInsights";

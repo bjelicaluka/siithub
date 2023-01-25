@@ -78,15 +78,17 @@ async function getContributorInsights(
     return { author: authorCommits[0].author, data, ...a };
   });
 
-  const authorDataMax = perAuthor.reduce(
-    (prev, curr) => {
-      prev.commits = Math.max(prev.commits, curr.maxCommits);
-      prev.adds = Math.max(prev.adds, curr.maxAdds);
-      prev.dels = Math.max(prev.dels, curr.maxDels);
-      return prev;
-    },
-    { commits: 0, adds: 0, dels: 0 }
-  );
+  const authorDataMax = perAuthor
+    .sort((a, b) => b.commitsTotal - a.commitsTotal)
+    .reduce(
+      (prev, curr) => {
+        prev.commits = Math.max(prev.commits, curr.maxCommits);
+        prev.adds = Math.max(prev.adds, curr.maxAdds);
+        prev.dels = Math.max(prev.dels, curr.maxDels);
+        return prev;
+      },
+      { commits: 0, adds: 0, dels: 0 }
+    );
 
   return { all, authorDataMax, perAuthor };
 }

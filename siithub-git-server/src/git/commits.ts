@@ -118,14 +118,6 @@ async function getDiffData(commit: Commit, parentCommit: Commit) {
   };
 }
 
-async function getCommitDiff(commit: Commit) {
-  const parentCommits = await commit.getParents(1);
-  const diffList = await commit.getDiff();
-  const diff = diffList[0];
-  const patches = await diff.patches();
-  return await Promise.all(patches.map(async (patch) => await getPatchData(patch, commit, parentCommits[0])));
-}
-
 async function getPatchData(patch: ConvenientPatch, commit: Commit, parentCommit: Commit) {
   const large = patch.oldFile().size() > 20000 || patch.newFile().size() > 20000;
   const oldPath = patch.oldFile().path();

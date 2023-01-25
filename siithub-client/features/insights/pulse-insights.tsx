@@ -4,7 +4,7 @@ import {
   CheckCircleIcon,
   ShieldExclamationIcon,
 } from "@heroicons/react/24/outline";
-import { FC } from "react";
+import { type FC } from "react";
 import { usePulseInsights } from "./useInsights";
 
 export const PulseInsights: FC<{ repo: string; username: string }> = ({ username, repo }) => {

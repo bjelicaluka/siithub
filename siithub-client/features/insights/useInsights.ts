@@ -13,7 +13,7 @@ export type PulseInsights = {
 export function usePulseInsights(username: string, repoName: string, dependencies: any[] = []) {
   const { data, error, isLoading } = useQuery(
     [`contributor_insights${username}/${repoName}`, ...dependencies],
-    () => axios.get(`/api/insights/${username}/${repoName}/pulse`),
+    () => axios.get(`/api/${username}/${repoName}/insights/pulse`),
     {
       enabled: dependencies.reduce((acc, d) => acc && !!d, true),
     }
@@ -49,7 +49,7 @@ export type ContributorInsights = {
 export function useContributorInsights(username: string, repoName: string, branch: string, dependencies: any[] = []) {
   const { data, error, isLoading } = useQuery(
     [`contributor_insights${username}/${repoName}/${branch}`, ...dependencies],
-    () => axios.get(`/api/insights/${username}/${repoName}/commits/${encodeURIComponent(branch)}/contributors`),
+    () => axios.get(`/api/${username}/${repoName}/insights/contributors/${encodeURIComponent(branch)}`),
     {
       enabled: dependencies.reduce((acc, d) => acc && !!d, true),
     }
@@ -69,7 +69,7 @@ export type CommitsInsights = {
 export function useCommitsInsights(username: string, repoName: string, branch: string, dependencies: any[] = []) {
   const { data, error, isLoading } = useQuery(
     [`commits_insights${username}/${repoName}/${branch}`, ...dependencies],
-    () => axios.get(`/api/insights/${username}/${repoName}/commits/${encodeURIComponent(branch)}/commits`),
+    () => axios.get(`/api/${username}/${repoName}/insights/commits/${encodeURIComponent(branch)}`),
     {
       enabled: dependencies.reduce((acc, d) => acc && !!d, true),
     }
@@ -90,7 +90,7 @@ export type CodeFrequencyInsight = {
 export function useCodeFrequencyInsights(username: string, repoName: string, branch: string, dependencies: any[] = []) {
   const { data, error, isLoading } = useQuery(
     [`code_frequency_insights${username}/${repoName}/${branch}`, ...dependencies],
-    () => axios.get(`/api/insights/${username}/${repoName}/commits/${encodeURIComponent(branch)}/frequency`),
+    () => axios.get(`/api/${username}/${repoName}/insights/frequency/${encodeURIComponent(branch)}`),
     {
       enabled: dependencies.reduce((acc, d) => acc && !!d, true),
     }

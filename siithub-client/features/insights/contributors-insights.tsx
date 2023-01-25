@@ -1,5 +1,4 @@
-import moment from "moment";
-import { FC, useState } from "react";
+import { type FC, useState } from "react";
 import Select from "react-select";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { ProfilePicture } from "../../core/components/ProfilePicture";

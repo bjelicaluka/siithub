@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { type FC } from "react";
 import { Bar, BarChart, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useDefaultBranch } from "../branches/useBranches";
 import { useCommitsInsights } from "./useInsights";
