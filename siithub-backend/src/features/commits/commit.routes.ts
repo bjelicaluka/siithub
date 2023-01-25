@@ -26,6 +26,11 @@ router.get("/:username/:repository/commits/:branch", async (req: Request, res: R
   res.send(await commitService.getCommits(req.params.username, req.params.repository, req.params.branch));
 });
 
+router.get("/:username/:repository/commits/:branch/with-diff", async (req: Request, res: Response) => {
+  const repoId = await getRepoIdFromPath(req);
+  res.send(await commitService.getCommitsWithDiff(req.params.username, req.params.repository, req.params.branch));
+});
+
 router.get("/:username/:repository/commits/:branch/:filePath", async (req: Request, res: Response) => {
   const repoId = await getRepoIdFromPath(req);
   res.send(

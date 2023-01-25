@@ -13,3 +13,7 @@ export type Commit = {
 };
 
 export type LastCommitAndContrib = Commit & { contributors: AuthorInfo[] };
+
+export type CommitWithDiff = Commit & {
+  stats: { add: number; del: number; files: number };
+};

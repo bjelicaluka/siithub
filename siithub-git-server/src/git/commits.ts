@@ -2,7 +2,7 @@ import { Commit, ConvenientPatch, Merge, Repository, Revwalk, Signature } from "
 import { homePath } from "../config";
 import { isCommitSha } from "../string.utils";
 
-export async function getCommits(username: string, repoName: string, branch: string) {
+export async function getCommits(username: string, repoName: string, branch: string, withStats = false) {
   try {
     const repoPath = `${homePath}/${username}/${repoName}`;
     const repo = await Repository.open(repoPath + "/.git");
@@ -11,12 +11,24 @@ export async function getCommits(username: string, repoName: string, branch: str
     walker.push(headCommit.id());
     walker.sorting(Revwalk.SORT.TIME);
     const commits = await walker.getCommits(999999);
-    return commits.map((commit) => ({
-      message: commit.message(),
-      sha: commit.sha(),
-      date: commit.date(),
-      author: { name: commit.author().name(), email: commit.author().email() },
-    }));
+
+    return Promise.all(
+      commits.map(async (commit) => {
+        const commitData = {
+          message: commit.message(),
+          sha: commit.sha(),
+          date: commit.date(),
+          author: { name: commit.author().name(), email: commit.author().email() },
+        };
+        if (!withStats) return commitData;
+
+        const diff = await commit.getDiff();
+        if (diff.length > 1) return { ...commitData, stats: { add: 0, del: 0, files: 0 } }; //if merge
+        const ds = await diff[0].getStats();
+        const stats = { add: ds.insertions(), del: ds.deletions(), files: ds.filesChanged() };
+        return { ...commitData, stats };
+      })
+    );
   } catch {
     return null;
   }
