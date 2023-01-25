@@ -3,6 +3,7 @@ import { advanceSearchService } from "./advance-search.service";
 
 import "express-async-errors";
 import { objectIdString } from "../../utils/zod";
+import { type Repository } from "../repository/repository.model";
 
 const router = Router();
 
@@ -17,7 +18,7 @@ router.get("/repositories", async (req: Request, res: Response) => {
 router.get("/repositories/count", async (req: Request, res: Response) => {
   const param = req.query.param as string;
 
-  res.send(await advanceSearchService.countRepositories(param));
+  res.send({ count: await advanceSearchService.countRepositories(param) });
 });
 
 router.get("/users", async (req: Request, res: Response) => {
@@ -29,7 +30,7 @@ router.get("/users", async (req: Request, res: Response) => {
 router.get("/users/count", async (req: Request, res: Response) => {
   const param = req.query.param as string;
 
-  res.send(await advanceSearchService.countUsers(param));
+  res.send({ count: await advanceSearchService.countUsers(param) });
 });
 
 router.get("/issues", async (req: Request, res: Response) => {
@@ -43,21 +44,35 @@ router.get("/issues/count", async (req: Request, res: Response) => {
   const repositoryId = parseId(req.query.repositoryId as string);
   const param = req.query.param as string;
 
-  res.send(await advanceSearchService.countIssues(param, repositoryId));
+  res.send({ count: await advanceSearchService.countIssues(param, repositoryId) });
 });
 
 router.get("/commits", async (req: Request, res: Response) => {
-  const repositoryId = req.query.repositoryId as string;
+  const repositoryId = parseId(req.query.repositoryId as string) as Repository["_id"];
   const param = req.query.param as string;
 
   res.send(await advanceSearchService.searchCommits(param, repositoryId));
 });
 
 router.get("/commits/count", async (req: Request, res: Response) => {
-  const repositoryId = req.query.repositoryId as string;
+  const repositoryId = parseId(req.query.repositoryId as string) as Repository["_id"];
   const param = req.query.param as string;
 
-  res.send(await advanceSearchService.countCommits(param, repositoryId));
+  res.send({ count: await advanceSearchService.countCommits(param, repositoryId) });
+});
+
+router.get("/pull-requests", async (req: Request, res: Response) => {
+  const repositoryId = parseId(req.query.repositoryId as string) as Repository["_id"];
+  const param = req.query.param as string;
+
+  res.send(await advanceSearchService.searchPullRequest(param, repositoryId));
+});
+
+router.get("/pull-requests/count", async (req: Request, res: Response) => {
+  const repositoryId = parseId(req.query.repositoryId as string) as Repository["_id"];
+  const param = req.query.param as string;
+
+  res.send({ count: await advanceSearchService.countPullRequest(param, repositoryId) });
 });
 
 function parseId(param: string) {

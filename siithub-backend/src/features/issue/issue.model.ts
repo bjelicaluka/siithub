@@ -51,6 +51,10 @@ export type IssueWithParticipants = Issue & {
   participants: { [uid: string]: any };
 };
 
+export type IssueWithRepository = Issue & {
+  repository: Repository;
+};
+
 export type IssueCreate = Omit<Issue, "_id" | "cms" | "localId">;
 export type IssueUpdate = Omit<Issue, "cms">;
 

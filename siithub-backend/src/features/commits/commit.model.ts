@@ -1,3 +1,5 @@
+import { type Repository } from "../repository/repository.model";
+
 type AuthorInfo = {
   name: string;
   email: string;
@@ -10,6 +12,11 @@ export type Commit = {
   sha: string;
   date: string;
   author: AuthorInfo;
+};
+
+export type CommitsWithRepo = {
+  commits: Commit[];
+  repository: Repository;
 };
 
 export type LastCommitAndContrib = Commit & { contributors: AuthorInfo[] };
