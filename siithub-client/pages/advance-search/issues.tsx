@@ -1,13 +1,34 @@
 import { useRouter } from "next/router";
 import { IssuesSearch } from "../../features/advance-search/IssuesSearch";
+import { SortComponent } from "../../features/advance-search/SortComponent";
 
 const Issues = () => {
   const router = useRouter();
-  const { param, repositoryId } = router.query;
+  const { param, repositoryId, sort } = router.query;
 
   if (!router) return <></>;
 
-  return <IssuesSearch param={param?.toString() ?? ""} repositoryId={repositoryId?.toString() ?? ""} />;
+  return (
+    <>
+      <SortComponent
+        options={{
+          "Sortiraj po naslovu 🔼": {
+            "csm.title": 1,
+          },
+          "Sortiraj po naslovu 🔽": {
+            "csm.title": -1,
+          },
+          "Sortiraj po datumu 🔼": {
+            "csm.timeStamp": 1,
+          },
+          "Sortiraj po datimu 🔽": {
+            "csm.timeStamp": -1,
+          },
+        }}
+      />
+      <IssuesSearch param={param?.toString() ?? ""} repositoryId={repositoryId?.toString() ?? ""} sort={sort} />
+    </>
+  );
 };
 
 export default Issues;

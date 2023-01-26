@@ -1,4 +1,4 @@
-import { type FC, type PropsWithChildren, useState, Fragment } from "react";
+import { type FC, type PropsWithChildren, useState, Fragment, useEffect } from "react";
 import { Disclosure, Menu, Transition } from "@headlessui/react";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 import { AuthUser, useAuthContext } from "../contexts/Auth";
@@ -25,6 +25,10 @@ export const AuthenticatedLayout: FC<PropsWithChildren> = ({ children }) => {
   const { user } = useAuthContext();
 
   const [param, setParam] = useState("");
+
+  useEffect(() => {
+    setParam(router.query.param || "");
+  }, []);
 
   const onDataChange = (event: any) => {
     setParam(event.target.value);

@@ -4,10 +4,10 @@ import { type IssueWithRepository } from "../issues/issueActions";
 import { useSearch } from "./useAdvanceSearch";
 import { IssueCard } from "./IssueCard";
 
-type IssuesSearchProps = { param: string; repositoryId?: Repository["_id"] };
+type IssuesSearchProps = { param: string; repositoryId?: Repository["_id"]; sort?: any };
 
-export const IssuesSearch: FC<IssuesSearchProps> = ({ param, repositoryId }) => {
-  const { data: issues } = useSearch<IssueWithRepository>("issues", param, repositoryId);
+export const IssuesSearch: FC<IssuesSearchProps> = ({ param, repositoryId, sort }) => {
+  const { data: issues } = useSearch<IssueWithRepository>("issues", param, repositoryId, sort);
   return (
     <div>
       {issues.map((i: IssueWithRepository) => {

@@ -30,7 +30,7 @@ export const VerticalMenu: FC<VerticalMenuProps> = ({ links }) => {
         .map((link: MenuItem, i) => {
           return (
             <li key={i}>
-              <p
+              <div
                 onClick={link.onClick}
                 className={
                   "flex items-center p-2 text-base cursor-pointer font-normal text-gray-900 rounded-lg hover:bg-gray-300" +
@@ -39,7 +39,7 @@ export const VerticalMenu: FC<VerticalMenuProps> = ({ links }) => {
               >
                 {link.icon}
                 {<span className="ml-3 flex-1">{link.title}</span>}
-              </p>
+              </div>
             </li>
           );
         })}

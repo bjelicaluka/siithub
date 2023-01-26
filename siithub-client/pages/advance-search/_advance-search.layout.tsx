@@ -27,7 +27,9 @@ function getLinks(router: NextRouter, counters: any) {
       path: "/advance-search/repositories",
       visibility: () => !router.query?.repositoryId,
       onClick: async () => {
-        await router.push({ pathname: `/advance-search/repositories`, query: router.query });
+        const query = { ...router.query };
+        query.sort && delete query["sort"];
+        await router.push({ pathname: `/advance-search/repositories`, query });
       },
     },
     {
@@ -36,7 +38,9 @@ function getLinks(router: NextRouter, counters: any) {
       path: "/advance-search/commits",
       visibility: () => !!router.query?.repositoryId,
       onClick: async () => {
-        await router.push({ pathname: `/advance-search/commits`, query: router.query });
+        const query = { ...router.query };
+        query.sort && delete query["sort"];
+        await router.push({ pathname: `/advance-search/commits`, query });
       },
     },
     {
@@ -44,7 +48,9 @@ function getLinks(router: NextRouter, counters: any) {
       icon: <></>,
       path: "/advance-search/issues",
       onClick: async () => {
-        await router.push({ pathname: `/advance-search/issues`, query: router.query });
+        const query = { ...router.query };
+        query.sort && delete query["sort"];
+        await router.push({ pathname: `/advance-search/issues`, query });
       },
     },
     {
@@ -53,7 +59,9 @@ function getLinks(router: NextRouter, counters: any) {
       path: "/advance-search/users",
       visibility: () => !router.query?.repositoryId,
       onClick: async () => {
-        await router.push({ pathname: `/advance-search/users`, query: router.query });
+        const query = { ...router.query };
+        query.sort && delete query["sort"];
+        await router.push({ pathname: `/advance-search/users`, query });
       },
     },
     {
@@ -62,7 +70,9 @@ function getLinks(router: NextRouter, counters: any) {
       path: "/advance-search/pull-requests",
       visibility: () => !!router.query?.repositoryId,
       onClick: async () => {
-        await router.push({ pathname: `/advance-search/pull-requests`, query: router.query });
+        const query = { ...router.query };
+        query.sort && delete query["sort"];
+        await router.push({ pathname: `/advance-search/pull-requests`, query });
       },
     },
   ];

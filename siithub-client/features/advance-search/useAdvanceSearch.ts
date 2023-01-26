@@ -2,9 +2,9 @@ import { useQuery } from "react-query";
 import { type Repository } from "../repository/repository.service";
 import { getCount, getSearch } from "./advanceSearchActions";
 
-export function useSearch<T>(type: string, param: string, repositoryId?: Repository["_id"]) {
-  const { data, error } = useQuery([`search_${type}_${param}_${repositoryId}`], () =>
-    getSearch<T>(type, param, repositoryId)
+export function useSearch<T>(type: string, param: string, repositoryId?: Repository["_id"], sort?: any) {
+  const { data, error } = useQuery([`search_${type}_${param}_${repositoryId}_${sort}`], () =>
+    getSearch<T>(type, param, repositoryId, sort)
   );
   return {
     data: (data?.data as T[]) ?? [],
