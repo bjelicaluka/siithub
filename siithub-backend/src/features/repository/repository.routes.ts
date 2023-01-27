@@ -60,17 +60,8 @@ router.post("/", authorizeRepositoryOwner(), async (req: Request, res: Response)
     return;
   }
 
-  await initRepoData(createdRepository);
-
   res.send(createdRepository);
 });
-
-async function initRepoData(repository: Repository) {
-  await labelSeeder.seedDefaultLabels(repository?._id);
-  const user = (await userService.findByUsername(repository.owner)) as User;
-
-  await collaboratorsService.add({ repositoryId: repository._id, userId: user?._id });
-}
 
 router.delete("/:username/:repository", authorizeRepositoryOwner(), async (req: Request, res: Response) => {
   res.send(await repositoryService.delete(req.params.username, req.params.repository));

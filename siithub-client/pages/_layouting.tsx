@@ -5,6 +5,8 @@ import { useRouter } from "next/router";
 import { RepositoryLayout } from "./[username]/[repository]/_repository.layout";
 import { RepositorySettingsLayout } from "./[username]/[repository]/settings/_repository-settings.layout";
 import { RepositoryTreeLayout } from "./[username]/[repository]/tree/_repository-tree.layout";
+import RepositoryBlobLayout from "./[username]/[repository]/blob/_repository-blob.layout";
+import PullRequestsEditLayout from "./[username]/[repository]/pull-requests/[localId]/_pull-requests-edit.layout";
 
 type NestedLayout = {
   path: string;
@@ -44,11 +46,11 @@ const registeredLayouts: NestedLayout[] = [
       },
       {
         path: "/blob",
-        component: RepositoryTreeLayout,
+        component: RepositoryBlobLayout,
       },
       {
-        path: "/commits",
-        component: RepositoryTreeLayout,
+        path: "/pull-requests/[localId]",
+        component: PullRequestsEditLayout,
       },
     ],
   },

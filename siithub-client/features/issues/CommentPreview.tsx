@@ -9,7 +9,7 @@ import { PencilSquareIcon } from "@heroicons/react/20/solid";
 import { EyeSlashIcon } from "@heroicons/react/20/solid";
 import { XCircleIcon } from "@heroicons/react/20/solid";
 import { FaceSmileIcon } from "@heroicons/react/20/solid";
-import EmojiPicker, { Categories, EmojiStyle } from 'emoji-picker-react';
+import EmojiPicker, { Categories, EmojiStyle } from "emoji-picker-react";
 import { EmojisPreview } from "./EmojisPreview";
 
 type CommentPreviewProps = {
@@ -51,7 +51,7 @@ export const CommentPreview: FC<CommentPreviewProps> = ({ comment }) => {
 
   const addReaction = (code: string) => {
     issueDispatcher(instantAddReaction(issue, executedBy, comment._id, code));
-  }
+  };
 
   return (
     <>
@@ -60,7 +60,7 @@ export const CommentPreview: FC<CommentPreviewProps> = ({ comment }) => {
           <span className="mr-2">
             {parse(isHiddable ? (showHidden ? comment.text : getText(comment)) : getText(comment))}
           </span>
-          
+
           <span hidden={!isHiddable} onClick={toggleShowHidden}>
             <EyeIcon className="inline-block h-5 w-5 text-indigo-500 mr-2" />
           </span>
@@ -70,23 +70,27 @@ export const CommentPreview: FC<CommentPreviewProps> = ({ comment }) => {
       <div hidden={!showEmojiDiv}>
         <EmojiPicker
           lazyLoadEmojis={true}
-          onEmojiClick={(emojiData) => { addReaction(emojiData.unified) }}
+          onEmojiClick={(emojiData) => {
+            addReaction(emojiData.unified);
+          }}
           emojiVersion="0.6"
           skinTonesDisabled
           emojiStyle={EmojiStyle.NATIVE}
           categories={[
             {
               name: "Smiles",
-              category: Categories.SMILEYS_PEOPLE
-            }
-          ]} />
+              category: Categories.SMILEYS_PEOPLE,
+            },
+          ]}
+        />
       </div>
 
-      <div >
-        {!!comment.reactions && comment.state === CommentState.Existing ?
-          <EmojisPreview emojis={comment.reactions} commentId={comment._id} /> :
+      <div>
+        {!!comment.reactions && comment.state === CommentState.Existing ? (
+          <EmojisPreview emojis={comment.reactions} commentId={comment._id} />
+        ) : (
           <></>
-        }
+        )}
       </div>
 
       <div hidden={showPreviewDiv} key={showPreviewDiv + comment?._id}>
@@ -99,10 +103,7 @@ export const CommentPreview: FC<CommentPreviewProps> = ({ comment }) => {
         <div className="mt-10">
           {comment.state === CommentState.Existing ? (
             <span>
-              <PencilSquareIcon
-                className="inline-block h-5 w-5 text-indigo-500 mr-2"
-                onClick={toggleDivVisibility}
-              />
+              <PencilSquareIcon className="inline-block h-5 w-5 text-indigo-500 mr-2" onClick={toggleDivVisibility} />
               <EyeSlashIcon className="inline-block h-5 w-5 text-indigo-500 mr-2" onClick={hideComment} />
               <XCircleIcon className="inline-block h-5 w-5 text-indigo-500 mr-2" onClick={deleteComment} />
               <FaceSmileIcon className="inline-block h-5 w-5 text-indigo-500" onClick={toggleEmojiDivVisibility} />

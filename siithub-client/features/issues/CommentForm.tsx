@@ -24,7 +24,7 @@ export const CommentForm: FC<CommentProps> = ({ comment = undefined }) => {
   }, [quill, comment]);
 
   const onSubmit = () => {
-    const textContent = quill.root.innerHTML.toString();
+    const textContent = quill?.root.innerHTML.toString() ?? "";
 
     issueDispatcher(
       isEdit
