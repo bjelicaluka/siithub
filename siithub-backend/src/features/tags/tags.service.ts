@@ -17,7 +17,7 @@ async function findByVersionAndRepositoryIdOrThrow(version: string, repositoryId
     throw new MissingEntityException("Tag with given version does not exist in that repository.");
   }
 
-  return tag as Tag;
+  return tag;
 }
 
 async function findByRepositoryId(repositoryId: Repository["_id"]): Promise<Tag[]> {
@@ -50,6 +50,8 @@ async function createTag(createTag: TagCreate): Promise<Tag | null> {
 
   tag.commitSha = sha ?? "";
 
+  await gitServerClient.createTag(owner, name, createTag.version, createTag.branch);
+
   if (tag.isLatest) {
     const latestTag = await tagsRepo.findLatestByRepositoryId(createTag.repositoryId);
     if (latestTag) {
@@ -58,7 +60,6 @@ async function createTag(createTag: TagCreate): Promise<Tag | null> {
     }
   }
 
-  await gitServerClient.createTag(owner, name, createTag.version, createTag.branch);
   return await tagsRepo.crud.add(tag);
 }
 

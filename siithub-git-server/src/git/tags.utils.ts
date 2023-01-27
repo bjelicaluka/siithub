@@ -10,8 +10,7 @@ export async function createTag(username: string, repoName: string, tagName: str
     const tag = await repo.createTag(commit.id(), tagName, "");
 
     return tag.name();
-  } catch (e) {
-    console.log(e);
+  } catch {
     return null;
   }
 }
@@ -28,8 +27,7 @@ export async function deleteTag(username: string, repoName: string, tagName: str
 
     await repo.deleteTagByName(tagName);
     return tag;
-  } catch (e) {
-    console.log(e);
+  } catch {
     return null;
   }
 }

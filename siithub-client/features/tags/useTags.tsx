@@ -1,5 +1,5 @@
 import { useQuery } from "react-query";
-import { getTagsCountByRepo, searchTagsInRepo } from "./tagActions";
+import { type Tag, getTagsCountByRepo, searchTagsInRepo } from "./tagActions";
 
 export function useTags(owner: string, name: string, dependencies: any[] = []) {
   return useSearchTags(owner, name, "", dependencies);
@@ -15,7 +15,7 @@ export function useSearchTags(owner: string, name: string, tagName: string, depe
   );
 
   return {
-    tags: data?.data ?? [],
+    tags: (data?.data ?? []) as Tag[],
   };
 }
 

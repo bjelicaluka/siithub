@@ -259,7 +259,7 @@ app.get("/api/commit/sha/:username/:repository/:branch", async (req: Request, re
 
   const sha = await getCommitsSha(username, repository, branch);
   if (!sha) {
-    res.status(400).send({ m: "Sha does not exist" });
+    res.status(404).send({ m: "Sha does not exist" });
     return;
   }
   res.send(sha);
@@ -294,7 +294,7 @@ app.delete("/api/tags/:username/:repository/:tagName", async (req: Request, res:
   const tag = await deleteTag(username, repository, tagName);
 
   if (!tag) {
-    res.status(400).send({ m: "Tag does not exit" });
+    res.status(404).send({ m: "Tag does not exit" });
     return;
   }
   res.send(tag);

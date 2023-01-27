@@ -7,6 +7,7 @@ import { CommitIcon, TagIcon } from "./Icons";
 import { LabelPreview } from "../labels/LabelPreview";
 import { TrashIcon } from "@heroicons/react/24/outline";
 import { type Tag } from "./tagActions";
+import Link from "next/link";
 
 type TagCardProps = {
   tag: Tag;
@@ -25,7 +26,7 @@ export const TagCard: FC<TagCardProps> = ({ tag, owner, name, onTagRemove }) => 
           <div className="text-lg font-medium">{moment(tag.timeStamp).fromNow()}</div>
           <div className="flex space-x-1">
             <ProfilePicture size={18} username={user?.username ?? ""} />
-            <a href={`/users/${user?.username}`}>{user?.username}</a>
+            <Link href={`/users/${user?.username}`}>{user?.username}</Link>
           </div>
           <div className="flex space-x-1">
             <TagIcon className="mt-1 mr-1" />
@@ -33,7 +34,7 @@ export const TagCard: FC<TagCardProps> = ({ tag, owner, name, onTagRemove }) => 
           </div>
           <div className="flex space-x-1">
             <CommitIcon className="mt-1 mr-1" />
-            <a href={`/${owner}/${name}/tree/${tag.commitSha}`}>{tag.commitSha.substring(0, 7)}</a>
+            <Link href={`/${owner}/${name}/tree/${tag.commitSha}`}>{tag.commitSha.substring(0, 7)}</Link>
           </div>
         </div>
         <div className="col-span-9">

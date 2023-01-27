@@ -5,11 +5,11 @@ import { type Tag, type TagCreate } from "./tags.model";
 const collectionName = "tags";
 
 async function findByRepositoryId(repositoryId: Repository["_id"]): Promise<Tag[]> {
-  return (await tagsRepo.crud.findManyCursor({ repositoryId })).toArray();
+  return await tagsRepo.crud.findMany({ repositoryId });
 }
 
 async function searchByNameAndRepositoryId(name: string, repositoryId: Repository["_id"]): Promise<Tag[]> {
-  return (await tagsRepo.crud.findManyCursor({ name: { $regex: name, $options: "i" }, repositoryId })).toArray();
+  return await tagsRepo.crud.findMany({ name: { $regex: name, $options: "i" }, repositoryId });
 }
 
 async function findLatestByRepositoryId(repositoryId: Repository["_id"]): Promise<Tag | null> {
