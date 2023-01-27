@@ -194,7 +194,17 @@ export async function getLatestCommit(username: string, repoName: string, branch
     return null;
   }
 }
+export async function getCommitsSha(username: string, repoName: string, target: string) {
+  try {
+    const repoPath = `${homePath}/${username}/${repoName}`;
+    const repo = await Repository.open(repoPath + "/.git");
 
+    const commit = await repo.getBranchCommit(target);
+    return commit.sha();
+  } catch {
+    return null;
+  }
+}
 export async function mergeCommits(username: string, repoName: string, base: string, compare: string) {
   const signature = Signature.now("Siithub", "auto-merge@siithub.com");
   const repoPath = `${homePath}/${username}/${repoName}`;

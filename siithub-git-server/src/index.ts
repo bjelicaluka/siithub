@@ -8,12 +8,14 @@ import { getBlob } from "./git/blob.utils";
 import { addKey, removeKey } from "./key.utils";
 import { addUserToGroup, deleteUserFromGroup } from "./git/group.utils";
 import { createBranch, getBranches, removeBranch, renameBranch } from "./git/branches.utils";
+import { createTag, deleteTag } from "./git/tags.utils";
 import {
   getCommit,
   getCommitCount,
   getCommits,
   getCommitsBetweenBranches,
   getCommitsDiffBetweenBranches,
+  getCommitsSha,
   getFileHistoryCommits,
   getLatestCommit,
   mergeCommits,
@@ -252,6 +254,17 @@ app.get("/api/commit/:username/:repository/:sha/", async (req: Request, res: Res
   res.send(commit);
 });
 
+app.get("/api/commit/sha/:username/:repository/:branch", async (req: Request, res: Response) => {
+  const { username, repository, branch } = req.params;
+
+  const sha = await getCommitsSha(username, repository, branch);
+  if (!sha) {
+    res.status(400).send({ m: "Sha does not exist" });
+    return;
+  }
+  res.send(sha);
+});
+
 app.post("/api/commits/merge/:username/:repository", async (req: Request, res: Response) => {
   const { username, repository } = req.params;
   const { base, compare } = req.query as any;
@@ -262,6 +275,29 @@ app.post("/api/commits/merge/:username/:repository", async (req: Request, res: R
     return;
   }
   res.send(mergeResult);
+});
+
+app.post("/api/tags/:username/:repository", async (req: Request, res: Response) => {
+  const { username, repository } = req.params;
+  const { tagName, target } = req.body as any;
+  const tag = await createTag(username, repository, tagName, target);
+
+  if (!tag) {
+    res.status(400).send({ m: "Tag not created" });
+    return;
+  }
+  res.send(tag);
+});
+
+app.delete("/api/tags/:username/:repository/:tagName", async (req: Request, res: Response) => {
+  const { username, repository, tagName } = req.params;
+  const tag = await deleteTag(username, repository, tagName);
+
+  if (!tag) {
+    res.status(400).send({ m: "Tag does not exit" });
+    return;
+  }
+  res.send(tag);
 });
 
 app.listen(config.port, () => {
