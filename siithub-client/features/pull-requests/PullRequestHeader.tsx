@@ -52,7 +52,7 @@ const PreviewComponent = ({ pullRequest, text, color }: any) => {
   );
 };
 
-const PRStatusPreview = ({ pullRequest }: { pullRequest: PullRequest }) => {
+export const PRStatusPreview = ({ pullRequest }: { pullRequest: PullRequest }) => {
   if (!pullRequest.csm.isClosed) {
     return <PreviewComponent pullRequest={pullRequest} text={"Open"} color={"#238636"} />;
   }

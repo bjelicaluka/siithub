@@ -101,8 +101,8 @@ async function decreaseCounterValue(id: Repository["_id"], thing: "stars"): Prom
   return counters[thing];
 }
 
-async function findByIds(ids: Repository["_id"][]): Promise<Repository[]> {
-  return await repositoryRepo.crud.findMany({ _id: { $in: ids } });
+async function findByIds(ids: Repository["_id"][], type?: "private" | "public"): Promise<Repository[]> {
+  return await repositoryRepo.crud.findMany({ _id: { $in: ids }, ...(type ? { type } : {}) });
 }
 
 export type RepositoryService = {
@@ -112,7 +112,7 @@ export type RepositoryService = {
   findByOwnerAndName(owner: string, name: string): Promise<Repository | null>;
   increaseCounterValue(id: Repository["_id"], thing: "milestone" | "issue" | "stars" | "pull-request"): Promise<number>;
   search(owner: string, term?: string): Promise<Repository[]>;
-  findByIds(ids: Repository["_id"][]): Promise<Repository[]>;
+  findByIds(ids: Repository["_id"][], type?: "private" | "public"): Promise<Repository[]>;
   decreaseCounterValue(id: Repository["_id"], thing: "stars"): Promise<number>;
   getRelevantRepos(userId: User["_id"]): Promise<Repository[]>;
 };

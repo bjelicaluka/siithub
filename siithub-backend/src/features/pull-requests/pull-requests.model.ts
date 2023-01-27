@@ -70,6 +70,11 @@ export type PullRequest = AggregateRoot<PullRequestCSM> & {
   repositoryId: Repository["_id"];
 };
 
+export type PullRequestsWithRepository = {
+  requests: PullRequest[];
+  repository: Repository;
+};
+
 export type PullRequestWithParticipants = PullRequest & {
   participants: { [uid: string]: any };
 };
