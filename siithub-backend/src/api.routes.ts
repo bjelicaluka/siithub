@@ -15,6 +15,7 @@ import { branchesRoutes } from "./features/branches/branches.routes";
 import { commitRoutes } from "./features/commits/commit.routes";
 import { pullRequestRoutes } from "./features/pull-requests/pull-requests.routes";
 import { insightRoutes } from "./features/insights/insight.routes";
+import { tagsRoutes } from "./features/tags/tags.routes";
 
 const router = Router();
 
@@ -26,6 +27,7 @@ router
   .use("/repositories", issueRoutes)
   .use("/repositories", pullRequestRoutes)
   .use("/repositories", collaboratorsRoutes)
+  .use("/repositories", tagsRoutes)
   .use("/ssh-keys", sshKeyRoutes)
   .use("/", milestoneRoutes)
   .use("/", starRoutes)
