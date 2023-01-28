@@ -4,7 +4,6 @@ import { LabelPreview } from "../labels/LabelPreview";
 import parse from "html-react-parser";
 import moment from "moment";
 import { ProfilePicture } from "../../core/components/ProfilePicture";
-import { useUser } from "../users/profile/useUser";
 import Link from "next/link";
 import { CommitIcon } from "../tags/Icons";
 import { HashtagLink } from "../../core/components/HashtagLink";
@@ -14,7 +13,7 @@ type TagCardProps = {
 };
 
 export const TagCard: FC<TagCardProps> = ({ tag }) => {
-  const { user } = useUser(tag.author);
+  const user = tag.user;
 
   return (
     <div className="flex items-center bg-white border-2 p-3 border-gray-200 text-md">

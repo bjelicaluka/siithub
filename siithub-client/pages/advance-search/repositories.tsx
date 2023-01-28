@@ -12,16 +12,16 @@ const Repositories = () => {
     <>
       <SortComponent
         options={{
-          "Sortiraj po imenu 🔼": {
+          "Sort by name 🔼": {
             name: 1,
           },
-          "Sortiraj po imenu 🔽": {
+          "Sort by name 🔽": {
             name: -1,
           },
-          "Sortiraj po opisu 🔼": {
+          "Sort by description 🔼": {
             description: 1,
           },
-          "Sortiraj po opisu 🔽": {
+          "Sort by description 🔽": {
             description: -1,
           },
         }}

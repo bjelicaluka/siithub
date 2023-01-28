@@ -12,22 +12,22 @@ const PullRequests = () => {
     <>
       <SortComponent
         options={{
-          "Sortiraj po vremenu 🔼": {
+          "Sort by timestamp 🔼": {
             "csm.timeStamp": -1,
           },
-          "Sortiraj po vremenu 🔽": {
+          "Sort by timestamp 🔽": {
             "csm.timeStamp": 1,
           },
-          "Sortiraj po imenu 🔼": {
+          "Sort by title 🔼": {
             "csm.title": 1,
           },
-          "Sortiraj po imenu 🔽": {
+          "Sort by title 🔽": {
             "csm.title": -1,
           },
-          "Sortiraj po rednom broju 🔼": {
+          "Sort by local number 🔼": {
             localId: 1,
           },
-          "Sortiraj po rednom broju 🔽": {
+          "Sort by local number 🔽": {
             localId: -1,
           },
         }}

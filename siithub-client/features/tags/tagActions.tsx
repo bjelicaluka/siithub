@@ -21,6 +21,7 @@ type Tag = TagCreate & {
 
 type TagWithRepository = Tag & {
   repository: Repository;
+  user: User;
 };
 
 function getTagsByRepo(owner: string, name: string) {

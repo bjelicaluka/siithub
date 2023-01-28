@@ -12,9 +12,10 @@ import { userRepo } from "../user/user.repo";
 import { issueRepo } from "../issue/issue.repo";
 import { type TagWithRepository } from "../tags/tags.model";
 import { tagsRepo } from "../tags/tags.repo";
+import { userService } from "../user/user.service";
+import { type BaseEntity } from "../../db/base.repo.utils";
 
 async function searchRepositories(searchParam: string, userId: User["_id"], sort?: any): Promise<Repository[]> {
-  const formatSort = (sort: any) => ({ [Object.keys(sort)[0]]: sort[Object.keys(sort)[0]] });
   const sortParams = sort ? formatSort(sort) : { name: 1 };
 
   return await (await repositoryRepo.crud.findManyCursor((await getRepoOptions(searchParam, userId)) as any))
@@ -40,7 +41,6 @@ async function getRepoOptions(searchParam: string, userId: User["_id"]) {
 }
 
 async function searchUsers(searchParam: string, sort?: any): Promise<User[]> {
-  const formatSort = (sort: any) => ({ [Object.keys(sort)[0]]: sort[Object.keys(sort)[0]] });
   const sortParams = sort ? formatSort(sort) : { username: 1 };
   return (await userRepo.crud.findManyCursor(getUserOptions(searchParam))).sort(sortParams as any).toArray();
 }
@@ -66,7 +66,6 @@ async function searchPullRequest(
   repositoryId?: Repository["_id"],
   sort?: any
 ): Promise<PullRequestWithRepository[]> {
-  const formatSort = (sort: any) => ({ [Object.keys(sort)[0]]: sort[Object.keys(sort)[0]] });
   const sortParams = sort ? formatSort(sort) : { "csm.timeStamp": -1 };
 
   const pullRequests = await (
@@ -76,7 +75,7 @@ async function searchPullRequest(
     .toArray();
 
   const repos = await getRepos(pullRequests, userId, repositoryId);
-  const repoMap = await getMapOfRepos(repos);
+  const repoMap = await getMapOfEntities(repos);
 
   return connectWithRepo(pullRequests, repoMap);
 }
@@ -106,7 +105,6 @@ async function searchTags(
   repositoryId?: Repository["_id"],
   sort?: any
 ): Promise<TagWithRepository[]> {
-  const formatSort = (sort: any) => ({ [Object.keys(sort)[0]]: sort[Object.keys(sort)[0]] });
   const sortParams = sort ? formatSort(sort) : { timeStamp: -1 };
 
   const tags = await (await tagsRepo.crud.findManyCursor(getTagsOptions(searchParam, repositoryId)))
@@ -114,9 +112,13 @@ async function searchTags(
     .toArray();
 
   const repos = await getRepos(tags, userId, repositoryId);
-  const repoMap = await getMapOfRepos(repos);
+  const repoMap = await getMapOfEntities(repos);
 
-  return connectWithRepo(tags, repoMap);
+  const tagAuthors = tags.map((t) => t.author);
+  const authors = await userService.findManyByIds(tagAuthors);
+  const authorMap = getMapOfEntities(authors);
+
+  return connectWithRepo(connectWithUser(tags, authorMap), repoMap);
 }
 
 async function countTags(searchParam: string, userId: User["_id"], repositoryId?: Repository["_id"]): Promise<number> {
@@ -140,7 +142,6 @@ async function searchIssues(
   repositoryId?: Repository["_id"],
   sort?: any
 ): Promise<IssueWithRepository[]> {
-  const formatSort = (sort: any) => ({ [Object.keys(sort)[0]]: sort[Object.keys(sort)[0]] });
   const sortParams = sort ? formatSort(sort) : { "csm.timeStamp": -1 };
 
   const issues = await (
@@ -152,7 +153,7 @@ async function searchIssues(
     .toArray();
 
   const repos = await getRepos(issues, userId, repositoryId);
-  const repoMap = getMapOfRepos(repos);
+  const repoMap = getMapOfEntities(repos);
 
   return connectWithRepo(issues, repoMap);
 }
@@ -203,6 +204,9 @@ async function countCommits(searchParam: string, repositoryId: Repository["_id"]
 
   return commits.filter((c) => c.message.toLowerCase().includes(searchParam.toLowerCase())).length;
 }
+function formatSort(sort: any) {
+  return { [Object.keys(sort)[0]]: sort[Object.keys(sort)[0]] };
+}
 
 async function getRepos(
   objectList: { repositoryId: Repository["_id"] }[],
@@ -215,9 +219,9 @@ async function getRepos(
   return [...publicRepos, ...relRepos];
 }
 
-function getMapOfRepos(repo: Repository[]) {
-  return repo?.reduce((acc: any, r: Repository) => {
-    acc[r?._id?.toString()] = r;
+function getMapOfEntities(entities: BaseEntity[]) {
+  return entities?.reduce((acc: any, e: BaseEntity) => {
+    acc[e?._id?.toString()] = e;
     return acc;
   }, {});
 }
@@ -229,6 +233,15 @@ function connectWithRepo(objectList: { repositoryId: Repository["_id"] }[], repo
       repository: repoMap[o.repositoryId?.toString()],
     }))
     .filter((o) => !!o.repository);
+}
+
+function connectWithUser(objectList: { author: User["_id"] }[], authorMap: User[]) {
+  return objectList
+    .map?.((o: any) => ({
+      ...o,
+      user: authorMap[o.author?.toString()],
+    }))
+    .filter((o) => !!o.author);
 }
 
 export type AdvanceSearchService = {

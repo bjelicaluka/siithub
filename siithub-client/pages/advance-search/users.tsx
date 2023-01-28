@@ -12,16 +12,16 @@ const Users = () => {
     <>
       <SortComponent
         options={{
-          "Sortiraj po korisnickom imenu 🔼": {
+          "Sort by username 🔼": {
             username: 1,
           },
-          "Sortiraj po korisnickom imenu 🔽": {
+          "Sort by username 🔽": {
             username: -1,
           },
-          "Sortiraj po imenu 🔼": {
+          "Sort by name 🔼": {
             name: 1,
           },
-          "Sortiraj po  imenu 🔽": {
+          "Sort by name 🔽": {
             name: -1,
           },
         }}

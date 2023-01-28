@@ -1,11 +1,10 @@
 import { Repository } from "nodegit";
 import { homePath } from "../config";
-import path from "path";
 
 export async function getBranches(username: string, repoName: string) {
   try {
     const repoPath = `${homePath}/${username}/${repoName}`;
-    const repo = await Repository.open(path.resolve(__dirname, "../../../../.git")); //this repo for testing
+    const repo = await Repository.open(repoPath + "/.git");
 
     const branches = await repo.getReferences();
 
@@ -18,7 +17,7 @@ export async function getBranches(username: string, repoName: string) {
 export async function createBranch(username: string, repoName: string, source: string, branchName: string) {
   try {
     const repoPath = `${homePath}/${username}/${repoName}`;
-    const repo = await Repository.open(path.resolve(__dirname, "../../../../.git")); //this repo for testing
+    const repo = await Repository.open(repoPath + "/.git");
 
     const sourceBranch = await repo.getBranch(source);
     const lastCommit = await repo.getBranchCommit(sourceBranch);
@@ -33,7 +32,7 @@ export async function createBranch(username: string, repoName: string, source: s
 export async function renameBranch(username: string, repoName: string, branchName: string, newBranchName: string) {
   try {
     const repoPath = `${homePath}/${username}/${repoName}`;
-    const repo = await Repository.open(path.resolve(__dirname, "../../../../.git")); //this repo for testing
+    const repo = await Repository.open(repoPath + "/.git");
 
     const branch = await repo.getBranch(branchName);
     const renamedBranch = await branch.rename("refs/heads/" + newBranchName, 1, "");
@@ -46,7 +45,7 @@ export async function renameBranch(username: string, repoName: string, branchNam
 export async function removeBranch(username: string, repoName: string, branchName: string) {
   try {
     const repoPath = `${homePath}/${username}/${repoName}`;
-    const repo = await Repository.open(path.resolve(__dirname, "../../../../.git")); //this repo for testing
+    const repo = await Repository.open(repoPath + "/.git");
 
     const branch = await repo.getBranch(branchName);
     branch.delete();

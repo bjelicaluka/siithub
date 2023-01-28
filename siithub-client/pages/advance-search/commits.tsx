@@ -12,10 +12,10 @@ const Commits = () => {
     <>
       <SortComponent
         options={{
-          "Sortiraj po datumu 🔼": {
+          "Sort by commit date 🔼": {
             date: 1,
           },
-          "Sortiraj po datumu 🔽": {
+          "Sort by commit date 🔽": {
             date: -1,
           },
         }}

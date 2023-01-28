@@ -11,28 +11,28 @@ const Tags = () => {
     <>
       <SortComponent
         options={{
-          "Sortiraj po datumu 🔼": {
+          "Sort by timestamp 🔼": {
             timeStamp: -1,
           },
-          "Sortiraj po datimu 🔽": {
+          "Sort by timestamp 🔽": {
             timeStamp: 1,
           },
-          "Sortiraj po naslovu 🔼": {
+          "Sort by name 🔼": {
             name: 1,
           },
-          "Sortiraj po naslovu 🔽": {
+          "Sort by name 🔽": {
             name: -1,
           },
-          "Sortiraj po opisu 🔼": {
+          "Sort by description 🔼": {
             description: 1,
           },
-          "Sortiraj po opisu 🔽": {
+          "Sort by description 🔽": {
             description: -1,
           },
-          "Sortiraj po verziji 🔼": {
+          "Sort by version 🔼": {
             version: 1,
           },
-          "Sortiraj po verziji 🔽": {
+          "Sort by version 🔽": {
             version: -1,
           },
         }}

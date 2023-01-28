@@ -19,6 +19,7 @@ type TagCreate = Omit<Tag, "_id" | "commitSha">;
 
 type TagWithRepository = Tag & {
   repository: Repository;
+  user: User;
 };
 
 export type { Tag, TagCreate, TagWithRepository };
