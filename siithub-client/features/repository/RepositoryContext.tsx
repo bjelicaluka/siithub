@@ -2,6 +2,8 @@ import { type FC, type PropsWithChildren, createContext, useContext, useEffect, 
 import { type Repository } from "./repository.service";
 import { useRouter } from "next/router";
 import { useRepository } from "./useRepositories";
+import NotFound from "../../core/components/NotFound";
+import { useResult } from "../../core/contexts/Result";
 
 type RepositoryContextType = {
   repository?: Repository;
@@ -21,7 +23,20 @@ export const RepositoryContextProvider: FC<PropsWithChildren> = ({ children }) =
   const router = useRouter();
   const { username, repository: repositoryName } = router.query;
 
-  const { repository: fetchedRepo } = useRepository(username?.toString() ?? "", repositoryName?.toString() ?? "");
+  const { result, setResult } = useResult("repositories");
+  const { result: starResult, setResult: setStarResult } = useResult("stars");
+
+  useEffect(() => {
+    if (!result && !starResult) return;
+    setResult(undefined);
+    setStarResult(undefined);
+  }, [result, setResult, starResult, setStarResult]);
+
+  const { repository: fetchedRepo, error } = useRepository(
+    username?.toString() ?? "",
+    repositoryName?.toString() ?? "",
+    [result, starResult]
+  );
 
   useEffect(() => {
     if (!fetchedRepo) return;
@@ -33,7 +48,9 @@ export const RepositoryContextProvider: FC<PropsWithChildren> = ({ children }) =
 
   return (
     <>
-      <RepositoryContext.Provider value={{ repository }}>{repository ? children : <></>}</RepositoryContext.Provider>
+      <RepositoryContext.Provider value={{ repository }}>
+        {repository ? children : error ? <NotFound /> : <></>}
+      </RepositoryContext.Provider>
     </>
   );
 };

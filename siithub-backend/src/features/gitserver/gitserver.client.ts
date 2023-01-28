@@ -16,6 +16,24 @@ async function createRepository(username: string, repositoryName: string, type: 
   });
 }
 
+async function createRepositoryFork(
+  username: string,
+  repositoryName: string,
+  fromUsername: string,
+  fromRepositoryName: string,
+  type: "public" | "private",
+  only1Branch?: string
+): Promise<any> {
+  return await axios.post(`${config.gitServer.url}/api/repositories/fork`, {
+    username,
+    repositoryName,
+    fromUsername,
+    fromRepositoryName,
+    type,
+    only1Branch,
+  });
+}
+
 async function deleteRepository(username: string, repositoryName: string): Promise<any> {
   return await axios.put(`${config.gitServer.url}/api/repositories/delete`, {
     username,
@@ -182,6 +200,14 @@ async function getBlobInfo(username: string, repoName: string, branch: string, b
 export type GitServerClient = GitServerBranchesClient & {
   createUser(username: string): Promise<any>;
   createRepository(username: string, repositoryName: string, type: "public" | "private"): Promise<any>;
+  createRepositoryFork(
+    username: string,
+    repositoryName: string,
+    fromUsername: string,
+    fromRepositoryName: string,
+    type: "public" | "private",
+    only1Branch?: string
+  ): Promise<any>;
   deleteRepository(username: string, repositoryName: string): Promise<any>;
   addSshKey(username: string, key: string): Promise<any>;
   updateSshKey(username: string, oldKey: string, key: string): Promise<any>;
@@ -207,6 +233,7 @@ export type GitServerClient = GitServerBranchesClient & {
 const gitServerClient: GitServerCollaboratorsClient & GitServerClient = {
   createUser,
   createRepository,
+  createRepositoryFork,
   deleteRepository,
   addSshKey,
   updateSshKey,

@@ -10,6 +10,7 @@ import { ProfilePicture } from "../../../core/components/ProfilePicture";
 import { Button } from "../../../core/components/Button";
 import { User } from "../../../features/users/user.model";
 import { VerticalMenu } from "../../../core/components/VerticalMenu";
+import { BookmarkIcon } from "@heroicons/react/24/solid";
 
 function getLinks(router: NextRouter, user: User) {
   return [
@@ -19,6 +20,14 @@ function getLinks(router: NextRouter, user: User) {
       path: "/users/[username]/stars",
       onClick: async () => {
         await router.push(`/users/${user?.username}/stars`);
+      },
+    },
+    {
+      title: "Repositories",
+      icon: <BookmarkIcon className="h-6 w-6 text-gray-500" />,
+      path: "/users/[username]/repositories",
+      onClick: async () => {
+        await router.push(`/users/${user?.username}/repositories`);
       },
     },
   ];
@@ -38,7 +47,7 @@ const UserInformations: FC<UserInformationsProps> = ({ user }) => {
       <div className="text-xl p-2">{user.email}</div>
       <div className="text-xl p-2">{user.bio}</div>
 
-      <div className="p-2 flex">
+      <div className="flex">
         {userId === user._id ? (
           <Button className="grow">
             <Link href={"/settings"}>Change profile info</Link>

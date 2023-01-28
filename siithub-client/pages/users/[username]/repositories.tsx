@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
-import { StarredRepos } from "../../../features/users/StarredRepos";
+import { UsersRepos } from "../../../features/users/UsersRepos";
 
-const Stars = () => {
+const Repos = () => {
   const router = useRouter();
   const { username } = router.query;
 
@@ -9,7 +9,7 @@ const Stars = () => {
     <>
       {username ? (
         <div className="m-5">
-          <StarredRepos username={username.toString()} />
+          <UsersRepos username={username.toString()} />
         </div>
       ) : (
         <></>
@@ -18,4 +18,4 @@ const Stars = () => {
   );
 };
 
-export default Stars;
+export default Repos;

@@ -7,11 +7,8 @@ import { authorizeRepositoryOwner } from "./repository.middleware";
 import { starService } from "../star/star.service";
 import { getUserIdFromPath } from "../../utils/getUser";
 import { authorize } from "../auth/auth.middleware";
-import { Repository } from "./repository.model";
-import { labelSeeder } from "../label/label.seeder";
-import { userService } from "../user/user.service";
-import { collaboratorsService } from "../collaborators/collaborators.service";
-import { type User } from "../user/user.model";
+import { getUserIdFromRequest } from "../auth/auth.utils";
+import { getRepoIdFromPath } from "../../utils/getRepo";
 
 const router = Router();
 
@@ -35,8 +32,9 @@ router.get("/r/:username/:repository", authorize(), async (req: Request, res: Re
   const repo = await repositoryService.findByOwnerAndName(req.params.username, req.params.repository);
   if (!repo) {
     res.status(404).send("Repository not found");
+    return;
   }
-  res.send(repo);
+  res.send(await repositoryService.resolveForkedFrom(repo));
 });
 
 const repositoryBodySchema = z.object({
@@ -53,18 +51,45 @@ const createRepositoryBodySchema = repositoryBodySchema;
 
 router.post("/", authorizeRepositoryOwner(), async (req: Request, res: Response) => {
   const repository = createRepositoryBodySchema.parse(req.body);
-
-  const createdRepository = await repositoryService.create(repository);
-  if (!createdRepository) {
-    res.status(400).send("Error while creating repository");
-    return;
-  }
-
-  res.send(createdRepository);
+  res.send(repositoryService.create(repository));
 });
 
 router.delete("/:username/:repository", authorizeRepositoryOwner(), async (req: Request, res: Response) => {
   res.send(await repositoryService.delete(req.params.username, req.params.repository));
+});
+
+const forkBodySchema = z.object({
+  name: z
+    .string()
+    .min(3, "Name should have at least 3 characters.")
+    .regex(ALPHANUMERIC_REGEX, "Name should contain only alphanumeric characters."),
+  description: z.string().default(""),
+  only1Branch: z.string().optional(),
+});
+
+router.post("/fork/:username/:repository", async (req: Request, res: Response) => {
+  const fork = forkBodySchema.parse(req.body);
+  const userId = getUserIdFromRequest(req);
+  res.send(
+    await repositoryService.forkRepository(
+      { ...fork, repoOwner: req.params.username, repoName: req.params.repository },
+      userId
+    )
+  );
+});
+
+router.get("/fork/:username/:repository/:owner", async (req: Request, res: Response) => {
+  res.send(await repositoryService.findFork(req.params.owner, await getRepoIdFromPath(req)));
+});
+
+router.get("/forks/:username/:repository", authorize(), async (req: Request, res: Response) => {
+  res.send(await repositoryService.findForks(await getRepoIdFromPath(req)));
+});
+
+router.get("/by-owner/:owner", async (req: Request, res: Response) => {
+  const userId = getUserIdFromRequest(req);
+  const usersRepos = await repositoryService.findAllByOwner(req.params.owner, userId);
+  res.send(await Promise.all(usersRepos.map(async (repo) => await repositoryService.resolveForkedFrom(repo))));
 });
 
 export { repositoryBodySchema, router as repositoryRoutes };

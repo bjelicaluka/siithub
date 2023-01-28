@@ -1,34 +1,31 @@
-import { BookOpenIcon, CodeBracketIcon, Cog8ToothIcon, LockClosedIcon, StarIcon } from "@heroicons/react/24/outline";
+import { BookOpenIcon, LockClosedIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
-import { useEffect, type FC } from "react";
-import NotFound from "../../core/components/NotFound";
-import { useResult } from "../../core/contexts/Result";
+import { type FC } from "react";
 import { StarButton } from "../stars/StarButton";
-import { useRepository } from "./useRepositories";
+import { ForkButton, ForkIcon } from "./ForkButton";
+import { type Repository } from "./repository.service";
+import { useRepositoryContext } from "./RepositoryContext";
 
 type RepositoryHeaderProps = {
-  repo: string;
-  username: string;
+  repo?: string;
+  username?: string;
 };
 
-export const RepositoryHeader: FC<RepositoryHeaderProps> = ({ username, repo }) => {
-  const { result, setResult } = useResult("repositories");
-  const { result: starResult, setResult: setStarResult } = useResult("stars");
-  const { repository, error } = useRepository(username, repo, [result, starResult]);
-
-  useEffect(() => {
-    if (!result && !starResult) return;
-    setResult(undefined);
-    setStarResult(undefined);
-  }, [result, setResult, starResult, setStarResult]);
-
-  if (error) return <NotFound />;
+export const RepositoryHeader: FC<RepositoryHeaderProps> = ({}) => {
+  const { repository } = useRepositoryContext();
+  const { owner: username, name: repo, counters, forkedFromRepo } = repository as Repository;
 
   return repository ? (
     <div>
       <div className="flex">
         <div className="flex items-center grow">
-          {repository.type === "public" ? <BookOpenIcon className="h-4 w-4" /> : <LockClosedIcon className="h-4 w-4" />}
+          {forkedFromRepo ? (
+            <ForkIcon />
+          ) : repository.type === "public" ? (
+            <BookOpenIcon className="h-4 w-4" />
+          ) : (
+            <LockClosedIcon className="h-4 w-4" />
+          )}
 
           <Link className="text-2xl font-semibold  text-blue-500 hover:underline ml-3" href={`/users/${username}`}>
             {username}
@@ -37,15 +34,25 @@ export const RepositoryHeader: FC<RepositoryHeaderProps> = ({ username, repo }) 
           <Link className="text-2xl font-semibold  text-blue-500 hover:underline" href={`/${username}/${repo}`}>
             {repo}
           </Link>
-          <span className="ml-3 font-medium leading-6 rounded-full px-2 mr-10">
+          <span className="ml-3 font-medium leading-6 rounded-full px-2 mr-10 bg-gray-300 border">
             {repository.type === "public" ? "Public" : "Private"}
           </span>
         </div>
 
-        <div>
-          <StarButton repo={repo} username={username}></StarButton>
-        </div>
+        <StarButton repo={repo} username={username} count={counters?.stars ?? 0} />
+        <ForkButton repo={repo} username={username} count={counters?.forks ?? 0} />
       </div>
+      {forkedFromRepo && (
+        <p className="text-sm">
+          forked from{" "}
+          <Link
+            className="font-semibold text-blue-500 hover:underline "
+            href={`/${forkedFromRepo.owner}/${forkedFromRepo.name}`}
+          >
+            {forkedFromRepo.owner}/{forkedFromRepo.name}
+          </Link>
+        </p>
+      )}
     </div>
   ) : (
     <></>

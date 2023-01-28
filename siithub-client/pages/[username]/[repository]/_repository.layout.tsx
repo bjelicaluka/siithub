@@ -98,10 +98,10 @@ export const RepositoryLayout: FC<PropsWithChildren> = ({ children }) => {
 
   return (
     <>
-      <RepositoryHeader repo={repository?.toString()} username={username?.toString()} />
-      <RepositoryMenu links={links} />
-
       <RepositoryContextProvider>
+        <RepositoryHeader />
+        <RepositoryMenu links={links} />
+
         <div className="mt-10 w-full">{children}</div>
       </RepositoryContextProvider>
     </>

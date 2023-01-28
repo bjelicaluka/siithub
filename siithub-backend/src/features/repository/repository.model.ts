@@ -8,7 +8,16 @@ export type Repository = {
   counters: {
     [thing: string]: number;
   };
+  forkedFrom?: Repository["_id"];
 } & BaseEntity;
 
 export type RepositoryCreate = Omit<Repository, "_id" | "counters">;
 export type RepositoryUpdate = Repository;
+
+export type RepositoryForkCreate = {
+  name: string;
+  description?: string;
+  repoName: string;
+  repoOwner: string;
+  only1Branch?: string;
+};
