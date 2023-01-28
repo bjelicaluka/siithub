@@ -1,11 +1,12 @@
 import { describe, expect, it, beforeEach } from "@jest/globals";
 import { setupGitServer, setupTestEnv } from "../../jest-hooks.utils";
 import { type AdvanceSearchService } from "../../../src/features/advance-search/advance-search.service";
-import { Repository } from "../../../src/features/repository/repository.model";
-import { User } from "../../../src/features/user/user.model";
+import { type Repository } from "../../../src/features/repository/repository.model";
+import { type User } from "../../../src/features/user/user.model";
 import { ObjectId } from "mongodb";
-import { Issue, IssueCreate } from "../../../src/features/issue/issue.model";
-import { PullRequest } from "../../../src/features/pull-requests/pull-requests.model";
+import { type Issue, type IssueCreate } from "../../../src/features/issue/issue.model";
+import { type PullRequest } from "../../../src/features/pull-requests/pull-requests.model";
+import { type Tag } from "../../../src/features/tags/tags.model";
 
 describe("AdvanceSearchService", () => {
   setupTestEnv("AdvanceSearchService");
@@ -17,6 +18,7 @@ describe("AdvanceSearchService", () => {
   let userId: User["_id"];
   let issueId: Issue["_id"];
   let pullReqId: PullRequest["_id"];
+  let tagId: Tag["_id"];
 
   beforeEach(async () => {
     const { advanceSearchService } = await import("../../../src/features/advance-search/advance-search.service");
@@ -24,6 +26,7 @@ describe("AdvanceSearchService", () => {
     const { userRepo } = await import("../../../src/features/user/user.repo");
     const { issueRepo } = await import("../../../src/features/issue/issue.repo");
     const { pullRequestsRepo } = await import("../../../src/features/pull-requests/pull-requests.repo");
+    const { tagsRepo } = await import("../../../src/features/tags/tags.repo");
 
     service = advanceSearchService;
 
@@ -64,30 +67,39 @@ describe("AdvanceSearchService", () => {
 
     const pr = (await pullRequestsRepo.crud.add({ csm: { title: "PR naslov" }, repositoryId } as any)) as PullRequest;
     pullReqId = pr?._id;
+
+    const tag = (await tagsRepo.crud.add({
+      version: "v1.0.0",
+      repositoryId,
+      name: "Tag",
+    } as any)) as Tag;
+
+    tagId = tag?._id;
   });
 
   describe("searchRepositories", () => {
     it("should return empty list", async () => {
-      const repos = await service.searchRepositories("nepostojeci");
+      const repos = await service.searchRepositories("nepostojeci", new ObjectId());
 
       expect(repos.length).toBe(0);
     });
 
     it("should return one element", async () => {
-      const repos = await service.searchRepositories("repo");
+      const repos = await service.searchRepositories("repo", userId);
 
       expect(repos.length).toBe(1);
+      expect(repos[0]._id.toString()).toBe(repositoryId.toString());
     });
   });
 
   describe("countRepositories", () => {
     it("should return 0", async () => {
-      const count = await service.countRepositories("nepostojeci");
+      const count = await service.countRepositories("nepostojeci", new ObjectId());
 
       expect(count).toBe(0);
     });
     it("should return 1", async () => {
-      const count = await service.countRepositories("repo");
+      const count = await service.countRepositories("repo", userId);
 
       expect(count).toBe(1);
     });
@@ -104,6 +116,7 @@ describe("AdvanceSearchService", () => {
       const users = await service.searchUsers("user");
 
       expect(users.length).toBe(1);
+      expect(users[0]._id.toString()).toBe(userId.toString());
       expect(users[0]).toHaveProperty("name", "User");
     });
   });
@@ -123,26 +136,27 @@ describe("AdvanceSearchService", () => {
 
   describe("searchIssues", () => {
     it("should return empty list", async () => {
-      const issues = await service.searchIssues("nepostojeci");
+      const issues = await service.searchIssues("nepostojeci", userId, new ObjectId());
 
       expect(issues.length).toBe(0);
     });
 
     it("should return one issue", async () => {
-      const issues = await service.searchIssues("opi", repositoryId);
+      const issues = await service.searchIssues("opi", userId, repositoryId);
       expect(issues.length).toBe(1);
+      expect(issues[0]._id.toString()).toBe(issueId.toString());
       expect(issues[0].csm).toHaveProperty("description", "Opis");
     });
   });
 
   describe("countIssues", () => {
     it("should return 0", async () => {
-      const count = await service.countIssues("nepostojeci");
+      const count = await service.countIssues("nepostojeci", userId, new ObjectId());
 
       expect(count).toBe(0);
     });
     it("should return 1", async () => {
-      const count = await service.countIssues("opis", repositoryId);
+      const count = await service.countIssues("opis", userId, repositoryId);
 
       expect(count).toBe(1);
     });
@@ -150,25 +164,53 @@ describe("AdvanceSearchService", () => {
 
   describe("searchPullRequest", () => {
     it("should return empty list", async () => {
-      const requests = await service.searchPullRequest("nepostojeci", repositoryId);
-      expect(requests.requests.length).toBe(0);
+      const requests = await service.searchPullRequest("nepostojeci", userId, repositoryId);
+      expect(requests.length).toBe(0);
     });
 
     it("should return one pull request", async () => {
-      const requests = await service.searchPullRequest("Pr", repositoryId);
-      expect(requests.requests.length).toBe(1);
-      expect(requests.requests[0].csm).toHaveProperty("title", "PR naslov");
+      const requests = await service.searchPullRequest("Pr", userId, repositoryId);
+      expect(requests.length).toBe(1);
+      expect(requests[0]._id.toString()).toBe(pullReqId.toString());
+      expect(requests[0].csm).toHaveProperty("title", "PR naslov");
     });
   });
 
   describe("countPullRequest", () => {
     it("should return 0", async () => {
-      const count = await service.countPullRequest("nepostojeci", repositoryId);
+      const count = await service.countPullRequest("nepostojeci", userId, repositoryId);
 
       expect(count).toBe(0);
     });
     it("should return 1", async () => {
-      const count = await service.countPullRequest("Pr", repositoryId);
+      const count = await service.countPullRequest("Pr", userId, repositoryId);
+
+      expect(count).toBe(1);
+    });
+  });
+
+  describe("searchTags", () => {
+    it("should return empty list", async () => {
+      const requests = await service.searchTags("nepostojeci", userId, repositoryId);
+      expect(requests.length).toBe(0);
+    });
+
+    it("should return one tag", async () => {
+      const requests = await service.searchTags("tag", userId, repositoryId);
+      expect(requests.length).toBe(1);
+      expect(requests[0]._id.toString()).toBe(tagId.toString());
+      expect(requests[0]).toHaveProperty("name", "Tag");
+    });
+  });
+
+  describe("countTags", () => {
+    it("should return 0", async () => {
+      const count = await service.countTags("nepostojeci", userId, repositoryId);
+
+      expect(count).toBe(0);
+    });
+    it("should return 1", async () => {
+      const count = await service.countTags("tag", userId, repositoryId);
 
       expect(count).toBe(1);
     });

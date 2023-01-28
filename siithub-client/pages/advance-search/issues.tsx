@@ -12,17 +12,23 @@ const Issues = () => {
     <>
       <SortComponent
         options={{
+          "Sortiraj po datumu 🔼": {
+            "csm.timeStamp": -1,
+          },
+          "Sortiraj po datimu 🔽": {
+            "csm.timeStamp": 1,
+          },
           "Sortiraj po naslovu 🔼": {
             "csm.title": 1,
           },
           "Sortiraj po naslovu 🔽": {
             "csm.title": -1,
           },
-          "Sortiraj po datumu 🔼": {
-            "csm.timeStamp": 1,
+          "Sortiraj po rednom broju 🔼": {
+            localId: 1,
           },
-          "Sortiraj po datimu 🔽": {
-            "csm.timeStamp": -1,
+          "Sortiraj po rednom broju 🔽": {
+            localId: -1,
           },
         }}
       />

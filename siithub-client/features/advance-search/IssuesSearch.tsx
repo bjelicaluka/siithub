@@ -9,9 +9,13 @@ type IssuesSearchProps = { param: string; repositoryId?: Repository["_id"]; sort
 export const IssuesSearch: FC<IssuesSearchProps> = ({ param, repositoryId, sort }) => {
   const { data: issues } = useSearch<IssueWithRepository>("issues", param, repositoryId, sort);
   return (
-    <div>
+    <div className="mt-2">
       {issues.map((i: IssueWithRepository) => {
-        return <IssueCard key={i._id} issue={i} />;
+        return (
+          <div className="mt-1" key={i._id}>
+            <IssueCard issue={i} />
+          </div>
+        );
       })}
     </div>
   );

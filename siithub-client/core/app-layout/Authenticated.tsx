@@ -27,7 +27,7 @@ export const AuthenticatedLayout: FC<PropsWithChildren> = ({ children }) => {
   const [param, setParam] = useState("");
 
   useEffect(() => {
-    setParam(router.query.param || "");
+    setParam((router.query.param as string) || "");
   }, []);
 
   const onDataChange = (event: any) => {
@@ -45,7 +45,10 @@ export const AuthenticatedLayout: FC<PropsWithChildren> = ({ children }) => {
       getRepository(owner, repositoryName)
         .then((resp: any) => {
           const repo = resp?.data as Repository;
-          router.push(`/advance-search/${searchType || "commits"}?param=${param}&repositoryId=${repo._id}`);
+          router.push({
+            pathname: `/advance-search/${searchType || "commits"}`,
+            query: { param, repositoryId: repo._id },
+          });
         })
         .catch(() => {});
 
@@ -53,14 +56,22 @@ export const AuthenticatedLayout: FC<PropsWithChildren> = ({ children }) => {
     }
 
     if (router.query.repositoryId) {
-      router.push(
-        `/advance-search/${searchType || "commits"}?param=${param}&repositoryId=${router.query.repositoryId}`
-      );
+      router.push({
+        pathname: `/advance-search/${searchType || "commits"}`,
+        query: {
+          param,
+          repositoryId: router.query.repositoryId,
+          ...(router.query.sort ? { sort: router.query.sort } : {}),
+        },
+      });
 
       return;
     }
 
-    router.push(`/advance-search/${searchType || "repositories"}?param=${param}`);
+    router.push({
+      pathname: `/advance-search/${searchType || "repositories"}`,
+      query: { param, ...(router.query.sort ? { sort: router.query.sort } : {}) },
+    });
   };
   loggedUser = user;
 

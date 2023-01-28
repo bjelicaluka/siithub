@@ -1,12 +1,11 @@
 import { Commit, ConvenientPatch, Merge, Repository, Revwalk, Signature } from "nodegit";
 import { homePath } from "../config";
 import { isCommitSha } from "../string.utils";
-import path from "path";
 
 export async function getCommits(username: string, repoName: string, branch: string, withStats = false) {
   try {
     const repoPath = `${homePath}/${username}/${repoName}`;
-    const repo = await Repository.open(path.resolve(__dirname, "../../../../.git")); //this repo for testing
+    const repo = await Repository.open(repoPath + "/.git");
     const headCommit = await (isCommitSha(branch) ? repo.getCommit(branch) : repo.getBranchCommit(branch));
     const walker = repo.createRevWalk();
     walker.push(headCommit.id());
@@ -38,7 +37,7 @@ export async function getCommits(username: string, repoName: string, branch: str
 export async function getCommitsBetweenBranches(username: string, repoName: string, base: string, compare: string) {
   try {
     const repoPath = `${homePath}/${username}/${repoName}`;
-    const repo = await Repository.open(path.resolve(__dirname, "../../../../.git")); //this repo for testing
+    const repo = await Repository.open(repoPath + "/.git");
 
     const headCommit = await (isCommitSha(base) ? repo.getCommit(base) : repo.getBranchCommit(base));
     const headCommitCompare = await (isCommitSha(compare) ? repo.getCommit(compare) : repo.getBranchCommit(compare));
@@ -66,7 +65,7 @@ export async function getCommitsBetweenBranches(username: string, repoName: stri
 export async function getCommitCount(username: string, repoName: string, branch: string) {
   try {
     const repoPath = `${homePath}/${username}/${repoName}`;
-    const repo = await Repository.open(path.resolve(__dirname, "../../../../.git")); //this repo for testing
+    const repo = await Repository.open(repoPath + "/.git");
     const headCommit = await (isCommitSha(branch) ? repo.getCommit(branch) : repo.getBranchCommit(branch));
     const walker = repo.createRevWalk();
     walker.push(headCommit.id());
@@ -80,7 +79,7 @@ export async function getCommitCount(username: string, repoName: string, branch:
 export async function getCommitsDiffBetweenBranches(username: string, repoName: string, base: string, compare: string) {
   try {
     const repoPath = `${homePath}/${username}/${repoName}`;
-    const repo = await Repository.open(path.resolve(__dirname, "../../../../.git")); //this repo for testing
+    const repo = await Repository.open(repoPath + "/.git");
 
     const commit = await (isCommitSha(compare) ? repo.getCommit(compare) : repo.getBranchCommit(compare));
     const parentCommit = await (isCommitSha(base) ? repo.getCommit(base) : repo.getBranchCommit(base));
@@ -94,7 +93,7 @@ export async function getCommitsDiffBetweenBranches(username: string, repoName: 
 export async function getCommit(username: string, repoName: string, sha: string) {
   try {
     const repoPath = `${homePath}/${username}/${repoName}`;
-    const repo = await Repository.open(path.resolve(__dirname, "../../../../.git")); //this repo for testing
+    const repo = await Repository.open(repoPath + "/.git");
     const commit = await repo.getCommit(sha);
     const parentCommits = await commit.getParents(1);
     return await getDiffData(commit, parentCommits[0]);
@@ -153,7 +152,7 @@ async function getPatchData(patch: ConvenientPatch, commit: Commit, parentCommit
 export async function getFileHistoryCommits(username: string, repoName: string, branch: string, filePath: string) {
   try {
     const repoPath = `${homePath}/${username}/${repoName}`;
-    const repo = await Repository.open(path.resolve(__dirname, "../../../../.git")); //this repo for testing
+    const repo = await Repository.open(repoPath + "/.git");
     const headCommit = await (isCommitSha(branch) ? repo.getCommit(branch) : repo.getBranchCommit(branch));
     const walker = repo.createRevWalk();
     walker.push(headCommit.id());
@@ -173,7 +172,7 @@ export async function getFileHistoryCommits(username: string, repoName: string, 
 export async function getLatestCommit(username: string, repoName: string, branch: string, blobPath: string) {
   try {
     const repoPath = `${homePath}/${username}/${repoName}`;
-    const repo = await Repository.open(path.resolve(__dirname, "../../../../.git")); //this repo for testing
+    const repo = await Repository.open(repoPath + "/.git");
     const headCommit = await (isCommitSha(branch) ? repo.getCommit(branch) : repo.getBranchCommit(branch));
     const walker = repo.createRevWalk();
     walker.push(headCommit.id());

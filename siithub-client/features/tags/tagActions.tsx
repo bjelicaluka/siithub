@@ -19,6 +19,10 @@ type Tag = TagCreate & {
   timeStamp: Date;
 };
 
+type TagWithRepository = Tag & {
+  repository: Repository;
+};
+
 function getTagsByRepo(owner: string, name: string) {
   return axios.get(`/api/repositories/${owner}/${name}/tags`);
 }
@@ -41,4 +45,4 @@ function deleteTag(owner: string, name: string) {
 
 export { getTagsByRepo, searchTagsInRepo, getTagsCountByRepo, createTag, deleteTag };
 
-export type { Tag, TagCreate };
+export type { Tag, TagCreate, TagWithRepository };

@@ -9,9 +9,13 @@ export const UsersSearch: FC<UsersSearchProps> = ({ param, sort }) => {
   const { data: users } = useSearch<User>("users", param, undefined, sort);
 
   return (
-    <div>
+    <div className="mt-2">
       {users.map((u: User) => {
-        return <UserCard key={u._id} user={u} />;
+        return (
+          <div className="mt-1" key={u._id}>
+            <UserCard user={u} />
+          </div>
+        );
       })}
     </div>
   );

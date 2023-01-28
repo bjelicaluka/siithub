@@ -8,9 +8,13 @@ type RepositoriesSearchProps = { param: string; sort?: any };
 export const RepositoriesSearch: FC<RepositoriesSearchProps> = ({ param, sort }) => {
   const { data: repositories } = useSearch<Repository>("repositories", param, undefined, sort);
   return (
-    <div>
+    <div className="mt-2">
       {repositories.map((r: Repository) => {
-        return <RepositoryCard key={r._id} repository={r} />;
+        return (
+          <div key={r._id} className="mt-1">
+            <RepositoryCard repository={r} />
+          </div>
+        );
       })}
     </div>
   );

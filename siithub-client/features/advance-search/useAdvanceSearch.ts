@@ -16,7 +16,7 @@ export function useCount(type: string, param: string, repositoryId?: Repository[
     [`count_${type}_${param}_${repositoryId}`],
     () => getCount(type, param, repositoryId),
     {
-      enabled: (type !== "commits" && type !== "pull-requests") || !!repositoryId,
+      enabled: type !== "commits" || !!repositoryId,
     }
   );
   return {

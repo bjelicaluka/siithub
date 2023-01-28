@@ -11,9 +11,13 @@ export const CommitsSearch: FC<CommitsSearchProps> = ({ param, repositoryId, sor
   } = useSearch("commits", param, repositoryId, sort) as any;
 
   return (
-    <div>
+    <div className="mt-2">
       {commits?.map((c: Commit) => {
-        return <CommitCard key={c.sha} commit={c} username={repository.owner} repoName={repository.name} />;
+        return (
+          <div className="mt-1" key={c.sha}>
+            <CommitCard commit={c} username={repository.owner} repoName={repository.name} />
+          </div>
+        );
       })}
     </div>
   );

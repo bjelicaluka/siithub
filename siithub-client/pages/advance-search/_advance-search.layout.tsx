@@ -44,6 +44,16 @@ function getLinks(router: NextRouter, counters: any) {
       },
     },
     {
+      title: <MeniItemContent title="Tags" counter={counters.tagsCount} />,
+      icon: <></>,
+      path: "/advance-search/tags",
+      onClick: async () => {
+        const query = { ...router.query };
+        query.sort && delete query["sort"];
+        await router.push({ pathname: `/advance-search/tags`, query });
+      },
+    },
+    {
       title: <MeniItemContent title="Issues" counter={counters.issuesCount} />,
       icon: <></>,
       path: "/advance-search/issues",
@@ -51,6 +61,16 @@ function getLinks(router: NextRouter, counters: any) {
         const query = { ...router.query };
         query.sort && delete query["sort"];
         await router.push({ pathname: `/advance-search/issues`, query });
+      },
+    },
+    {
+      title: <MeniItemContent title="Pull Requests" counter={counters.pullReqCount} />,
+      icon: <></>,
+      path: "/advance-search/pull-requests",
+      onClick: async () => {
+        const query = { ...router.query };
+        query.sort && delete query["sort"];
+        await router.push({ pathname: `/advance-search/pull-requests`, query });
       },
     },
     {
@@ -62,17 +82,6 @@ function getLinks(router: NextRouter, counters: any) {
         const query = { ...router.query };
         query.sort && delete query["sort"];
         await router.push({ pathname: `/advance-search/users`, query });
-      },
-    },
-    {
-      title: <MeniItemContent title="Pull Requests" counter={counters.pullReqCount} />,
-      icon: <></>,
-      path: "/advance-search/pull-requests",
-      visibility: () => !!router.query?.repositoryId,
-      onClick: async () => {
-        const query = { ...router.query };
-        query.sort && delete query["sort"];
-        await router.push({ pathname: `/advance-search/pull-requests`, query });
       },
     },
   ];
@@ -88,6 +97,7 @@ export const AdvanceSearchLayout: FC<PropsWithChildren> = ({ children }) => {
   const usersCount = useCount("users", param, repositoryId).data;
   const commitsCount = useCount("commits", param, repositoryId).data;
   const pullReqCount = useCount("pull-requests", param, repositoryId).data;
+  const tagsCount = useCount("tags", param, repositoryId).data;
 
   const counters = {
     reposCount,
@@ -95,6 +105,7 @@ export const AdvanceSearchLayout: FC<PropsWithChildren> = ({ children }) => {
     usersCount,
     commitsCount,
     pullReqCount,
+    tagsCount,
   };
 
   const links = getLinks(router, counters);

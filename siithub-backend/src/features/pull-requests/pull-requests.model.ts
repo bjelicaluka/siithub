@@ -70,8 +70,7 @@ export type PullRequest = AggregateRoot<PullRequestCSM> & {
   repositoryId: Repository["_id"];
 };
 
-export type PullRequestsWithRepository = {
-  requests: PullRequest[];
+export type PullRequestWithRepository = PullRequest & {
   repository: Repository;
 };
 
