@@ -72,6 +72,7 @@ describe("AdvanceSearchService", () => {
       version: "v1.0.0",
       repositoryId,
       name: "Tag",
+      author: userId,
     } as any)) as Tag;
 
     tagId = tag?._id;
