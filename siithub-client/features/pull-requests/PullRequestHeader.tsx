@@ -3,6 +3,7 @@ import { usePullRequestContext } from "./PullRequestContext";
 import { type PullRequest, PullRequestState } from "./pullRequestActions";
 import { findLastEvent } from "../common/utils";
 import { PRIcon } from "./PRIcon";
+import { HashtagLink } from "../../core/components/HashtagLink";
 
 type PullRequestHeaderProps = {};
 
@@ -73,9 +74,12 @@ export const PullRequestHeader: FC<PullRequestHeaderProps> = ({}) => {
   return (
     <>
       <div>
-        <span className="text-3xl font-medium">{title}</span> <span className="text-3xl text-gray-600">#{localId}</span>
+        <span className="text-3xl font-medium">
+          <HashtagLink>{title}</HashtagLink>
+        </span>{" "}
+        <span className="text-3xl text-gray-600">#{localId}</span>
       </div>
-      <div className="flex space-x-2">
+      <div className="flex space-x-2 mt-2">
         <div>
           <PRStatusPreview pullRequest={pullRequest} />
         </div>

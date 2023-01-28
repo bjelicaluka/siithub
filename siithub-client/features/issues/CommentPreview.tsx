@@ -11,6 +11,7 @@ import { XCircleIcon } from "@heroicons/react/20/solid";
 import { FaceSmileIcon } from "@heroicons/react/20/solid";
 import EmojiPicker, { Categories, EmojiStyle } from "emoji-picker-react";
 import { EmojisPreview } from "./EmojisPreview";
+import { HashtagLink } from "../../core/components/HashtagLink";
 
 type CommentPreviewProps = {
   comment: Comment;
@@ -58,7 +59,9 @@ export const CommentPreview: FC<CommentPreviewProps> = ({ comment }) => {
       <div hidden={!showPreviewDiv}>
         <div style={{ marginTop: "10px", display: "flex", alignItems: "center" }}>
           <span className="mr-2">
-            {parse(isHiddable ? (showHidden ? comment.text : getText(comment)) : getText(comment))}
+            <HashtagLink>
+              {parse(isHiddable ? (showHidden ? comment.text : getText(comment)) : getText(comment))}
+            </HashtagLink>
           </span>
 
           <span hidden={!isHiddable} onClick={toggleShowHidden}>

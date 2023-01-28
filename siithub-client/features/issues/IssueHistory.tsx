@@ -11,19 +11,32 @@ import { ProfilePicture } from "../../core/components/ProfilePicture";
 import { useMilestonesByRepoId } from "../milestones/useMilestones";
 import { useAuthContext } from "../../core/contexts/Auth";
 import { type User } from "../users/user.model";
+import { useCollaborators } from "../collaborators/useCollaborators";
+import { useRepositoryContext } from "../repository/RepositoryContext";
+import { type Repository } from "../repository/repository.service";
+import { type Collaborator } from "../collaborators/collaboratorAction";
+import Link from "next/link";
 
 const eventTypesToExclude = ["UserReactedEvent", "UserUnreactedEvent"];
 
 export const IssueHistory: FC = () => {
+  const { repository } = useRepositoryContext();
+  const { owner, name } = repository as Repository;
+
   const { issue } = useIssueContext();
   const { labels } = useLabels(issue.repositoryId);
   const { milestones } = useMilestonesByRepoId(issue.repositoryId);
 
   const { user } = useAuthContext();
+  const { collaborators } = useCollaborators(owner, name, "");
 
   const participants = {
     ...(issue.participants || {}),
     [user?._id ?? ""]: user as any as User,
+    ...(collaborators?.reduce((acc: any, c: Collaborator) => {
+      acc[c.userId] = c.user;
+      return acc;
+    }, {}) ?? {}),
   };
 
   const IssuesWrapper = ({ events }: any) => {
@@ -65,17 +78,38 @@ export const IssueHistory: FC = () => {
 
       case "MilestoneAssignedEvent": {
         const milestone = milestones?.find((m: Milestone) => m._id === event.milestoneId);
-        return <>added the {milestone?.title} milestone</>;
+        return (
+          <>
+            added the <Link href={`/${owner}/${name}/milestones/${milestone?.localId}`}>{milestone?.title}</Link>{" "}
+            milestone
+          </>
+        );
       }
       case "MilestoneUnassignedEvent": {
         const milestone = milestones?.find((m: Milestone) => m._id === event.milestoneId);
-        return <>removed the {milestone?.title} milestone</>;
+        return (
+          <>
+            removed the <Link href={`/${owner}/${name}/milestones/${milestone?.localId}`}>{milestone?.title}</Link>{" "}
+            milestone
+          </>
+        );
       }
 
       case "UserAssignedEvent":
-        return <>assigned {participants?.[event.userId]?.name}</>;
+        const assigned = participants?.[event.userId];
+        return (
+          <>
+            assigned <Link href={`/users/${assigned?.username}`}>{assigned?.name}</Link>
+          </>
+        );
       case "UserUnassignedEvent":
-        return <>removed {participants?.[event.userId]?.name}</>;
+        const unassigned = participants?.[event.userId];
+
+        return (
+          <>
+            removed <Link href={`/users/${unassigned?.username}`}>{unassigned?.name}</Link>
+          </>
+        );
 
       case "IssueReopenedEvent":
         return <>reopened this issue</>;

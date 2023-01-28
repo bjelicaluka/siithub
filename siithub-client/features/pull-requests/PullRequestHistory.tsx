@@ -15,6 +15,10 @@ import { LabelPreview } from "../labels/LabelPreview";
 import { CommentPreview } from "./CommentPreview";
 import { ConversationCard } from "./Conversation";
 import { useAuthContext } from "../../core/contexts/Auth";
+import { HashtagLink } from "../../core/components/HashtagLink";
+import { useCollaborators } from "../collaborators/useCollaborators";
+import { type Collaborator } from "../collaborators/collaboratorAction";
+import Link from "next/link";
 
 const eventsToTake = [
   "LabelAssignedEvent",
@@ -100,7 +104,7 @@ const CommitRow: FC<CommitRowProps> = ({ commit }) => {
           <div className="col-span-10 text-left ">
             {commit.author.name} commited{" "}
             <a className="hover:underline" href={`/${owner}/${name}/commit/${commit.sha}`}>
-              {commit.message}
+              <HashtagLink>{commit.message}</HashtagLink>
             </a>
           </div>
 
@@ -120,12 +124,20 @@ type EventRowProps = {
 };
 
 const EventRow: FC<EventRowProps> = ({ event }) => {
+  const { repository } = useRepositoryContext();
+  const { owner, name } = repository as Repository;
   const { pullRequest } = usePullRequestContext();
 
   const { user } = useAuthContext();
+  const { collaborators } = useCollaborators(owner, name, "");
+
   const participants = {
-    ...pullRequest.participants,
+    ...(pullRequest.participants || {}),
     [user?._id ?? ""]: user as any as User,
+    ...(collaborators?.reduce((acc: any, c: Collaborator) => {
+      acc[c.userId] = c.user;
+      return acc;
+    }, {}) ?? {}),
   };
 
   const { labels } = useLabels(pullRequest.repositoryId);
@@ -165,7 +177,8 @@ const EventRow: FC<EventRowProps> = ({ event }) => {
         const milestone = findMilestone(event.milestoneId);
         return (
           <>
-            {findUser(event.by)?.name} added the {milestone?.title} milestone
+            {findUser(event.by)?.name} added the{" "}
+            <Link href={`/${owner}/${name}/milestones/${milestone?.localId}`}>{milestone?.title}</Link> milestone
           </>
         );
       }
@@ -174,7 +187,8 @@ const EventRow: FC<EventRowProps> = ({ event }) => {
         const milestone = findMilestone(event.milestoneId);
         return (
           <>
-            {findUser(event.by)?.name} removed the {milestone?.title} milestone
+            {findUser(event.by)?.name} removed the{" "}
+            <Link href={`/${owner}/${name}/milestones/${milestone?.localId}`}>{milestone?.title}</Link> milestone
           </>
         );
       }
@@ -183,11 +197,15 @@ const EventRow: FC<EventRowProps> = ({ event }) => {
         const by = findUser(event.by);
         const assigned = findUser(event.userId);
         if (by?._id === assigned?._id) {
-          return <>{by?.name} self-assigned</>;
+          return (
+            <>
+              {by?.name} <Link href={`/users/${assigned?.username}`}>self-assigned</Link>
+            </>
+          );
         }
         return (
           <>
-            {by?.name} assigned {assigned?.name}
+            {by?.name} assigned <Link href={`/users/${assigned?.username}`}>{assigned?.name}</Link>
           </>
         );
       }
@@ -195,11 +213,15 @@ const EventRow: FC<EventRowProps> = ({ event }) => {
         const by = findUser(event.by);
         const unassigned = findUser(event.userId);
         if (by?._id === unassigned?._id) {
-          return <>{by?.name} self-unassigned</>;
+          return (
+            <>
+              {by?.name} <Link href={`/users/${unassigned?.username}`}>self-unassigned</Link>
+            </>
+          );
         }
         return (
           <>
-            {by?.name} unassigned {unassigned?.name}
+            {by?.name} unassigned <Link href={`/users/${unassigned?.username}`}>{unassigned?.name}</Link>
           </>
         );
       }

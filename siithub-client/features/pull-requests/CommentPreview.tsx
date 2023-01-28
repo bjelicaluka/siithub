@@ -17,6 +17,7 @@ import {
   usePullRequestContext,
 } from "./PullRequestContext";
 import { EmojisPreview } from "./EmojisPreview";
+import { HashtagLink } from "../../core/components/HashtagLink";
 
 type StylingOptions = {
   buttonsContainer: string;
@@ -79,7 +80,9 @@ export const CommentPreview: FC<CommentPreviewProps> = ({ comment, stylingOption
       <div hidden={!showPreviewDiv}>
         <div style={{ marginTop: "10px", display: "flex", alignItems: "center" }}>
           <span className="mr-2">
-            {parse(isHiddable ? (showHidden ? comment.text : getText(comment)) : getText(comment))}
+            <HashtagLink>
+              {parse(isHiddable ? (showHidden ? comment.text : getText(comment)) : getText(comment))}
+            </HashtagLink>
           </span>
 
           <span hidden={!isHiddable} onClick={toggleShowHidden}>

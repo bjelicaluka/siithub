@@ -9,6 +9,7 @@ import { LabelPreview } from "../labels/LabelPreview";
 import { findLastEvent } from "../common/utils";
 import moment from "moment";
 import { PRIcon } from "./PRIcon";
+import { HashtagLink } from "../../core/components/HashtagLink";
 
 type PullRequestsTableProps = {
   repositoryId: Repository["_id"];
@@ -65,7 +66,9 @@ export const PullRequestsTable: FC<PullRequestsTableProps> = ({ repositoryId, pu
                       <span className="mr-2 mt-2">
                         <PRIcon pullRequest={pullRequest} />
                       </span>
-                      <span className="text-xl mr-2">{pullRequest.csm.title}</span>
+                      <span className="text-xl mr-2">
+                        <HashtagLink>{pullRequest.csm.title}</HashtagLink>
+                      </span>
                       <span>
                         {pullRequest.csm.labels?.map((lId) => {
                           const label = findLabel(lId) || {};

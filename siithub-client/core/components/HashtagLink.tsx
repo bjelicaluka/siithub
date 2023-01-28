@@ -1,14 +1,14 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { Children, type FC, type ReactNode } from "react";
+import { Children, ReactElement, type FC, type ReactNode, cloneElement } from "react";
 
 type HashtagLinkProps = { children: ReactNode; href?: string };
 
 export const HashtagLink: FC<HashtagLinkProps> = ({ children, href }) => {
   const router = useRouter();
   const { repository, username } = router.query;
-  const things = { I: "issues", M: "milestones", P: "pulls" };
-  const re = RegExp("#[MIP]\\d+[,\\.\\s]", "g");
+  const things = { I: "issues", M: "milestones", P: "pull-requests" };
+  const re = RegExp("#[MIP]\\d+", "g");
 
   const wrap = (text: string) =>
     href ? (
@@ -22,7 +22,13 @@ export const HashtagLink: FC<HashtagLinkProps> = ({ children, href }) => {
   return (
     <>
       {Children.map(children, (child) => {
-        if (typeof child !== "string") return child;
+        if (typeof child !== "string") {
+          if (typeof child === "object") {
+            const elem = child as ReactElement;
+            return cloneElement(elem, [], <HashtagLink>{elem.props.children}</HashtagLink>);
+          }
+          return child;
+        }
         let hashtags: { text: string; start: number; end: number }[] = [];
         let result;
         while ((result = re.exec(child)) !== null)

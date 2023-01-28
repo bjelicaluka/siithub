@@ -208,7 +208,7 @@ export async function getCommitsSha(username: string, repoName: string, target: 
 export async function mergeCommits(username: string, repoName: string, base: string, compare: string) {
   const signature = Signature.now("Siithub", "auto-merge@siithub.com");
   const repoPath = `${homePath}/${username}/${repoName}`;
-  const repo = await Repository.open(repoPath);
+  const repo = await Repository.open(repoPath + "/.git");
 
   const commit = await repo.getBranchCommit(compare);
   const parentCommit = await repo.getBranchCommit(base);
