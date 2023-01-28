@@ -1,4 +1,4 @@
-import { type FC, Fragment, type PropsWithChildren } from "react";
+import { type FC, type PropsWithChildren, useState, Fragment, useEffect } from "react";
 import { Disclosure, Menu, Transition } from "@headlessui/react";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 import { AuthUser, useAuthContext } from "../contexts/Auth";
@@ -6,6 +6,7 @@ import Link from "next/link";
 import { type NextRouter, useRouter } from "next/router";
 import Image from "next/image";
 import { ProfilePicture } from "../components/ProfilePicture";
+import { type Repository, getRepository } from "../../features/repository/repository.service";
 
 let loggedUser: AuthUser | undefined;
 
@@ -23,6 +24,55 @@ export const AuthenticatedLayout: FC<PropsWithChildren> = ({ children }) => {
   const router = useRouter();
   const { user } = useAuthContext();
 
+  const [param, setParam] = useState("");
+
+  useEffect(() => {
+    setParam((router.query.param as string) || "");
+  }, []);
+
+  const onDataChange = (event: any) => {
+    setParam(event.target.value);
+  };
+
+  const search = () => {
+    const searchType = router.pathname?.startsWith("/advance-search/")
+      ? router.pathname.replace("/advance-search/", "")
+      : "";
+
+    if (router.pathname.startsWith("/[username]/[repository]")) {
+      const { username: owner, repository: repositoryName } = router.query as any;
+
+      getRepository(owner, repositoryName)
+        .then((resp: any) => {
+          const repo = resp?.data as Repository;
+          router.push({
+            pathname: `/advance-search/${searchType || "commits"}`,
+            query: { param, repositoryId: repo._id },
+          });
+        })
+        .catch(() => {});
+
+      return;
+    }
+
+    if (router.query.repositoryId) {
+      router.push({
+        pathname: `/advance-search/${searchType || "commits"}`,
+        query: {
+          param,
+          repositoryId: router.query.repositoryId,
+          ...(router.query.sort ? { sort: router.query.sort } : {}),
+        },
+      });
+
+      return;
+    }
+
+    router.push({
+      pathname: `/advance-search/${searchType || "repositories"}`,
+      query: { param, ...(router.query.sort ? { sort: router.query.sort } : {}) },
+    });
+  };
   loggedUser = user;
 
   return (
@@ -32,10 +82,10 @@ export const AuthenticatedLayout: FC<PropsWithChildren> = ({ children }) => {
           {({ open }) => (
             <>
               <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                <div className="flex h-16 items-center justify-between">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0">
-                      <Link href="/">
+                <div className="flex h-16 items-center justify-between w-100">
+                  <div className="flex items-center space-x-2 w-[30%]">
+                    <div>
+                      <Link href="/" onClick={() => setParam("")}>
                         <Image
                           width={40}
                           height={40}
@@ -47,6 +97,42 @@ export const AuthenticatedLayout: FC<PropsWithChildren> = ({ children }) => {
                           priority={true}
                         />
                       </Link>
+                    </div>
+                    <div className="flex-1">
+                      <label className="mb-2 text-sm font-medium text-gray-900 sr-only dark:text-white">Search</label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 flex items-center pl-1 pointer-events-none">
+                          <svg
+                            className="w-5 h-5 text-gray-500 dark:text-gray-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                            ></path>
+                          </svg>
+                        </div>
+                        <input
+                          type="search"
+                          id="default-search"
+                          className="block w-full p-2 pl-7 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-indigo-500 dark:focus:border-indigo-500"
+                          placeholder="Search"
+                          onChange={onDataChange}
+                          value={param}
+                          required
+                        />
+                        <button
+                          type="submit"
+                          className="text-white absolute right-1.5 bottom-1 bg-indigo-700 hover:bg-indigo-800 focus:ring-4 focus:outline-none focus:ring-indigo-300 font-medium rounded-lg text-sm px-4 py-1 dark:bg-indigo-600 dark:hover:bg-indigo-700 dark:focus:ring-indigo-800"
+                          onClick={search}
+                        >
+                          Search
+                        </button>
+                      </div>
                     </div>
                   </div>
                   <div className="hidden md:block">

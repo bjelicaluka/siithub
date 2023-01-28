@@ -16,6 +16,7 @@ import { commitRoutes } from "./features/commits/commit.routes";
 import { pullRequestRoutes } from "./features/pull-requests/pull-requests.routes";
 import { insightRoutes } from "./features/insights/insight.routes";
 import { tagsRoutes } from "./features/tags/tags.routes";
+import { advanceSearchRoutes } from "./features/advance-search/advance-search.routes";
 
 const router = Router();
 
@@ -30,6 +31,7 @@ router
   .use("/repositories", tagsRoutes)
   .use("/ssh-keys", sshKeyRoutes)
   .use("/", milestoneRoutes)
+  .use("/search", advanceSearchRoutes)
   .use("/", starRoutes)
   .use("/", activitiesRoutes)
   .use("/", treeRoutes)

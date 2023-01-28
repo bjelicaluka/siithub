@@ -17,4 +17,9 @@ type Tag = BaseEntity & {
 
 type TagCreate = Omit<Tag, "_id" | "commitSha">;
 
-export type { Tag, TagCreate };
+type TagWithRepository = Tag & {
+  repository: Repository;
+  user: User;
+};
+
+export type { Tag, TagCreate, TagWithRepository };

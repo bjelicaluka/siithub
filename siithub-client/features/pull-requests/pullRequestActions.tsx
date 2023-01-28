@@ -48,6 +48,10 @@ type PullRequest = {
   participants: { [uid: string]: User };
 };
 
+type PullRequestWithRepository = PullRequest & {
+  repository: Repository;
+};
+
 type CreatePullRequest = Omit<PullRequest, "_id" | "csm" | "localId" | "participants">;
 type UpdatePullRequest = Omit<PullRequest, "csm" | "_id" | "participants">;
 
@@ -90,4 +94,5 @@ export type {
   PullRequestComment,
   PullRequestConversation,
   PullRequestsQuery,
+  PullRequestWithRepository,
 };

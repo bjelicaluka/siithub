@@ -7,6 +7,7 @@ import { RepositorySettingsLayout } from "./[username]/[repository]/settings/_re
 import { RepositoryTreeLayout } from "./[username]/[repository]/tree/_repository-tree.layout";
 import RepositoryBlobLayout from "./[username]/[repository]/blob/_repository-blob.layout";
 import PullRequestsEditLayout from "./[username]/[repository]/pull-requests/[localId]/_pull-requests-edit.layout";
+import AdvanceSearchLayout from "./advance-search/_advance-search.layout";
 
 type NestedLayout = {
   path: string;
@@ -30,6 +31,11 @@ const registeredLayouts: NestedLayout[] = [
     path: "/users/[username]",
     pathMatch: "startsWith",
     component: ProfileLayout,
+  },
+  {
+    path: "/advance-search",
+    pathMatch: "startsWith",
+    component: AdvanceSearchLayout,
   },
   {
     path: "/[username]/[repository]",
