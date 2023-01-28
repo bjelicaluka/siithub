@@ -54,6 +54,10 @@ type IssuesQuery = {
   sort?: any;
 };
 
+export type IssueWithRepository = Issue & {
+  repository: Repository;
+};
+
 type CreateIssue = Omit<Issue, "_id" | "csm" | "localId">;
 type UpdateIssue = Omit<Issue, "csm" | "_id">;
 

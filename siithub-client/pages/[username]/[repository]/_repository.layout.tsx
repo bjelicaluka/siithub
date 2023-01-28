@@ -18,7 +18,7 @@ function getLinks(router: NextRouter, username: string, repository: string) {
       icon: <CodeBracketIcon className="h-4 w-4 mr-2" />,
       path: "/[username]/[repository]",
       isMultimenu: true,
-      menus: ["/tree", "/blob", "/branches", "/commits", "/commit"],
+      menus: ["/tree", "/blob", "/branches", "/commits", "/commit", "/tags"],
       onClick: async () => {
         await router.push(`/${username}/${repository}`);
       },

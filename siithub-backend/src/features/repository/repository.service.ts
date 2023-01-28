@@ -106,8 +106,8 @@ async function decreaseCounterValue(id: Repository["_id"], thing: "stars" | "for
   return counters[thing];
 }
 
-async function findByIds(ids: Repository["_id"][]): Promise<Repository[]> {
-  return await repositoryRepo.crud.findMany({ _id: { $in: ids } });
+async function findByIds(ids: Repository["_id"][], type?: "private" | "public"): Promise<Repository[]> {
+  return await repositoryRepo.crud.findMany({ _id: { $in: ids }, ...(type ? { type } : {}) });
 }
 
 async function forkRepository(
@@ -183,8 +183,8 @@ export type RepositoryService = {
     thing: "milestone" | "issue" | "stars" | "pull-request" | "forks"
   ): Promise<number>;
   search(owner: string, term?: string): Promise<Repository[]>;
-  findByIds(ids: Repository["_id"][]): Promise<Repository[]>;
   decreaseCounterValue(id: Repository["_id"], thing: "stars" | "forks"): Promise<number>;
+  findByIds(ids: Repository["_id"][], type?: "private" | "public"): Promise<Repository[]>;
   getRelevantRepos(userId: User["_id"]): Promise<Repository[]>;
   forkRepository(fork: RepositoryForkCreate, userId: User["_id"]): Promise<Repository>;
   findForks(forkedFrom: Repository["_id"]): Promise<Repository[]>;
