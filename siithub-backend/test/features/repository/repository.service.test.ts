@@ -2,22 +2,24 @@ import { describe, expect, it, beforeEach } from "@jest/globals";
 import { setupGitServer, setupTestEnv } from "../../jest-hooks.utils";
 import { type RepositoryService } from "../../../src/features/repository/repository.service";
 import { ObjectId } from "mongodb";
-import { RepositoryCreate } from "../../../src/features/repository/repository.model";
+import { type RepositoryCreate } from "../../../src/features/repository/repository.model";
+import { type User, type UserCreate } from "../../../src/features/user/user.model";
 
 describe("RepositoryService", () => {
   setupTestEnv("RepositoryService");
 
-  const { setCreateRepoHandler, setDeleteRepoHandler } = setupGitServer();
+  const { setCreateRepoHandler, setDeleteRepoHandler, setCreateRepoForkHandler } = setupGitServer();
 
   let service: RepositoryService;
   let owner = "testuser";
+  let otherUser: User;
 
   beforeEach(async () => {
     const { repositoryService } = await import("../../../src/features/repository/repository.service");
     const { userRepo } = await import("../../../src/features/user/user.repo");
     service = repositoryService;
-    await userRepo.crud.add({ username: owner } as any);
-    await userRepo.crud.add({ username: "other-user" } as any);
+    await userRepo.crud.add({ username: owner } as UserCreate);
+    otherUser = (await userRepo.crud.add({ username: "otherUser" } as UserCreate)) as User;
   });
 
   describe("findOneOrThrow", () => {
@@ -235,5 +237,70 @@ describe("RepositoryService", () => {
     });
   });
 
-  describe("fork", () => {});
+  describe("forkRepository", () => {
+    it("should throw MissingEntityException because repo does not exist", async () => {
+      await expect(
+        service.forkRepository({ name: "fork1", repoName: "no-repo", repoOwner: owner }, otherUser._id)
+      ).rejects.toThrowError("Repository does not exist.");
+    });
+
+    it("should throw MissingEntityException because user does not exist", async () => {
+      await service.create({ name: "test", owner, type: "public" });
+      await expect(
+        service.forkRepository({ name: "fork1", repoName: "test", repoOwner: owner }, new ObjectId())
+      ).rejects.toThrowError("User with given id does not exist.");
+    });
+
+    it("should throw BadLogicException because cannot fork own repository", async () => {
+      await service.create({ name: "test", owner: otherUser.username, type: "public" });
+      await expect(
+        service.forkRepository({ name: "fork1", repoName: "test", repoOwner: otherUser.username }, otherUser._id)
+      ).rejects.toThrowError("You cannot fork your own repository.");
+    });
+
+    it("should throw ForbiddenException because repo is private and user is not collaborator", async () => {
+      await service.create({ name: "test", owner, type: "private" });
+      await expect(
+        service.forkRepository({ name: "fork1", repoName: "test", repoOwner: owner }, otherUser._id)
+      ).rejects.toHaveProperty("name", "ForbiddenException");
+    });
+
+    it("should throw BadLogicException because fork already exists", async () => {
+      const repo = await service.create({ name: "test", owner, type: "public" });
+      await service.create({ name: "fork", owner: otherUser.username, type: "public", forkedFrom: repo._id });
+      await expect(
+        service.forkRepository({ name: "fork1", repoName: "test", repoOwner: owner }, otherUser._id)
+      ).rejects.toThrowError("You already have forked this repository.");
+    });
+
+    it("should throw DuplicateException because repo with same name exists", async () => {
+      await service.create({ name: "test", owner, type: "public" });
+      await service.create({ name: "repo", owner: otherUser.username, type: "public" });
+      await expect(
+        service.forkRepository({ name: "repo", repoName: "test", repoOwner: owner }, otherUser._id)
+      ).rejects.toHaveProperty("name", "DuplicateException");
+    });
+
+    it("should throw BadLogicException if gitserver fails", async () => {
+      setCreateRepoForkHandler(() => {
+        return new Promise((_, rej) => rej(new Error()));
+      });
+      await service.create({ name: "test", owner, type: "public" });
+      await expect(
+        service.forkRepository({ name: "fork1", repoName: "test", repoOwner: owner }, otherUser._id)
+      ).rejects.toThrowError("Failed to create repository in the file system.");
+    });
+
+    it("should create a new fork", async () => {
+      let repo = await service.create({ name: "test", owner, type: "public" });
+      const createdRepository = await service.forkRepository(
+        { name: "fork1", repoName: "test", repoOwner: owner },
+        otherUser._id
+      );
+      expect(createdRepository).not.toBeNull();
+      expect(createdRepository).toHaveProperty("_id");
+      repo = await service.findOneOrThrow(repo._id);
+      expect(repo.counters["forks"]).toBe(1);
+    });
+  });
 });

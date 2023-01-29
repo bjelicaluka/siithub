@@ -12,7 +12,7 @@ export type Repository = {
 } & BaseEntity;
 
 export type RepositoryCreate = Omit<Repository, "_id" | "counters">;
-export type RepositoryUpdate = Repository;
+export type RepositoryUpdate = Partial<Repository>;
 
 export type RepositoryForkCreate = {
   name: string;

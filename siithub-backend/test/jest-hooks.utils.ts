@@ -72,6 +72,7 @@ export function setupGitServer() {
   let getCommitsShaHandler: () => void = () => {};
   let createTagHandler: () => void = () => {};
   let deleteTagHandler: () => void = () => {};
+  let createRepoForkHandler: () => void = () => {};
 
   beforeEach(async () => {
     jest.mock("../src/features/gitserver/gitserver.client.ts", () => ({
@@ -92,6 +93,7 @@ export function setupGitServer() {
         getCommitsSha: jest.fn(() => getCommitsShaHandler()),
         createTag: jest.fn(() => () => createTagHandler()),
         deleteTag: jest.fn(() => deleteTagHandler()),
+        createRepositoryFork: jest.fn(() => createRepoForkHandler()),
       },
     }));
   });
@@ -108,6 +110,7 @@ export function setupGitServer() {
     getCommitsShaHandler = () => {};
     createTagHandler = () => {};
     deleteTagHandler = () => {};
+    createRepoForkHandler = () => {};
   });
 
   return {
@@ -143,6 +146,9 @@ export function setupGitServer() {
     },
     setDeleteTagHandler: (cb: () => void) => {
       deleteTagHandler = cb;
+    },
+    setCreateRepoForkHandler: (cb: () => void) => {
+      createRepoForkHandler = cb;
     },
   };
 }

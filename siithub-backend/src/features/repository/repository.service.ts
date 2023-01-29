@@ -10,7 +10,7 @@ import { gitServerClient } from "../gitserver/gitserver.client";
 import { labelSeeder } from "../label/label.seeder";
 import { type User } from "../user/user.model";
 import { userService } from "../user/user.service";
-import type { Repository, RepositoryCreate, RepositoryForkCreate, RepositoryUpdate } from "./repository.model";
+import type { Repository, RepositoryCreate, RepositoryForkCreate } from "./repository.model";
 import { repositoryRepo } from "./repository.repo";
 
 async function getRelevantRepos(userId: User["_id"]): Promise<Repository[]> {
@@ -94,7 +94,7 @@ async function increaseCounterValue(
   const repo = await findOneOrThrow(id);
   const counters = repo.counters ?? { [thing]: 0 };
   counters[thing] = counters[thing] + 1 || 1;
-  await repositoryRepo.crud.update(id, { counters } as RepositoryUpdate);
+  await repositoryRepo.crud.update(id, { counters });
   return counters[thing];
 }
 
@@ -102,7 +102,7 @@ async function decreaseCounterValue(id: Repository["_id"], thing: "stars" | "for
   const repo = await findOneOrThrow(id);
   const counters = repo.counters ?? { [thing]: 0 };
   counters[thing] = counters[thing] - 1 || 0;
-  await repositoryRepo.crud.update(id, { counters } as RepositoryUpdate);
+  await repositoryRepo.crud.update(id, { counters });
   return counters[thing];
 }
 
