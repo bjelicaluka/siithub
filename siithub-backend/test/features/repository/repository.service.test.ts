@@ -19,7 +19,7 @@ describe("RepositoryService", () => {
     const { userRepo } = await import("../../../src/features/user/user.repo");
     service = repositoryService;
     await userRepo.crud.add({ username: owner } as UserCreate);
-    otherUser = (await userRepo.crud.add({ username: "otherUser" } as UserCreate)) as User;
+    otherUser = (await userRepo.crud.add({ username: "other-user" } as UserCreate)) as User;
   });
 
   describe("findOneOrThrow", () => {
