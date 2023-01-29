@@ -43,6 +43,7 @@ export const PullRequestHistory = () => {
 
   const events = useMemo(
     () => pullRequest?.events.filter((e) => eventsToTake.includes(e.type)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [pullRequest.events.length]
   );
 
@@ -97,7 +98,7 @@ const CommitRow: FC<CommitRowProps> = ({ commit }) => {
   return (
     <>
       <span className="flex absolute -left-3 justify-center items-center w-6 h-6 bg-blue-200 rounded-full ring-8 ring-white">
-        <ProfilePicture username={commit.author.username || commit.author.email} size={40} />
+        <ProfilePicture username={commit.author.username ?? ""} size={40} />
       </span>
       <div className="pb-2">
         <div className="grid grid-cols-12">

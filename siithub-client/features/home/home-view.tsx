@@ -3,14 +3,12 @@ import { BookOpenIcon } from "@heroicons/react/24/outline";
 import { useAuthContext } from "../../core/contexts/Auth";
 import { useSearchRepositories } from "../repository/useRepositories";
 import debounce from "lodash.debounce";
-import { useRouter } from "next/router";
 import Link from "next/link";
 import { Activities } from "./Activities";
 
 const debouncedCb = debounce((cb: () => void) => cb(), 300);
 
 export const HomeView: FC = () => {
-  const router = useRouter();
   const { user } = useAuthContext();
   const [term, setTerm] = useState("");
   const [finalTerm, setFinalTerm] = useState(term);
