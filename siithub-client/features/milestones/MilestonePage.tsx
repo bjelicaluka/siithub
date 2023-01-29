@@ -1,3 +1,5 @@
+import { CalendarIcon } from "@heroicons/react/24/outline";
+import moment from "moment";
 import Link from "next/link";
 import { useEffect, useState, type FC } from "react";
 import { Button } from "../../core/components/Button";
@@ -32,14 +34,25 @@ export const MilestonePage: FC<MilestonePageProps> = ({ repo, username, localId 
   }, [result, setResult]);
 
   if (error) return <NotFound />;
+  if (!milestone) return <></>;
+
+  const completed =
+    ((milestone.issuesInfo?.closed || 0) / (milestone.issuesInfo?.open + milestone.issuesInfo?.closed || 1)) * 100;
 
   return (
     <>
-      <p className="text-4xl">{milestone?.title}</p>
-      <p className="text-lg">
-        {milestone?.dueDate ? `Due by ${new Date(milestone.dueDate).toDateString()}` : "No due date"}
-      </p>
-      <p className="text-lg">{milestone?.description}</p>
+      <p className="text-3xl">{milestone.title}</p>
+      <div className="w-96 bg-gray-300 rounded-full h-2.5 mb-2">
+        <div className="bg-green-500 h-2.5 rounded-full my-2" style={{ width: `${completed}%` }} />
+      </div>
+      <div className="flex items-center">
+        <CalendarIcon className="h-5 w-5 mr-1" />
+        <span className="mr-10">
+          {milestone.dueDate ? `Due by ${moment(milestone.dueDate).format("MMM D, YYYY")}` : "No due date"}
+        </span>
+        <span>{completed.toFixed()}% complete</span>
+      </div>
+      <p className="mt-3">{milestone.description}</p>
 
       <div className="px-4 py-3 text-right sm:px-6">
         <Button>
@@ -51,24 +64,25 @@ export const MilestonePage: FC<MilestonePageProps> = ({ repo, username, localId 
           className={`text-base font-semibold mr-4 ml-4 cursor-pointer ${openIssues ? "text-black" : "text-gray-500"}`}
           onClick={() => setOpenIssues(true)}
         >
-          Open
+          {milestone.issuesInfo?.open || 0} Open
         </p>
         <p
           className={`text-base font-semibold mr-4 cursor-pointer ${openIssues ? "text-gray-500" : "text-black"}`}
           onClick={() => setOpenIssues(false)}
         >
-          Closed
+          {milestone.issuesInfo?.closed || 0} Closed
         </p>
       </div>
-      {issues?.length ? (
-        <IssuesTable issues={issues} repositoryId={repository?._id ?? ""} />
-      ) : (
-        <div className="bg-white border-b p-4">
-          <p className="text-4xl text-center m-5">
-            There are no {openIssues ? "open" : "closed"} issues in this milestone.
-          </p>
-        </div>
-      )}
+      {issues &&
+        (issues.length > 0 ? (
+          <IssuesTable issues={issues} repositoryId={repository?._id ?? ""} />
+        ) : (
+          <div className="bg-white border-b p-4">
+            <p className="text-2xl text-center m-5">
+              There are no {openIssues ? "open" : "closed"} issues in this milestone.
+            </p>
+          </div>
+        ))}
     </>
   );
 };

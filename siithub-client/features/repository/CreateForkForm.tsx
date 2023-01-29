@@ -23,9 +23,9 @@ export const CreateForkForm: FC<CreateForkFormProps> = ({ username, repo }) => {
   const router = useRouter();
   const notifications = useNotifications();
   const myUsername = (useAuthContext()?.user as AuthUser)?.username;
-  const { defaultBranch } = useDefaultBranch(username, repo);
+  const { defaultBranch, error } = useDefaultBranch(username, repo);
   const { fork } = useFork(username, repo, myUsername);
-  const defaultBranchName = defaultBranch.branch ?? "master";
+  const defaultBranchName = defaultBranch?.branch ?? "master";
   const { setResult } = useResult("create-fork");
   const [, setToggle] = useState(false);
   const [copying, setCopying] = useState(false);
@@ -60,6 +60,14 @@ export const CreateForkForm: FC<CreateForkFormProps> = ({ username, repo }) => {
       },
     }
   );
+
+  if (error)
+    return (
+      <div>
+        <p className="text-xl">Create a new fork</p>
+        <p className="m-3">You cannot fork an empty repository</p>
+      </div>
+    );
 
   return (
     <div>
