@@ -65,13 +65,13 @@ export const PullRequestFileChangesPage: FC<PullRequestCommitsPageProps> = ({ re
   ]);
 
   useEffect(() => {
-    const changes = commit?.diff?.slice(0, 10).map((change) => {
+    const changes = commit?.diff?.map((change) => {
       const diffText = formatLines(diffLines(change?.old?.content ?? "", change?.new?.content ?? ""), { context: 3 });
       const [diff] = parseDiff(diffText, { nearbySequences: "zip" });
       return { change, diff };
     });
 
-    const initVisibilities = commit?.diff?.slice(0, 10).reduce((acc: any, change: any) => {
+    const initVisibilities = commit?.diff?.reduce((acc: any, change: any) => {
       acc[change?.old?.path || change?.new?.path] = true;
       return acc;
     }, {});

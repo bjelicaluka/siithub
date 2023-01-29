@@ -63,7 +63,7 @@ export const DefinePullRequestForm: FC = () => {
   }, [title, base, compare]);
 
   useEffect(() => {
-    setValue("base", defaultBranch.branch);
+    !isEdit && setValue("base", defaultBranch.branch);
   }, [defaultBranch]);
 
   if (!Object.keys(defaultBranch) || !branches?.length) return <></>;
@@ -95,7 +95,7 @@ export const DefinePullRequestForm: FC = () => {
         <ArrowLongLeftIcon className="h-10 w-10 mt-5" />
 
         <div className="w-[20%]">
-          <label className="block text-sm font-medium text-gray-700">Code</label>
+          <label className="block text-sm font-medium text-gray-700">Compare</label>
 
           <Select
             id="compare"
@@ -114,8 +114,16 @@ export const DefinePullRequestForm: FC = () => {
           <>
             {pullRequest.csm.state === PullRequestState.Opened ? (
               <div className="w-[55%] text-right space-x-2 mt-2">
-                {editableMode ? <Button onClick={() => router.reload()}>Cancel</Button> : <></>}
-                <Button onClick={() => (!editableMode ? setEditableMode(true) : updatePullRequst())}>Edit</Button>
+                {editableMode ? (
+                  <Button type="button" onClick={() => router.reload()}>
+                    Cancel
+                  </Button>
+                ) : (
+                  <></>
+                )}
+                <Button type="button" onClick={() => (!editableMode ? setEditableMode(true) : updatePullRequst())}>
+                  Edit
+                </Button>
               </div>
             ) : (
               <></>

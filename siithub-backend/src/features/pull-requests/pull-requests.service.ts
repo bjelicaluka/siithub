@@ -117,7 +117,6 @@ async function handleEvent(pullRequest: PullRequest, event: BaseEvent): Promise<
     };
 
     handleFor(pullRequest, prUpdatedEvent);
-    return;
   }
 
   handleFor(pullRequest, event);

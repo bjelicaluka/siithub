@@ -9,6 +9,7 @@ import { type Issue, IssueState } from "./issueActions";
 import { type Repository } from "../repository/repository.service";
 import { useRepositoryContext } from "../repository/RepositoryContext";
 import { findLastEvent } from "../common/utils";
+import { HashtagLink } from "../../core/components/HashtagLink";
 
 type IssuesTableType = {
   repositoryId: Repository["_id"];
@@ -54,7 +55,9 @@ export const IssuesTable: FC<IssuesTableType> = ({ repositoryId, issues }) => {
                       <span className="mr-2 mt-2">
                         {issue.csm.state === IssueState.Closed ? <ClosedIcon /> : <OpenedIcon />}
                       </span>
-                      <span className="text-xl mr-2">{issue.csm.title}</span>
+                      <span className="text-xl mr-2">
+                        <HashtagLink>{issue.csm.title}</HashtagLink>
+                      </span>
                       <span>
                         {issue.csm.labels?.map((lId) => {
                           const label = labels?.find((l: Label) => l._id === lId) ?? {};
