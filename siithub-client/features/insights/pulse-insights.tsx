@@ -50,7 +50,7 @@ export const PulseInsights: FC<{ repo: string; username: string }> = ({ username
           <div className="flex items-center gap-2 text-base">
             <CheckCircleIcon className="w-6 text-purple-600" /> {mergedPrs}
           </div>
-          <div>Merged pull requests</div>
+          <div>Closed pull requests</div>
         </div>
         <div className="w-1/4 flex flex-col items-center gap-2 p-8 text-sm">
           <div className="flex items-center gap-2 text-base">

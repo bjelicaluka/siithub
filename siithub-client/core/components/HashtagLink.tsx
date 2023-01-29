@@ -25,7 +25,11 @@ export const HashtagLink: FC<HashtagLinkProps> = ({ children, href }) => {
         if (typeof child !== "string") {
           if (typeof child === "object") {
             const elem = child as ReactElement;
-            return cloneElement(elem, [], <HashtagLink>{elem.props.children}</HashtagLink>);
+            if (!!elem.props.children) {
+              return cloneElement(elem, [], <HashtagLink>{elem.props.children}</HashtagLink>);
+            } else {
+              return elem;
+            }
           }
           return child;
         }
