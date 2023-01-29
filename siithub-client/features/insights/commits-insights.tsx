@@ -4,10 +4,11 @@ import { useDefaultBranch } from "../branches/useBranches";
 import { useCommitsInsights } from "./useInsights";
 
 export const CommitsInsights: FC<{ repo: string; username: string }> = ({ username, repo }) => {
-  const { defaultBranch } = useDefaultBranch(username, repo);
+  const { defaultBranch, error } = useDefaultBranch(username, repo);
 
   const { insights, isLoading } = useCommitsInsights(username, repo, defaultBranch?.branch, [defaultBranch?.branch]);
 
+  if (error) return <>This repository is empty</>;
   if (isLoading || !insights) return <>loading...</>;
 
   const { weekly, daily } = insights;

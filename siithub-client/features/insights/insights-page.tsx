@@ -1,15 +1,15 @@
 import Link from "next/link";
 import { type FC } from "react";
-import { Button } from "../../core/components/Button";
 import { CodeFrequencyInsights } from "./code-frequency-insights";
 import { CommitsInsights } from "./commits-insights";
 import { ContributorsInsights } from "./contributors-insights";
+import { ForksInsights } from "./forks-insights";
 import { PulseInsights } from "./pulse-insights";
 
 type RepoInsightsProps = {
   repo: string;
   username: string;
-  graph: "pulse" | "contributors" | "commits" | "code-frequency";
+  graph: "pulse" | "contributors" | "commits" | "code-frequency" | "forks";
 };
 
 export const RepoInsights: FC<RepoInsightsProps> = ({ username, repo, graph }) => {
@@ -41,6 +41,12 @@ export const RepoInsights: FC<RepoInsightsProps> = ({ username, repo, graph }) =
           >
             Code frequency
           </Link>
+          <Link
+            className={`p-3 flex hover:bg-slate-50 ${graph === "forks" ? "border-l-2 border-orange-500" : ""}`}
+            href={`/${username}/${repo}/graphs/forks`}
+          >
+            Forks
+          </Link>
         </div>
         <div className="flex flex-col gap-5 flex-1 items-center min-w-[812px] max-w-[1024px]">
           <div className="flex items-center w-full border-b pb-3">
@@ -70,6 +76,14 @@ export const RepoInsights: FC<RepoInsightsProps> = ({ username, repo, graph }) =
                 </b>
               </div>
             )}
+            {graph === "forks" && (
+              <div className="text-2xl">
+                Forks of{" "}
+                <b>
+                  {username}/{repo}
+                </b>
+              </div>
+            )}
           </div>
 
           {/* This Changes */}
@@ -77,6 +91,7 @@ export const RepoInsights: FC<RepoInsightsProps> = ({ username, repo, graph }) =
           {graph === "contributors" && <ContributorsInsights username={username} repo={repo} />}
           {graph === "commits" && <CommitsInsights username={username} repo={repo} />}
           {graph === "code-frequency" && <CodeFrequencyInsights username={username} repo={repo} />}
+          {graph === "forks" && <ForksInsights username={username} repo={repo} />}
         </div>
       </div>
     </div>

@@ -3,10 +3,9 @@ import { commitService } from "../commits/commit.service";
 import type { CommitWithDiff } from "../commits/commit.model";
 import type { CodeFrequencyInsight, CommitsInsights, ContributorInsights } from "./insight.model";
 import { pullRequestService } from "../pull-requests/pull-requests.service";
-import { repositoryService } from "../repository/repository.service";
-import { MissingEntityException } from "../../error-handling/errors";
 import { issueService } from "../issue/issue.service";
 import { IssueState } from "../issue/issue.model";
+import { type Repository } from "../repository/repository.model";
 
 type PulseInsights = {
   totalPrs: number;
@@ -17,12 +16,9 @@ type PulseInsights = {
   newIssues: number;
 };
 
-async function getPulseInsights(username: string, repoName: string): Promise<PulseInsights> {
-  const repo = await repositoryService.findByOwnerAndName(username, repoName);
-  if (!repo) throw new MissingEntityException("Repo not found.");
-
-  const allPullRequests = await pullRequestService.findByRepositoryId(repo._id);
-  const allIssues = await issueService.findByRepositoryId(repo._id);
+async function getPulseInsights(repoId: Repository["_id"]): Promise<PulseInsights> {
+  const allPullRequests = await pullRequestService.findByRepositoryId(repoId);
+  const allIssues = await issueService.findByRepositoryId(repoId);
 
   const totalPrs = allPullRequests.length;
   const activePrs = allPullRequests.filter((x) => !x.csm.isClosed).length;
@@ -186,7 +182,7 @@ function datesBetween(startDate: Date, endDate: Date, onlyWeekStarts = false) {
 }
 
 export type InsightService = {
-  getPulseInsights(username: string, repoName: string): Promise<PulseInsights>;
+  getPulseInsights(repoId: Repository["_id"]): Promise<PulseInsights>;
   getContributorInsights(username: string, repoName: string, branch: string): Promise<ContributorInsights>;
   getCommitsInsights(username: string, repoName: string, branch: string): Promise<CommitsInsights>;
   getCodeFrequencyInsights(username: string, repoName: string, branch: string): Promise<CodeFrequencyInsight[]>;

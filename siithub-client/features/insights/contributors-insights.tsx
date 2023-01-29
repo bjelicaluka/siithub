@@ -6,7 +6,7 @@ import { useDefaultBranch } from "../branches/useBranches";
 import { useContributorInsights } from "./useInsights";
 
 export const ContributorsInsights: FC<{ repo: string; username: string }> = ({ username, repo }) => {
-  const { defaultBranch } = useDefaultBranch(username, repo);
+  const { defaultBranch, error } = useDefaultBranch(username, repo);
 
   const { insights, isLoading } = useContributorInsights(username, repo, defaultBranch?.branch, [
     defaultBranch?.branch,
@@ -14,6 +14,7 @@ export const ContributorsInsights: FC<{ repo: string; username: string }> = ({ u
 
   const [view, setView] = useState("commits");
 
+  if (error) return <>This repository is empty</>;
   if (isLoading || !insights) return <>loading...</>;
 
   const { all, perAuthor, authorDataMax } = insights;

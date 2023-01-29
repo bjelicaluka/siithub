@@ -1,5 +1,13 @@
 import { useQuery } from "react-query";
-import { getRepository, getStarredRepositories, Repository, searchRepositories } from "./repository.service";
+import {
+  findFork,
+  getForks,
+  getRepository,
+  getStarredRepositories,
+  getUsersRepositories,
+  Repository,
+  searchRepositories,
+} from "./repository.service";
 
 export function useSearchRepositories(username: string | undefined, term: string, dependencies: any[] = []) {
   const { data, error } = useQuery(
@@ -33,6 +41,40 @@ export function useStarredRepositories(username: string, dependencies: any[] = [
       enabled: dependencies.reduce((acc, d) => acc && !d, true),
     }
   );
+  return {
+    repositories: data?.data as Repository[],
+    error: (error as any)?.response?.data,
+  };
+}
+
+export function useFork(username: string, repo: string, forkOwner: string, dependencies: any[] = []) {
+  const { data, error } = useQuery(
+    [`fork_${username}/${repo}/${forkOwner}`, ...dependencies],
+    () => findFork(username, repo, forkOwner),
+    {
+      enabled: dependencies.reduce((acc, d) => acc && !d, true),
+    }
+  );
+  return {
+    fork: data?.data as Repository,
+    error: (error as any)?.response?.data,
+  };
+}
+
+export function useForks(username: string, repo: string, dependencies: any[] = []) {
+  const { data, error } = useQuery([`forks_${username}/${repo}`, ...dependencies], () => getForks(username, repo), {
+    enabled: dependencies.reduce((acc, d) => acc && !d, true),
+  });
+  return {
+    forks: data?.data as Repository[],
+    error: (error as any)?.response?.data,
+  };
+}
+
+export function useUsersRepositories(username: string, dependencies: any[] = []) {
+  const { data, error } = useQuery([`repos_${username}`, ...dependencies], () => getUsersRepositories(username), {
+    enabled: dependencies.reduce((acc, d) => acc && !d, true),
+  });
   return {
     repositories: data?.data as Repository[],
     error: (error as any)?.response?.data,

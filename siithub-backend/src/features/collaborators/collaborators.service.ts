@@ -22,18 +22,18 @@ async function findByRepositoryAndUser(
   return await collaboratorsRepo.findByRepositoryAndUser(repositoryId, userId);
 }
 
-async function addCollaborator(collaborator: CollaboratorAdd): Promise<Collaborator | null> {
+async function addCollaborator(collaborator: CollaboratorAdd, onGitServerToo = true): Promise<Collaborator | null> {
   const { repositoryId, userId } = collaborator;
+
+  const existingCollaborator = await findByRepositoryAndUser(repositoryId, userId);
+  if (existingCollaborator) {
+    throw new BadLogicException("User is already collaborator on the given repository.");
+  }
 
   const repository = await repositoryService.findOneOrThrow(repositoryId);
   const user = await userService.findOneOrThrow(userId);
 
-  const alreadyIsCollaborator = !!(await findByRepositoryAndUser(repositoryId, userId));
-  if (alreadyIsCollaborator) {
-    throw new BadLogicException("User is already collaborator on the given repository.");
-  }
-
-  await gitServerClient.addCollaborator(user.username, repository.name);
+  if (onGitServerToo) await gitServerClient.addCollaborator(repository.owner, repository.name, user.username);
 
   return await collaboratorsRepo.crud.add(collaborator);
 }
@@ -49,13 +49,13 @@ async function removeCollaborator(collaborator: CollaboratorRemove): Promise<Col
   const repository = await repositoryService.findOneOrThrow(repositoryId);
   const user = await userService.findOneOrThrow(userId);
 
-  await gitServerClient.removeCollaborator(user.username, repository.name);
+  await gitServerClient.removeCollaborator(repository.owner, repository.name, user.username);
 
   return await collaboratorsRepo.crud.delete(existingCollaborator._id);
 }
 
 export type CollaboratorService = {
-  add(collaborator: CollaboratorAdd): Promise<Collaborator | null>;
+  add(collaborator: CollaboratorAdd, onGitServerToo?: boolean): Promise<Collaborator | null>;
   remove(collaborator: CollaboratorRemove): Promise<Collaborator | null>;
   findByRepository(repositoryId: Repository["_id"]): Promise<Collaborator[]>;
   findByUser(userId: User["_id"]): Promise<Collaborator[]>;

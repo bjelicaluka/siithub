@@ -4,12 +4,13 @@ import { useDefaultBranch } from "../branches/useBranches";
 import { useCodeFrequencyInsights } from "./useInsights";
 
 export const CodeFrequencyInsights: FC<{ repo: string; username: string }> = ({ username, repo }) => {
-  const { defaultBranch } = useDefaultBranch(username, repo);
+  const { defaultBranch, error } = useDefaultBranch(username, repo);
 
   const { insights, isLoading } = useCodeFrequencyInsights(username, repo, defaultBranch?.branch, [
     defaultBranch?.branch,
   ]);
 
+  if (error) return <>This repository is empty</>;
   if (isLoading || !insights) return <>loading...</>;
 
   return (

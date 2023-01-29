@@ -2,7 +2,7 @@ import express from "express";
 import type { Express, Request, Response } from "express";
 import { config } from "./config";
 import { createUser } from "./user.utils";
-import { createRepo, removeRepo } from "./git/repository.utils";
+import { createRepo, createRepoFork, removeRepo } from "./git/repository.utils";
 import { getTree } from "./git/tree.utils";
 import { getBlob } from "./git/blob.utils";
 import { addKey, removeKey } from "./key.utils";
@@ -36,6 +36,13 @@ app.post("/api/users", async (req: Request, res: Response) => {
 app.post("/api/repositories", async (req: Request, res: Response) => {
   const { username, repositoryName, type } = req.body;
   await createRepo(username, repositoryName, type === "public");
+
+  res.send({ status: "ok" });
+});
+
+app.post("/api/repositories/fork", async (req: Request, res: Response) => {
+  const { username, repositoryName, fromUsername, fromRepositoryName, type, only1Branch } = req.body;
+  await createRepoFork(username, repositoryName, fromUsername, fromRepositoryName, type === "public", only1Branch);
 
   res.send({ status: "ok" });
 });
@@ -111,19 +118,19 @@ app.get("/api/blob-info/:username/:repository/:branch/:blobPath", async (req: Re
   res.send(info);
 });
 
-app.post("/api/repositories/:repository/collaborators", async (req: Request, res: Response) => {
-  const { repository } = req.params;
+app.post("/api/collaborators/:username/:repository", async (req: Request, res: Response) => {
+  const { username, repository } = req.params;
   const { collaborator } = req.body;
 
-  await addUserToGroup(repository, collaborator);
+  await addUserToGroup(`${username}-${repository}`, collaborator);
 
   res.send({ status: "ok" });
 });
 
-app.delete("/api/repositories/:repository/collaborators/:collaborator", async (req: Request, res: Response) => {
-  const { repository, collaborator } = req.params;
+app.delete("/api/collaborators/:username/:repository/:collaborator", async (req: Request, res: Response) => {
+  const { username, repository, collaborator } = req.params;
 
-  await deleteUserFromGroup(repository, collaborator);
+  await deleteUserFromGroup(`${username}-${repository}`, collaborator);
 
   res.send({ status: "ok" });
 });

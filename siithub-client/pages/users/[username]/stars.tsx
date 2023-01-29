@@ -8,11 +8,9 @@ const Stars = () => {
   return (
     <>
       {username ? (
-        <>
-          <div className="m-10">
-            <StarredRepos username={username.toString()} />
-          </div>
-        </>
+        <div className="m-5">
+          <StarredRepos username={username.toString()} />
+        </div>
       ) : (
         <></>
       )}

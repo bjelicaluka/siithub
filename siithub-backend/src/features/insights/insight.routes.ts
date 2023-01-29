@@ -6,8 +6,8 @@ import { getRepoIdFromPath } from "../../utils/getRepo";
 const router = Router();
 
 router.get("/:username/:repository/insights/pulse", async (req: Request, res: Response) => {
-  await getRepoIdFromPath(req);
-  res.send(await insightService.getPulseInsights(req.params.username, req.params.repository));
+  const repoId = await getRepoIdFromPath(req);
+  res.send(await insightService.getPulseInsights(repoId));
 });
 
 router.get("/:username/:repository/insights/contributors/:branch", async (req: Request, res: Response) => {
