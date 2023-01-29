@@ -22,11 +22,11 @@ async function findOrCreateIfNotExists(owner: string, repoName: string): Promise
   const repository = (await repositoryService.findByOwnerAndName(owner, repoName)) as Repository;
   if (!repository) throw new MissingEntityException("Given repository does not exist.");
 
-  const allBranches = await branchesService.findMany(owner, repoName);
-  if (allBranches.length === 0) throw new BadLogicException("Given repository is empty.");
-
   const existingDefaultBranch = await defaultBranchRepo.findByRepository(repository._id);
   if (existingDefaultBranch) return existingDefaultBranch;
+
+  const allBranches = await branchesService.findMany(owner, repoName);
+  if (allBranches.length === 0) throw new BadLogicException("Given repository is empty.");
 
   const branchName = ["main", "master", "develop"].find((b) => allBranches.includes(b));
 

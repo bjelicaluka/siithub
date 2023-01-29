@@ -5,18 +5,12 @@ const Fork = () => {
   const router = useRouter();
   const { repository, username } = router.query;
 
+  if (!repository || !username) return <></>;
+
   return (
-    <>
-      {!!repository && !!username ? (
-        <>
-          <div className="m-10">
-            <CreateForkForm repo={repository.toString()} username={username.toString()} />
-          </div>
-        </>
-      ) : (
-        <></>
-      )}
-    </>
+    <div className="m-10">
+      <CreateForkForm repo={repository.toString()} username={username.toString()} />
+    </div>
   );
 };
 

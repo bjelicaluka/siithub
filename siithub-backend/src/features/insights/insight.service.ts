@@ -5,7 +5,7 @@ import type { CodeFrequencyInsight, CommitsInsights, ContributorInsights } from 
 import { pullRequestService } from "../pull-requests/pull-requests.service";
 import { issueService } from "../issue/issue.service";
 import { IssueState } from "../issue/issue.model";
-import { Repository } from "../repository/repository.model";
+import { type Repository } from "../repository/repository.model";
 
 type PulseInsights = {
   totalPrs: number;

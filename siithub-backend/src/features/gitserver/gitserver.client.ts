@@ -23,7 +23,7 @@ async function createRepositoryFork(
   fromUsername: string,
   fromRepositoryName: string,
   type: "public" | "private",
-  only1Branch?: string
+  copyOnly1Branch?: string
 ): Promise<any> {
   return await axios.post(`${config.gitServer.url}/api/repositories/fork`, {
     username,
@@ -31,7 +31,7 @@ async function createRepositoryFork(
     fromUsername,
     fromRepositoryName,
     type,
-    only1Branch,
+    copyOnly1Branch,
   });
 }
 

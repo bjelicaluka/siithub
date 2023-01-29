@@ -54,12 +54,8 @@ export async function createRepoFork(
   const forkedRepoPath = `${homePath}/${fromUsername}/${fromRepositoryName}`;
   const repoPath = `${homePath}/${username}/${repoName}`;
 
-  console.log("Copy start: ", new Date().toISOString());
-
   if (only1Branch) await execCmd(`git clone -n -b ${only1Branch} --single-branch ${forkedRepoPath} ${repoPath}`);
   else await execCmd(`cp -r ${forkedRepoPath} ${repoPath}`);
-
-  console.log("Copy end: ", new Date().toISOString());
 
   await execCmd(`chown -R ${username}:${groupName} ${repoPath}`);
   // owner full access | group full access (collabs) | others no access

@@ -22,13 +22,15 @@ type ForkButtonProps = {
 export const ForkButton: FC<ForkButtonProps> = ({ repo, username, count }) => {
   const myUsername = (useAuthContext()?.user as AuthUser)?.username;
 
-  return myUsername === username ? (
-    <button disabled className="inline-flex rounded-md border p-2 ml-2">
-      <ForkIcon className="mt-1" />
-      <span className="ml-3 font-medium">Fork</span>
-      <span className="ml-3 bg-gray-300 border rounded-full px-2 font-semibold">{count}</span>
-    </button>
-  ) : (
+  if (myUsername === username)
+    return (
+      <button disabled className="inline-flex rounded-md border p-2 ml-2">
+        <ForkIcon className="mt-1" />
+        <span className="ml-3 font-medium">Fork</span>
+        <span className="ml-3 bg-gray-300 border rounded-full px-2 font-semibold">{count}</span>
+      </button>
+    );
+  return (
     <button className="rounded-md border p-2 ml-2" disabled={!myUsername}>
       <Link href={`/${username}/${repo}/fork`} className="inline-flex">
         <ForkIcon className="mt-1" />

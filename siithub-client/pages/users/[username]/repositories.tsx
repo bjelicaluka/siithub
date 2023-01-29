@@ -5,16 +5,12 @@ const Repos = () => {
   const router = useRouter();
   const { username } = router.query;
 
+  if (!username) return <></>;
+
   return (
-    <>
-      {username ? (
-        <div className="m-5">
-          <UsersRepos username={username.toString()} />
-        </div>
-      ) : (
-        <></>
-      )}
-    </>
+    <div className="m-5">
+      <UsersRepos username={username.toString()} />
+    </div>
   );
 };
 
