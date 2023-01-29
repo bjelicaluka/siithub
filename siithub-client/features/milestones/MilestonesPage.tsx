@@ -1,3 +1,5 @@
+import { CalendarIcon, ClockIcon } from "@heroicons/react/24/outline";
+import moment from "moment";
 import Link from "next/link";
 import { useEffect, useState, type FC } from "react";
 import { Button } from "../../core/components/Button";
@@ -77,45 +79,68 @@ export const MilestonesPage: FC<MilestonesPageProps> = ({ repo, username }) => {
             Closed
           </p>
         </div>
-        {milestones?.map((milestone) => (
-          <div key={milestone._id} className="grid grid-cols-6 gap-6 bg-white border-b p-4">
-            <div className="col-span-2 m-3">
-              <Link
-                href={`/${username}/${repo}/milestones/${milestone.localId}`}
-                className="text-2xl font-semibold cursor-pointer hover:text-blue-500"
-              >
-                {milestone.title}
-              </Link>
-              <p className="text-base font-semibold">
-                {milestone?.dueDate ? `Due by ${new Date(milestone.dueDate).toDateString()}` : "No due date"}
-              </p>
-              {milestone?.description ? <p className="text-base font-semibold pt-2">{milestone.description}</p> : <></>}
+        {milestones &&
+          (milestones.length > 0 ? (
+            milestones.map((milestone) => {
+              const completed =
+                ((milestone.issuesInfo?.closed || 0) /
+                  (milestone.issuesInfo?.open + milestone.issuesInfo?.closed || 1)) *
+                100;
+              return (
+                <div key={milestone._id} className="bg-white border-b p-4 flex">
+                  <div className="w-1/2 m-3">
+                    <Link
+                      href={`/${username}/${repo}/milestones/${milestone.localId}`}
+                      className="text-2xl font-semibold cursor-pointer hover:text-blue-500"
+                    >
+                      {milestone.title}
+                    </Link>
+                    <div className="text-base font-semibold flex items-center">
+                      <CalendarIcon className="h-5 w-5 mr-1" />
+                      {milestone.dueDate ? `Due by ${moment(milestone.dueDate).format("MMM D, YYYY")}` : "No due date"}
+                      <ClockIcon className="h-5 w-5 ml-2 mr-1" />
+                      Last updated {moment(milestone.issuesInfo.lastUpdated).fromNow()}
+                    </div>
+                    {milestone.description && <p className="text-base font-semibold pt-2">{milestone.description}</p>}
+                  </div>
+                  <div className="w-1/2 m-3">
+                    <div className="w-full bg-gray-300 rounded-full h-2.5 mb-2">
+                      <div className="bg-green-500 h-2.5 rounded-full" style={{ width: `${completed}%` }} />
+                    </div>
+                    <p className="">
+                      <span className="font-semibold">{completed.toFixed()}</span>% complete
+                      <span className="font-semibold ml-3">{milestone.issuesInfo?.open || 0}</span> open
+                      <span className="font-semibold ml-3">{milestone.issuesInfo?.closed || 0}</span> closed
+                    </p>
+                    <div className="flex">
+                      <Link
+                        href={`/${username}/${repo}/milestones/${milestone.localId}/edit`}
+                        className="text-base font-semibold text-blue-400 mr-2"
+                      >
+                        Edit
+                      </Link>
+                      <p
+                        className="text-base font-semibold text-blue-400 mr-2 cursor-pointer"
+                        onClick={() => (milestone.isOpen ? closeMilestoneAction : openMilestoneAction)(milestone)}
+                      >
+                        {milestone.isOpen ? "Close" : "Reopen"}
+                      </p>
+                      <p
+                        className="text-base font-semibold text-red-400 mr-2 cursor-pointer"
+                        onClick={() => onDeleteClicked(milestone)}
+                      >
+                        Delete
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <div className="bg-white border-b p-4">
+              <p className="text-2xl text-center m-5">There are no {open ? "open" : "closed"} milestones</p>
             </div>
-            <div className="col-span-4 m-3">
-              <p className="text-base font-semibold">0% complete 0 open 0 closed</p>
-              <div className="flex">
-                <Link
-                  href={`/${username}/${repo}/milestones/${milestone.localId}/edit`}
-                  className="text-base font-semibold text-blue-400 mr-2"
-                >
-                  Edit
-                </Link>
-                <p
-                  className="text-base font-semibold text-blue-400 mr-2 cursor-pointer"
-                  onClick={() => (milestone.isOpen ? closeMilestoneAction : openMilestoneAction)(milestone)}
-                >
-                  {milestone.isOpen ? "Close" : "Reopen"}
-                </p>
-                <p
-                  className="text-base font-semibold text-red-400 mr-2 cursor-pointer"
-                  onClick={() => onDeleteClicked(milestone)}
-                >
-                  Delete
-                </p>
-              </div>
-            </div>
-          </div>
-        ))}
+          ))}
       </div>
     </>
   );

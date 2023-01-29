@@ -1,24 +1,43 @@
-import { useMemo, type FC } from "react";
+import { type FC } from "react";
 import { useIssueContext } from "./IssueContext";
 import moment from "moment";
 import { useLabels } from "../labels/useLabels";
 import { type Label } from "../labels/labelActions";
-import { useUsers } from "../users/registration/useUsers";
 import { LabelPreview } from "../labels/LabelPreview";
-import { type User } from "../users/user.model";
 import { type Milestone } from "../milestones/milestoneActions";
-import { useMilestonesByRepoId } from "./useMillestones";
 import { CommentPreview } from "./CommentPreview";
 import { type Comment } from "./issueActions";
 import { ProfilePicture } from "../../core/components/ProfilePicture";
+import { useMilestonesByRepoId } from "../milestones/useMilestones";
+import { useAuthContext } from "../../core/contexts/Auth";
+import { type User } from "../users/user.model";
+import { useCollaborators } from "../collaborators/useCollaborators";
+import { useRepositoryContext } from "../repository/RepositoryContext";
+import { type Repository } from "../repository/repository.service";
+import { type Collaborator } from "../collaborators/collaboratorAction";
+import Link from "next/link";
 
 const eventTypesToExclude = ["UserReactedEvent", "UserUnreactedEvent"];
 
 export const IssueHistory: FC = () => {
+  const { repository } = useRepositoryContext();
+  const { owner, name } = repository as Repository;
+
   const { issue } = useIssueContext();
   const { labels } = useLabels(issue.repositoryId);
   const { milestones } = useMilestonesByRepoId(issue.repositoryId);
-  const { users } = useUsers();
+
+  const { user } = useAuthContext();
+  const { collaborators } = useCollaborators(owner, name, "");
+
+  const participants = {
+    ...(issue.participants || {}),
+    [user?._id ?? ""]: user as any as User,
+    ...(collaborators?.reduce((acc: any, c: Collaborator) => {
+      acc[c.userId] = c.user;
+      return acc;
+    }, {}) ?? {}),
+  };
 
   const IssuesWrapper = ({ events }: any) => {
     return (
@@ -33,102 +52,115 @@ export const IssueHistory: FC = () => {
       </ol>
     );
   };
+  const EventText = ({ event }: any) => {
+    switch (event.type) {
+      case "IssueCreatedEvent":
+        return <>has opened this issue</>;
+      case "IssueUpdatedEvent":
+        return <>has updated this issue</>;
+
+      case "LabelAssignedEvent": {
+        const label = labels?.find((l: Label) => l._id === event.labelId) ?? {};
+        return (
+          <>
+            added the <LabelPreview {...label} /> label
+          </>
+        );
+      }
+      case "LabelUnassignedEvent": {
+        const label = labels?.find((l: Label) => l._id === event.labelId) ?? {};
+        return (
+          <>
+            removed the <LabelPreview {...label} /> label
+          </>
+        );
+      }
+
+      case "MilestoneAssignedEvent": {
+        const milestone = milestones?.find((m: Milestone) => m._id === event.milestoneId);
+        return (
+          <>
+            added the <Link href={`/${owner}/${name}/milestones/${milestone?.localId}`}>{milestone?.title}</Link>{" "}
+            milestone
+          </>
+        );
+      }
+      case "MilestoneUnassignedEvent": {
+        const milestone = milestones?.find((m: Milestone) => m._id === event.milestoneId);
+        return (
+          <>
+            removed the <Link href={`/${owner}/${name}/milestones/${milestone?.localId}`}>{milestone?.title}</Link>{" "}
+            milestone
+          </>
+        );
+      }
+
+      case "UserAssignedEvent":
+        const assigned = participants?.[event.userId];
+        return (
+          <>
+            assigned <Link href={`/users/${assigned?.username}`}>{assigned?.name}</Link>
+          </>
+        );
+      case "UserUnassignedEvent":
+        const unassigned = participants?.[event.userId];
+
+        return (
+          <>
+            removed <Link href={`/users/${unassigned?.username}`}>{unassigned?.name}</Link>
+          </>
+        );
+
+      case "IssueReopenedEvent":
+        return <>reopened this issue</>;
+      case "IssueClosedEvent":
+        return <>closed this issue</>;
+
+      case "CommentCreatedEvent":
+        return (
+          <>
+            commented <br />
+            <CommentPreview comment={issue.csm.comments?.find((c) => c._id === event.commentId) as Comment} />
+          </>
+        );
+      case "CommentUpdatedEvent": {
+        const commentById = issue.events?.find(
+          (e) => e.commentId === event.commentId && e.type === "CommentCreatedEvent"
+        ).by;
+        return <> edited comment from {participants[commentById].name}</>;
+      }
+      case "CommentHiddenEvent": {
+        const commentById = issue.events?.find(
+          (e) => e.commentId === event.commentId && e.type === "CommentCreatedEvent"
+        ).by;
+        return <> hid comment from {participants[commentById].name}</>;
+      }
+      case "CommentDeletedEvent": {
+        const commentById = issue.events?.find(
+          (e) => e.commentId === event.commentId && e.type === "CommentCreatedEvent"
+        ).by;
+        return <> deleted comment from {participants[commentById].name}</>;
+      }
+
+      default:
+        return <></>;
+    }
+  };
+
+  const DoneBy = ({ event }: any) => {
+    return <>{participants?.[event.by].username}</>;
+  };
 
   const IssueComponent = ({ event }: any) => {
-    const username = useMemo(() => {
-      return users?.find((u: any) => u._id === event.by)?.name;
-    }, [event.by]);
-
-    const EventText = ({ event }: any) => {
-      switch (event.type) {
-        case "IssueCreatedEvent":
-          return <>has opened this issue</>;
-        case "IssueUpdatedEvent":
-          return <>has updated this issue</>;
-
-        case "LabelAssignedEvent": {
-          const label = labels?.find((l: Label) => l._id === event.labelId) ?? {};
-          return (
-            <>
-              added the <LabelPreview {...label} /> label
-            </>
-          );
-        }
-        case "LabelUnassignedEvent": {
-          const label = labels?.find((l: Label) => l._id === event.labelId) ?? {};
-          return (
-            <>
-              removed the <LabelPreview {...label} /> label
-            </>
-          );
-        }
-
-        case "MilestoneAssignedEvent": {
-          const milestone = milestones?.find((m: Milestone) => m._id === event.milestoneId) ?? {};
-          return <>added the {milestone.title} milestone</>;
-        }
-        case "MilestoneUnassignedEvent": {
-          const milestone = milestones?.find((m: Milestone) => m._id === event.milestoneId) ?? {};
-          return <>removed the {milestone.title} milestone</>;
-        }
-
-        case "UserAssignedEvent":
-          return <>assigned {users?.find((u: User) => u._id === event.userId)?.name}</>;
-        case "UserUnassignedEvent":
-          return <>removed {users?.find((u: User) => u._id === event.userId)?.name}</>;
-
-        case "IssueReopenedEvent":
-          return <>reopened this issue</>;
-        case "IssueClosedEvent":
-          return <>closed this issue</>;
-
-        case "CommentCreatedEvent":
-          return (
-            <>
-              commented <br />
-              <CommentPreview comment={issue.csm.comments?.find((c) => c._id === event.commentId) as Comment} />
-            </>
-          );
-        case "CommentUpdatedEvent": {
-          const commentById = issue.events?.find(
-            (e) => e.commentId === event.commentId && e.type === "CommentCreatedEvent"
-          ).by;
-          const commentedBy = users?.find((u: User) => u._id === commentById)?.name;
-          return <> edited comment from {commentedBy}</>;
-        }
-        case "CommentHiddenEvent": {
-          const commentById = issue.events?.find(
-            (e) => e.commentId === event.commentId && e.type === "CommentCreatedEvent"
-          ).by;
-          const commentedBy = users?.find((u: User) => u._id === commentById)?.name;
-          return <> hid comment from {commentedBy}</>;
-        }
-        case "CommentDeletedEvent": {
-          const commentById = issue.events?.find(
-            (e) => e.commentId === event.commentId && e.type === "CommentCreatedEvent"
-          ).by;
-          const commentedBy = users?.find((u: User) => u._id === commentById)?.name;
-          return <> deleted comment from {commentedBy}</>;
-        }
-
-        default:
-          return <></>;
-      }
-    };
-
-    const DoneBy = () => {
-      return <>{username}</>;
-    };
-
     return (
       <li className="mb-10 ml-6">
         <span className="flex absolute -left-3 justify-center items-center w-6 h-6 bg-blue-200 rounded-full ring-8 ring-white">
-          <ProfilePicture username={username} size={40} />
+          <ProfilePicture username={participants?.[event.by].username ?? ""} size={40} />
         </span>
         <div className="p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
           <div className="grid grid-cols-12">
             <div className="col-span-10 text-left ">
-              <DoneBy /> <EventText event={event} />
+              <DoneBy event={event} /> <EventText event={event} />
             </div>
 
             <div className="col-span-2 text-right">

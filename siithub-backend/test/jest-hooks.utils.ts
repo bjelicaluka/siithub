@@ -67,7 +67,12 @@ export function setupGitServer() {
   let addSshKeyHandler: () => void = () => {};
   let updateSshKeyHandler: () => void = () => {};
   let removeSshKeyHandler: () => void = () => {};
-  let getBranches: () => void = () => {};
+  let getBranchesHandler: () => void = () => {};
+  let getCommitsHandler: () => void = () => {};
+  let getCommitsShaHandler: () => void = () => {};
+  let createTagHandler: () => void = () => {};
+  let deleteTagHandler: () => void = () => {};
+  let createRepoForkHandler: () => void = () => {};
 
   beforeEach(async () => {
     jest.mock("../src/features/gitserver/gitserver.client.ts", () => ({
@@ -78,12 +83,17 @@ export function setupGitServer() {
         addSshKey: jest.fn(() => addSshKeyHandler()),
         updateSshKey: jest.fn(() => updateSshKeyHandler()),
         removeSshKey: jest.fn(() => removeSshKeyHandler()),
-        getBranches: jest.fn(() => getBranches()),
+        getBranches: jest.fn(() => getBranchesHandler()),
         createBranch: jest.fn(() => () => {}),
         renameBranch: jest.fn(() => () => {}),
         removeBranch: jest.fn(() => () => {}),
         addCollaborator: jest.fn(() => () => {}),
         removeCollaborator: jest.fn(() => () => {}),
+        getCommits: jest.fn(() => getCommitsHandler()),
+        getCommitsSha: jest.fn(() => getCommitsShaHandler()),
+        createTag: jest.fn(() => () => createTagHandler()),
+        deleteTag: jest.fn(() => deleteTagHandler()),
+        createRepositoryFork: jest.fn(() => createRepoForkHandler()),
       },
     }));
   });
@@ -95,7 +105,12 @@ export function setupGitServer() {
     addSshKeyHandler = () => {};
     updateSshKeyHandler = () => {};
     removeSshKeyHandler = () => {};
-    getBranches = () => {};
+    getBranchesHandler = () => {};
+    getCommitsHandler = () => {};
+    getCommitsShaHandler = () => {};
+    createTagHandler = () => {};
+    deleteTagHandler = () => {};
+    createRepoForkHandler = () => {};
   });
 
   return {
@@ -118,7 +133,22 @@ export function setupGitServer() {
       removeSshKeyHandler = cb;
     },
     setGetBranchesHandler: (cb: () => void) => {
-      getBranches = cb;
+      getBranchesHandler = cb;
+    },
+    setGetCommitsHandler: (cb: () => void) => {
+      getCommitsHandler = cb;
+    },
+    setGetCommitsShaHandler: (cb: () => void) => {
+      getCommitsShaHandler = cb;
+    },
+    setCreateTagHandler: (cb: () => void) => {
+      createTagHandler = cb;
+    },
+    setDeleteTagHandler: (cb: () => void) => {
+      deleteTagHandler = cb;
+    },
+    setCreateRepoForkHandler: (cb: () => void) => {
+      createRepoForkHandler = cb;
     },
   };
 }

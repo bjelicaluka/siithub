@@ -1,5 +1,5 @@
 import { useQuery } from "react-query";
-import { getBranches, getBranchesCount, getDefaultBranch } from "./branchesActions";
+import { type Branch, type DefaultBranch, getBranches, getBranchesCount, getDefaultBranch } from "./branchesActions";
 
 export function useBranches(username: string, repoName: string, name?: string, dependencies: any[] = []) {
   const { data }: { data: any } = useQuery(
@@ -9,19 +9,20 @@ export function useBranches(username: string, repoName: string, name?: string, d
   );
 
   return {
-    branches: data?.data ?? [],
+    branches: (data?.data ?? []) as Branch[],
   };
 }
 
 export function useDefaultBranch(username: string, repoName: string, dependencies: any[] = []) {
-  const { data }: { data: any } = useQuery(
+  const { data, error } = useQuery(
     [`${username}/${repoName}_default_branch`, ...dependencies],
     () => getDefaultBranch(username, repoName),
     { enabled: dependencies.reduce((acc, d) => acc && !d, true) }
   );
 
   return {
-    defaultBranch: data?.data ?? {},
+    defaultBranch: (data?.data ?? {}) as DefaultBranch,
+    error: (error as any)?.response?.data,
   };
 }
 
@@ -32,5 +33,5 @@ export function useBranchesCount(username: string, repoName: string, dependencie
     { enabled: dependencies.reduce((acc, d) => acc && !d, true) }
   );
 
-  return data?.data ?? { count: 0 };
+  return (data?.data ?? { count: 0 }) as { count: number };
 }

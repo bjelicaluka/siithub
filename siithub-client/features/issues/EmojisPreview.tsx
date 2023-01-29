@@ -1,6 +1,6 @@
 import { type FC } from "react";
 import { useAuthContext } from "../../core/contexts/Auth";
-import { EmojiPreview } from "./EmojiPreview";
+import { EmojiPreview } from "../common/EmojiPreview";
 import { type Comment } from "./issueActions";
 import { instantAddReaction, instantRemoveReaction, useIssueContext } from "./IssueContext";
 

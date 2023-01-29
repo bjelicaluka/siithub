@@ -19,13 +19,21 @@ type StaringActivity = Activity & {};
 
 type NewIssueActivity = Activity & {
   issueId: Issue["_id"];
+  localId: number;
   title: string;
 };
 
 type NewCommentActivity = Activity & {
   issueId: Issue["_id"];
+  localId: number;
   title: string;
   text: string;
+};
+
+type NewPullRequestActivity = Activity & {
+  issueId: Issue["_id"];
+  localId: number;
+  title: string;
 };
 
 function getActivities(upTill?: Moment) {
@@ -34,4 +42,4 @@ function getActivities(upTill?: Moment) {
 
 export { getActivities };
 
-export type { Activity, StaringActivity, NewIssueActivity, NewCommentActivity };
+export type { Activity, StaringActivity, NewIssueActivity, NewCommentActivity, NewPullRequestActivity };

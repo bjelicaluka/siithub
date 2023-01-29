@@ -3,15 +3,18 @@ import { execCmd } from "../../src/cmd.utils";
 import { createRepo, removeRepo } from "../../src/git/repository.utils";
 
 describe("Repository Utils", () => {
+  const username = "test-user";
+  const repository = "test-repository-name";
+
   // remove user and group if exist before running tests
   beforeEach(async () => {
     try {
-      await execCmd(`deluser --remove-home test-user`);
+      await execCmd(`deluser --remove-home ${username}`);
     } catch (error) {
       //
     }
     try {
-      await execCmd(`delgroup test-repository-name`);
+      await execCmd(`delgroup ${username}-${repository}`);
     } catch (error) {
       //
     }
@@ -19,17 +22,12 @@ describe("Repository Utils", () => {
 
   afterEach(async () => {
     try {
-      await execCmd(`deluser --remove-home test-user`);
-    } catch (error) {
-      //
-    }
-    try {
-      await execCmd(`delgroup test-repository-name`);
-    } catch (error) {
-      //
-    }
-    try {
       await execCmd(`rm -r /home/_deleted`);
+    } catch (error) {
+      //
+    }
+    try {
+      await execCmd(`rm -r /home/${username}`);
     } catch (error) {
       //
     }
@@ -37,37 +35,27 @@ describe("Repository Utils", () => {
 
   describe("createRepo", () => {
     it("should create repository with a specific owner", async () => {
-      await createRepo("test-user", "test-repository-name");
+      await createRepo(username, repository);
 
-      await expect(
-        execCmd(`ls -la /home/test-user/test-repository-name`)
-      ).resolves.not.toHaveLength(0);
+      await expect(execCmd(`ls -la /home/${username}/${repository}`)).resolves.not.toHaveLength(0);
     });
   });
 
   describe("removeRepo", () => {
     it("should remove repository with a specific owner", async () => {
-      await createRepo("test-user", "test-repository-name");
+      await createRepo(username, repository);
 
-      await expect(
-        execCmd(`ls -la /home/test-user/test-repository-name`)
-      ).resolves.not.toHaveLength(0);
+      await expect(execCmd(`ls -la /home/${username}/${repository}`)).resolves.not.toHaveLength(0);
 
-      await removeRepo("test-user", "test-repository-name");
-      await expect(
-        execCmd(`ls -la /home/test-user/test-repository-name`)
-      ).rejects.not.toHaveLength(0);
+      await removeRepo(username, repository);
+      await expect(execCmd(`ls -la /home/${username}/${repository}`)).rejects.not.toHaveLength(0);
 
-      await expect(
-        execCmd(`ls -la /home/_deleted/test-repository-name`)
-      ).resolves.not.toHaveLength(0);
+      await expect(execCmd(`ls -la /home/_deleted/${repository}`)).resolves.not.toHaveLength(0);
 
-      await expect(
-        execCmd(`ls -la /home/_deleted/test-repository-name`)
-      ).resolves.not.toHaveLength(0);
+      await expect(execCmd(`ls -la /home/_deleted/${repository}`)).resolves.not.toHaveLength(0);
 
       const result = await execCmd(`ls -l /home/_deleted`);
-      expect(result.includes("test-user")).toBeFalsy();
+      expect(result.includes(username)).toBeFalsy();
     });
   });
 });

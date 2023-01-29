@@ -1,10 +1,12 @@
+import { type FC } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { type FC } from "react";
 import { type Repository } from "../repository/repository.service";
 import { useRepositoryContext } from "../repository/RepositoryContext";
-import { SelectBranchField } from "./SelectBranchField";
-import { useBranchesCount, useDefaultBranch } from "./useBranches";
+import { useBranches } from "./useBranches";
+import Select from "react-select";
+import { useTagsCount } from "../tags/useTags";
+import { TagIcon } from "../tags/Icons";
 
 const BranchesIcon = ({ className }: any) => {
   return (
@@ -14,13 +16,13 @@ const BranchesIcon = ({ className }: any) => {
   );
 };
 
-export const BranchesMenu: FC = () => {
+export const BranchesMenu: FC<{ count?: boolean }> = ({ count }) => {
   const router = useRouter();
   const { repository } = useRepositoryContext();
   const { owner, name } = repository as Repository;
-
-  const { count } = useBranchesCount(repository?.owner ?? "", repository?.name ?? "");
+  const { branches } = useBranches(owner, name);
   const { branch } = router.query;
+  const { count: tagsCount } = useTagsCount(owner, name);
 
   if (!branch) return <></>;
 
@@ -51,19 +53,25 @@ export const BranchesMenu: FC = () => {
     <>
       <div className="flex space-x-2 items-center">
         <div className="min-w-[256px]">
-          <SelectBranchField
-            username={owner}
-            repo={name}
-            onChange={changeBranch}
-            defaultBranch={branch?.toString() ?? ""}
-            showLabel={false}
+          <Select
+            defaultValue={{ value: branch, label: branch }}
+            options={branches?.map((b) => ({ value: b, label: b }))}
+            onChange={(val) => changeBranch(val?.label as string)}
           />
         </div>
 
-        <Link href={`/${owner}/${name}/branches`} className="flex hover:text-blue-800">
-          <BranchesIcon className="mt-1 mr-1" />
-          {count} branches
-        </Link>
+        {count && (
+          <div className="flex space-x-2">
+            <Link href={`/${owner}/${name}/branches`} className="flex hover:text-blue-800">
+              <BranchesIcon className="mt-1 mr-1" />
+              {branches?.length} branches
+            </Link>
+            <Link href={`/${owner}/${name}/tags`} className="flex hover:text-blue-800">
+              <TagIcon className="mt-1 mr-1" />
+              {tagsCount} tags
+            </Link>
+          </div>
+        )}
       </div>
     </>
   );

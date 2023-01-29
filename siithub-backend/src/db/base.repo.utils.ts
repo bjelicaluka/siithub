@@ -12,7 +12,8 @@ export type BaseEvent = BaseEntity & {
   type: string;
 };
 
-export type AggregateRoot = BaseEntity & {
+export type AggregateRoot<TCsm> = BaseEntity & {
+  csm: TCsm;
   events: BaseEvent[];
 };
 

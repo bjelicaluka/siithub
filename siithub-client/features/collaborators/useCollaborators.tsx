@@ -1,12 +1,7 @@
 import { useQuery } from "react-query";
-import { searchCollaborators } from "./collaboratorAction";
+import { type Collaborator, searchCollaborators } from "./collaboratorAction";
 
-export function useCollaborators(
-  username: string,
-  repo: string,
-  name: string,
-  dependencies: any[] = []
-) {
+export function useCollaborators(username: string, repo: string, name: string, dependencies: any[] = []) {
   const { data } = useQuery(
     [`collaborators_${username}/${repo}`, name, ...dependencies],
     () => searchCollaborators(username, repo, name),
@@ -14,6 +9,6 @@ export function useCollaborators(
   );
 
   return {
-    collaborators: data?.data,
+    collaborators: (data?.data ?? []) as Collaborator[],
   };
 }

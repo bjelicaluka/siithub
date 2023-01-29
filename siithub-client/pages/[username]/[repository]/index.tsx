@@ -6,16 +6,16 @@ import { RepositoryView } from "../../../features/repository/repository-view";
 const Repository = () => {
   const router = useRouter();
   const { repository, username } = router.query;
-  const { defaultBranch } = useDefaultBranch(username?.toString() ?? "", repository?.toString() ?? "");
+  const { defaultBranch, error } = useDefaultBranch(username?.toString() ?? "", repository?.toString() ?? "");
 
   useEffect(() => {
-    if (!repository || !username || !defaultBranch || !defaultBranch.branch) return;
+    if (!repository || !username || !defaultBranch?.branch) return;
     router.push(`/${username}/${repository}/tree/${encodeURIComponent(defaultBranch.branch)}`);
   }, [router, username, repository, defaultBranch]);
 
   return (
     <>
-      <RepositoryView repo={repository?.toString() ?? ""} username={username?.toString() ?? ""} />
+      <RepositoryView repo={repository?.toString() ?? ""} username={username?.toString() ?? ""} isEmpty={!!error} />
     </>
   );
 };

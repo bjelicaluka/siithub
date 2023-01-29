@@ -9,15 +9,15 @@ type DefaultBranch = {
   branch: string;
 };
 
-function getBranches(username: string, repoName: string, name?: string): Promise<Branch[]> {
+function getBranches(username: string, repoName: string, name?: string) {
   return axios.get(`/api/${username}/${repoName}/branches`, { params: { name } });
 }
 
-function getDefaultBranch(username: string, repoName: string): Promise<Branch> {
+function getDefaultBranch(username: string, repoName: string) {
   return axios.get(`/api/${username}/${repoName}/branches/default`);
 }
 
-function getBranchesCount(username: string, repoName: string): Promise<number> {
+function getBranchesCount(username: string, repoName: string) {
   return axios.get(`/api/${username}/${repoName}/branches/count`);
 }
 
